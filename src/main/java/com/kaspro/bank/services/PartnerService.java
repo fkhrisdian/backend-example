@@ -22,7 +22,6 @@ public class PartnerService {
 
     public List<PartnerResponseVO> findAll(){
         List<Partner> partners = partnerRepository.findAll();
-        log.info("partner"+partners.size());
         List<PartnerResponseVO> result = new ArrayList<>();
         partnerVOConverter.transferListOfModelToListOfVO(partners, result);
         return result;
