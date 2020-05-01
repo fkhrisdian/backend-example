@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost/kaspro?useSSL=false
+    username: kaspro
+    password: kasproPassword1!
+    driver-class-name: com.mysql.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      connectionTestQuery: SELECT 1
+      connectionTimeout: 60000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+      maximumPoolSize: 20
+  messages:
+    basename: messages/messages
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect

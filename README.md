@@ -1,2 +1,13 @@
-# kaspro-bank
-Kaspro bank
+##KasPro - Bank
+
+Provide API for KasPro Bank
+
+### Requirement :
+
+1. Java JDK 8
+2. MySQL
+3. Maven
+
+### How to run :
+
+1. Run using maven `mvn spring-boot:run` at root directory
