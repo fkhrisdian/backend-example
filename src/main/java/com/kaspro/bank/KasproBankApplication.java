@@ -6,20 +6,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+@Slf4j
 @SpringBootApplication
 @EnableScheduling
 public class KasproBankApplication {
 	public static void main(String[] args) throws Exception {
-		new SshTunnelStarter().init();
-		System.out.println("testing ssh");
+		new SshTunnelStarter().init();{log.info("Ssh Tunnel started please turn off if not needed");};
 		SpringApplication.run(KasproBankApplication.class, args);
 	}
 }
 
+@Slf4j
 class SshTunnelStarter {
 
 	@Value("${ssh.tunnel.url}")
@@ -38,9 +40,10 @@ class SshTunnelStarter {
 
 	@PostConstruct
 	public void init() throws Exception {
+
 		JSch jsch = new JSch();
+		log.info("JSch started");
 		// Get SSH session
-		System.out.println("testing ssh2");
 		session = jsch.getSession("devuser", "147.139.169.114", 777);
 		session.setPassword("Kokas@jakart4");
 		java.util.Properties config = new java.util.Properties();
