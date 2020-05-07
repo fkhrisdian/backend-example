@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
+<configuration scan="true" scanPeriod="15 seconds">
 
     <property name="LOG_PATH" value="logs" />
-
     <property name="FILE_LOG_PATTERN" value="%d{HH:mm:ss.SSS} %5p --- [%t] %-40.40logger{39} : %msg%n"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -16,11 +15,13 @@
         <encoder>
             <Pattern>${FILE_LOG_PATTERN}</Pattern>
         </encoder>
+
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_PATH}/kaspro_bank.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
     </appender>
+
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />
