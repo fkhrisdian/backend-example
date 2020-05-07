@@ -100,8 +100,8 @@ public class BniEncryption {
         BniEncryption hash = new BniEncryption();
         String data = "{\"customer_email\":\"tech@bni-ecollection.com\",\"trx_id\":\"INV/2016/01/01/0001\",\"datetime_expired\":\"2016-01-25 23:59:59\",\"client_id\":\"000\",\"customer_phone\":\"62856789101112\",\"customer_name\":\"Test Create Billing\",\"type\":\"createbilling\",\"virtual_account\":\"\",\"trx_amount\":\"1000\",\"billing_type\":\"c\"}";
 
-        String cid = "513"; // from BNI
-        String key = "ffcff955e7a53ebf76cda9cd16232ac4"; // from BNI
+        String cid = "513"; // from BNI, testing purpose
+        String key = "ffcff955e7a53ebf76cda9cd16232ac4"; // from BNI, testing purpose
 
         String parsedData = hash.hashData(data, cid, key);
         String decodeData = hash.parseData(parsedData, cid, key);
