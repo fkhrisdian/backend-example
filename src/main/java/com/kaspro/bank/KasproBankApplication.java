@@ -3,6 +3,7 @@ package com.kaspro.bank;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.kaspro.bank.services.BniEncryption;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,6 +20,7 @@ public class KasproBankApplication {
 	public static void main(String[] args) throws Exception {
 		new SshTunnelStarter().init();
 		SpringApplication.run(KasproBankApplication.class, args);
+		BniEncryption.TestBniEncryption();
 	}
 }
 
@@ -40,7 +42,7 @@ class SshTunnelStarter {
 	private Session session;
 
 	@PostConstruct
-	public void init() throws Exception {
+	public void init() {
 
 		JSch jsch = new JSch();
 		log.info("JSch started");
@@ -66,7 +68,7 @@ class SshTunnelStarter {
 	}
 
 	@PreDestroy
-	public void shutdown() throws Exception {
+	public void shutdown() {
 		if (session != null && session.isConnected()) {
 			session.disconnect();
 			log.info("Ssh Tunnel disconnected");
