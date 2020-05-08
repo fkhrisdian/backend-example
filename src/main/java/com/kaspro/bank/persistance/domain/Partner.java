@@ -6,7 +6,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 
 @Entity
-@Table
+@Table(name = "PARTNER")
 @DynamicUpdate
 @Data
 public class Partner extends Base {
