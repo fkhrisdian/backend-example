@@ -6,6 +6,9 @@ import org.hibernate.annotations.DynamicUpdate;
 import java.math.BigDecimal;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -21,4 +24,8 @@ public class TransferLimit extends Base {
 
   @Column(name = "TIER_TYPE")
   private String tierType;
+
+  @ManyToOne(fetch= FetchType.LAZY)
+  @JoinColumn(name = "PARTNER_ID")
+  private Partner partner;
 }
