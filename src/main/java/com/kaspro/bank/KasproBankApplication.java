@@ -9,6 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -16,6 +17,7 @@ import javax.annotation.PreDestroy;
 @Slf4j
 @SpringBootApplication
 @EnableScheduling
+@EnableSwagger2
 public class KasproBankApplication {
 	public static void main(String[] args) throws Exception {
 		new SshTunnelStarter().init();
