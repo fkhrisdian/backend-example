@@ -14,8 +14,21 @@ public class Partner extends Base {
     @Column(nullable = false)
     private String name;
 
-    @Override
-    public void prePersist() {
-        super.prePersist();
-    }
+    @Column
+    private String email;
+
+    @Column(name = "ALAMAT")
+    private String address;
+
+    @Column(name = "NIB_SIP_TDP")
+    private String nibSipTdp;
+
+    @Column(name = "NO_AKTA_PENDIRIAN")
+    private String noAktaPendirian;
+
+    @Column
+    private String npwp;
+
+    @Column
+    private String status;
 }
