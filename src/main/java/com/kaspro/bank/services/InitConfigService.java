@@ -20,9 +20,11 @@ public class InitConfigService {
 
     public List<KasprobankConfig> findAll(){
         List<KasprobankConfig> result = kasproBankConfigRepository.findAll();
-        logger.info("get list of user by "+Thread.currentThread().getName());
+        logger.info("get initial param "+Thread.currentThread().getName());
         return result;
     }
+
+
 
     public KasprobankConfig add(KasprobankConfig kasprobankConfig){
         KasprobankConfig saved = kasproBankConfigRepository.save(kasprobankConfig);

@@ -3,6 +3,7 @@ package com.kaspro.bank;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.kaspro.bank.util.InitDB;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,14 +24,8 @@ public class KasproBankApplication {
 		SpringApplication.run(KasproBankApplication.class, args);
 		//BniEncryption.TestBniEncryption(); // test encrypt decrypt
 
-//		KasprobankConfig kasprobankConfig = new KasprobankConfig();
-//		InitConfig initConfig = new InitConfig();
-//
-//		kasprobankConfig.setParam_name("Nama");
-//		kasprobankConfig.setParam_value("Faizal");
-//		initConfig.add(kasprobankConfig);
-//
-//		List<KasprobankConfig> result = initConfig.findAll();
+		InitDB config = InitDB.getInstance();
+		log.info(config.get("1232131"));
 
 
 
