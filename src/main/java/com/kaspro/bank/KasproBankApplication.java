@@ -4,6 +4,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.kaspro.bank.services.BniEncryption;
+import com.kaspro.bank.services.InitConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,7 +23,11 @@ public class KasproBankApplication {
 	public static void main(String[] args) throws Exception {
 		new SshTunnelStarter().init();
 		SpringApplication.run(KasproBankApplication.class, args);
-		BniEncryption.TestBniEncryption();
+		//BniEncryption.TestBniEncryption(); // test encrypt decrypt
+
+		InitConfig config = new InitConfig();
+		log.info(String.valueOf(config.findAll()));
+
 	}
 }
 
