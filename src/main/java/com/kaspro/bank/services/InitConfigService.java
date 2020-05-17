@@ -7,23 +7,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Service
-public class InitConfig {
+public class InitConfigService {
 
     @Autowired
     private KasproBankConfigRepository kasproBankConfigRepository;
 
     Object target;
-    Logger logger = LoggerFactory.getLogger(InitConfig.class);
+    Logger logger = LoggerFactory.getLogger(InitConfigService.class);
 
-    public CompletableFuture<List<KasprobankConfig>> findAll(){
-        List<KasprobankConfig> result = new ArrayList<>();
-        result = kasproBankConfigRepository.findAll();
+    public List<KasprobankConfig> findAll(){
+        List<KasprobankConfig> result = kasproBankConfigRepository.findAll();
         logger.info("get list of user by "+Thread.currentThread().getName());
-        return CompletableFuture.completedFuture(result);
+        return result;
+    }
+
+    public KasprobankConfig add(KasprobankConfig kasprobankConfig){
+        KasprobankConfig saved = kasproBankConfigRepository.save(kasprobankConfig);
+        return saved;
     }
 }
