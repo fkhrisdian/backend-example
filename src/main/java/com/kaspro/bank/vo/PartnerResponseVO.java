@@ -7,6 +7,8 @@ import javax.validation.constraints.Size;
 
 @Data
 public class PartnerResponseVO extends BaseVO {
+    private String transID;
+    private String serviceName;
     private String id;
-    private String name;
+    private int status;
 }

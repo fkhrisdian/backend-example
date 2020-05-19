@@ -18,7 +18,9 @@ public class PartnerController {
     @Autowired
     PartnerService partnerService;
 
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Get")
     @ResponseBody
     public ResponseEntity<ResultVO> findAll() {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
@@ -30,9 +32,24 @@ public class PartnerController {
         return handler.getResult();
     }
 
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/GetDetail")
+    @ResponseBody
+    public ResponseEntity<ResultVO> findPartnerDetail(@RequestParam (value="id", required = true) int id) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return partnerService.findDetail(id);
+            }
+        };
+        return handler.getResult();
+    }
+
     @RequestMapping(method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody final PartnerRequestVO vo) {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
