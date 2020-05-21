@@ -57,6 +57,8 @@
 			<scope>runtime</scope>
 		</dependency>
 
+
+
 		<!-- Tools -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -97,12 +99,28 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 			<version>1.4.3.RELEASE</version>
 		</dependency>
+
+		<!-- Tunnelling -->
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
             <version>0.1.54</version>
         </dependency>
+
+		<!-- Json transformation -->
+		<dependency>
+			<groupId>com.bazaarvoice.jolt</groupId>
+			<artifactId>jolt-core</artifactId>
+			<version>0.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.bazaarvoice.jolt</groupId>
+			<artifactId>json-utils</artifactId>
+			<version>0.1.1</version>
+		</dependency>
+
 	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>
