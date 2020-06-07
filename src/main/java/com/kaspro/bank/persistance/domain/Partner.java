@@ -29,6 +29,9 @@ public class Partner extends Base {
     @Column(name = "NPWP")
     private String npwp;
 
+    @Column(name = "TIERS")
+    private String tiers;
+
     @Column(name = "STATUS")
     private String status;
 }

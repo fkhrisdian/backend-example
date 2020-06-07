@@ -1,7 +1,6 @@
 package com.kaspro.bank.controller;
 
 import com.kaspro.bank.services.TransferLimitService;
-import com.kaspro.bank.vo.PartnerRequestVO;
 import com.kaspro.bank.vo.ResultVO;
 import com.kaspro.bank.vo.TransferLimitVO;
 import org.springframework.beans.factory.annotation.Autowired;

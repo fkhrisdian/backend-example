@@ -1,10 +1,8 @@
 package com.kaspro.bank.controller;
 
 import com.kaspro.bank.services.PartnerService;
-import com.kaspro.bank.validator.AuthenticationValidator;
-import com.kaspro.bank.vo.PartnerRequestVO;
+import com.kaspro.bank.vo.RegisterPartnerVO;
 import com.kaspro.bank.vo.ResultVO;
-import com.kaspro.bank.vo.PartnerResponseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +49,7 @@ public class PartnerController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Add")
     @ResponseBody
-    public ResponseEntity<ResultVO> add(@RequestBody final PartnerRequestVO vo) {
+    public ResponseEntity<ResultVO> add(@RequestBody final RegisterPartnerVO vo) {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

@@ -2,15 +2,15 @@ package com.kaspro.bank.converter;
 
 import com.kaspro.bank.persistance.domain.Partner;
 import com.kaspro.bank.util.ExtendedSpringBeanUtil;
-import com.kaspro.bank.vo.PartnerRequestVO;
-import com.kaspro.bank.vo.PartnerResponseVO;
+import com.kaspro.bank.vo.RegisterPartnerVO;
+import com.kaspro.bank.vo.RegisterPartnerResponseVO;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PartnerVOConverter extends BaseVOConverter<PartnerRequestVO, PartnerResponseVO, Partner> {
+public class PartnerVOConverter extends BaseVOConverter<RegisterPartnerVO, RegisterPartnerResponseVO, Partner> {
 
   @Override
-  public Partner transferVOToModel(PartnerRequestVO vo, Partner model){
+  public Partner transferVOToModel(RegisterPartnerVO vo, Partner model){
     if (model == null) model = new Partner();
     super.transferVOToModel(vo, model);
     ExtendedSpringBeanUtil.copySpecificProperties(vo, model,
@@ -19,8 +19,8 @@ public class PartnerVOConverter extends BaseVOConverter<PartnerRequestVO, Partne
   }
 
   @Override
-  public PartnerResponseVO transferModelToVO(Partner model, PartnerResponseVO vo){
-    if (vo == null) vo = new PartnerResponseVO();
+  public RegisterPartnerResponseVO transferModelToVO(Partner model, RegisterPartnerResponseVO vo){
+    if (vo == null) vo = new RegisterPartnerResponseVO();
     super.transferModelToVO(model, vo);
     ExtendedSpringBeanUtil.copySpecificProperties(model, vo,
         new String[]{"name"});

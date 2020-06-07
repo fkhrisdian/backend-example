@@ -1,16 +1,11 @@
 package com.kaspro.bank.services;
 
 import com.kaspro.bank.converter.PartnerVOConverter;
-import com.kaspro.bank.persistance.domain.Partner;
-import com.kaspro.bank.persistance.domain.TransferFee;
-import com.kaspro.bank.persistance.domain.TransferLimit;
-import com.kaspro.bank.persistance.repository.PartnerRepository;
-import com.kaspro.bank.persistance.repository.TransferFeeRepository;
-import com.kaspro.bank.persistance.repository.TransferLimitRepository;
-import com.kaspro.bank.vo.PartnerRequestVO;
-import com.kaspro.bank.vo.PartnerResponseVO;
+import com.kaspro.bank.persistance.domain.*;
+import com.kaspro.bank.persistance.repository.*;
+import com.kaspro.bank.vo.RegisterPartnerVO;
+import com.kaspro.bank.vo.RegisterPartnerResponseVO;
 import com.kaspro.bank.vo.TransferFeeVO;
-import com.kaspro.bank.vo.TransferLimitVO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +22,19 @@ public class PartnerService {
     PartnerRepository partnerRepository;
 
     @Autowired
-    TransferLimitRepository tlRepository;
+    LampiranRepository lampiranRepository;
 
     @Autowired
     TransferFeeRepository tfRepository;
 
     @Autowired
-    PartnerVOConverter partnerVOConverter;
+    DataPICRepository dataPICRepository;
+
+    @Autowired
+    VirtualAccountRepository vaRepository;
+
+    @Autowired
+    VirtualAccountService vaService;
 
     Logger logger = LoggerFactory.getLogger(PartnerService.class);
 
@@ -43,103 +44,75 @@ public class PartnerService {
     }
 
     @Transactional
-    public PartnerRequestVO findDetail(int id){
-        PartnerRequestVO result = new PartnerRequestVO();
+    public RegisterPartnerVO findDetail(int id){
+        RegisterPartnerVO result = new RegisterPartnerVO();
 
         Partner partner=partnerRepository.findPartner(id);
-        result.setAddress(partner.getAddress());
-        result.setName(partner.getName());
-        result.setNibSiupTdp(partner.getNibSipTdp());
-        result.setNoAktaPendirian(partner.getNoAktaPendirian());
-        result.setNpwp(partner.getNpwp());
-        result.setStatus(partner.getStatus());
-        result.setId(partner.getId().toString());
-        result.setVersion(partner.getVersion());
+        DataPIC dataPIC=dataPICRepository.findByPartnerID(id);
+        List<Lampiran> listLampiran=lampiranRepository.findByPartnerID(id);
+        List<TransferFee> transferFees=tfRepository.findByPartnerID(id);
+        VirtualAccount va=vaRepository.findByPartnerID(id);
 
-        List<TransferFee> tfs = tfRepository.findByPartnerID(id);
-        TransferFeeVO tfVO = new TransferFeeVO();
-        for(TransferFee tf:tfs){
-            if (tf.getDestination().equals("KASPROBANK")){
-                tfVO.setKasproBank(tf.getFee());
-            }else if (tf.getDestination().equals("KASPRO")){
-                tfVO.setKaspro(tf.getFee());
-            }else if (tf.getDestination().equals("BNI")){
-                tfVO.setBni(tf.getFee());
-            }else if (tf.getDestination().equals("OTHERBANK")){
-                tfVO.setOtherBank(tf.getFee());
-            }else if (tf.getDestination().equals("EMONEY")){
-                tfVO.setEmoney(tf.getFee());
-            }
-        }
+        String tiers=partner.getTiers();
+        String[] listTiers=tiers.split("\\|");
 
-        result.setTransferFee(tfVO);
+        result.setPartner(partner);
+        result.setDataPIC(dataPIC);
+        result.setListLampiran(listLampiran);
+        result.setTransferFees(transferFees);
+        result.setListTier(listTiers);
+        result.setVirtualAccount(va.getVa());
 
         return result;
     }
 
     @Transactional
-    public PartnerResponseVO add(PartnerRequestVO vo){
-        //Partner insertion
+    public RegisterPartnerVO add(RegisterPartnerVO vo){
+
+        String tiers="";
+        for(String t : vo.getListTier()){
+            tiers=tiers+t+"|";
+        }
+
         logger.info("Starting insert Partner");
-        Partner partner = new Partner();
-        partner.setName(vo.getName());
-        partner.setAddress(vo.getAddress());
-        partner.setNibSipTdp(vo.getNibSiupTdp());
-        partner.setNoAktaPendirian(vo.getNoAktaPendirian());
-        partner.setNpwp(vo.getNpwp());
-        partner.setStatus("ACTIVE");
+        Partner partner =vo.getPartner();
         logger.info("Inserting partner: "+partner.getName());
+        logger.info("Tiers : "+tiers);
+        partner.setTiers(tiers);
         Partner savedPartner=partnerRepository.save(partner);
         logger.info("Finished insert Partner");
 
+        logger.info("Starting insert Data PIC");
+        DataPIC dataPIC =vo.getDataPIC();
+        dataPIC.setPartner(savedPartner);
+        logger.info("Inserting Data PIC: "+dataPIC.getName());
+        dataPICRepository.save(dataPIC);
+        logger.info("Finished insert Data PIC");
 
-        //TransferFee Insertion
+        logger.info("Starting insert Lampiran");
+        List<Lampiran> listLampiran = vo.getListLampiran();
+        for(Lampiran lampiran:listLampiran){
+            logger.info("Inserting Lampiran: "+lampiran.getName());
+            lampiran.setPartner(savedPartner);
+            lampiranRepository.save(lampiran);
+            logger.info("Finished insert Lampiran: "+lampiran.getName());
 
-        TransferFeeVO tf=vo.getTransferFee();
-        TransferFee transferFee = new TransferFee();
-        transferFee.setPartner(savedPartner);
+        }
 
-        logger.info("Starting insert TransferFee");
-        //Save TransferFee for KasproBank to KasproBank
-        transferFee.setDestination("KASPROBANK");
-        transferFee.setFee(tf.getKasproBank());
-        logger.info("Inserting Transfer Fee "+transferFee.getDestination()+" with Value "+transferFee.getFee());
-        tfRepository.save(transferFee);
+        logger.info("Starting insert Transfer Fee");
+        List<TransferFee> transferFees = vo.getTransferFees();
+        for(TransferFee tf:transferFees){
+            logger.info("Inserting Transfer Fee: "+tf.getDestination());
+            tf.setPartner(savedPartner);
+            tfRepository.save(tf);
+            logger.info("Finished insert Transfer Fee: "+tf.getDestination());
 
-        //Save TransferFee for KasproBank to Kaspro
-        transferFee.setDestination("KASPRO");
-        transferFee.setFee(tf.getKaspro());
-        logger.info("Inserting Transfer Fee "+transferFee.getDestination()+" with Value "+transferFee.getFee());
-        tfRepository.save(transferFee);
+        }
 
-        //Save TransferFee for KasproBank to BNI
-        transferFee.setDestination("BNI");
-        transferFee.setFee(tf.getBni());
-        logger.info("Inserting Transfer Fee "+transferFee.getDestination()+" with Value "+transferFee.getFee());
-        tfRepository.save(transferFee);
+        logger.info("Starting insert Virtual Account");
+        VirtualAccount va=vaService.add(dataPIC.getMsisdn(), savedPartner, "C");
+        logger.info("Finished insert Virtual Account: "+va.getVa());
 
-        //Save TransferFee for KasproBank to OtherBank
-        transferFee.setDestination("OTHERBANK");
-        transferFee.setFee(tf.getOtherBank());
-        logger.info("Inserting Transfer Fee "+transferFee.getDestination()+" with Value "+transferFee.getFee());
-        tfRepository.save(transferFee);
-
-        //Save TransferFee for KasproBank to eMoney
-        transferFee.setDestination("EMONEY");
-        transferFee.setFee(tf.getEmoney());
-        logger.info("Inserting Transfer Fee "+transferFee.getDestination()+" with Value "+transferFee.getFee());
-        tfRepository.save(transferFee);
-        logger.info("Finished insert TransferFee");
-
-        //Compose response
-        PartnerResponseVO result=new PartnerResponseVO();
-        result.setId(savedPartner.getSecureId());
-        result.setServiceName(vo.getServiceName());
-        result.setTransID(vo.getTransID());
-        result.setStatus(0);
-        result.setVersion(savedPartner.getVersion());
-        logger.info("Success inserting partner with ID : "+result.getId());
-
-        return result;
+        return vo;
     }
 }

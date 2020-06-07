@@ -42,7 +42,7 @@ public class InitConfigController {
     @GetMapping(value = "/KasprobankConfigGet",produces = MediaType.APPLICATION_JSON_VALUE)
     public String get(@RequestParam String Name){
         InitDB x  = InitDB.getInstance();
-        String result = "Get Config ok --" + x.get(Name);
+        String result = x.get(Name);
         return result;
     }
 }
