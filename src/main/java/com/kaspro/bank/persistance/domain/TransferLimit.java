@@ -16,12 +16,9 @@ public class TransferLimit extends Base {
   private String destination;
 
   @Column(name = "TRX_LIMIT")
-  private BigDecimal transactionLimit;
+  private String transactionLimit;
 
   @Column(name = "TIER_TYPE")
   private String tierType;
 
-  @ManyToOne(fetch= FetchType.LAZY)
-  @JoinColumn(name = "PARTNER_ID")
-  private Partner partner;
 }

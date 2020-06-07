@@ -48,7 +48,6 @@ public class PartnerService {
 
         Partner partner=partnerRepository.findPartner(id);
         result.setAddress(partner.getAddress());
-        result.setEmail(partner.getEmail());
         result.setName(partner.getName());
         result.setNibSiupTdp(partner.getNibSipTdp());
         result.setNoAktaPendirian(partner.getNoAktaPendirian());
@@ -73,29 +72,6 @@ public class PartnerService {
             }
         }
 
-        List<String> tiers = tlRepository.findTiersByPartnerID(id);
-        List<TransferLimitVO> tlVOs = new ArrayList<>();
-        for(String tier:tiers){
-            List<TransferLimit> tls = tlRepository.findByPartnerIDAndTier(id,tier);
-            TransferLimitVO tlVO = new TransferLimitVO();
-            tlVO.setType(tier);
-            for(TransferLimit tl:tls){
-                if (tl.getDestination().equals("KASPROBANK")){
-                    tlVO.setKasproBank(tl.getTransactionLimit());
-                }else if (tl.getDestination().equals("KASPRO")){
-                    tlVO.setKaspro(tl.getTransactionLimit());
-                }else if (tl.getDestination().equals("BNI")){
-                    tlVO.setBni(tl.getTransactionLimit());
-                }else if (tl.getDestination().equals("OTHERBANK")){
-                    tlVO.setOtherBank(tl.getTransactionLimit());
-                }else if (tl.getDestination().equals("EMONEY")){
-                    tlVO.setEmoney(tl.getTransactionLimit());
-                }
-            }
-            tlVOs.add(tlVO);
-        }
-        result.setTransferLimits(tlVOs);
-
         result.setTransferFee(tfVO);
 
         return result;
@@ -108,7 +84,6 @@ public class PartnerService {
         Partner partner = new Partner();
         partner.setName(vo.getName());
         partner.setAddress(vo.getAddress());
-        partner.setEmail(vo.getEmail());
         partner.setNibSipTdp(vo.getNibSiupTdp());
         partner.setNoAktaPendirian(vo.getNoAktaPendirian());
         partner.setNpwp(vo.getNpwp());
@@ -117,45 +92,6 @@ public class PartnerService {
         Partner savedPartner=partnerRepository.save(partner);
         logger.info("Finished insert Partner");
 
-        //TransferLimit insertion
-        logger.info("Starting insert Transfer Limit");
-        List<TransferLimitVO>tls=vo.getTransferLimits();
-        for(TransferLimitVO tl : tls){
-            TransferLimit transferLimit =new TransferLimit();
-            transferLimit.setTierType(tl.getType());
-            transferLimit.setPartner(savedPartner);
-
-            //Save TransferLimit for KasproBank to Kaspro
-            transferLimit.setDestination("KASPRO");
-            transferLimit.setTransactionLimit(tl.getKaspro());
-            logger.info("Inserting Transfer Limit: "+transferLimit.getDestination()+" Tier "+transferLimit.getTierType());
-            tlRepository.save(transferLimit);
-
-            //Save TransferLimit for KasproBank to KasproBank
-            transferLimit.setDestination("KASPROBANK");
-            transferLimit.setTransactionLimit(tl.getKasproBank());
-            logger.info("Inserting Transfer Limit: "+transferLimit.getDestination()+" Tier "+transferLimit.getTierType());
-            tlRepository.save(transferLimit);
-
-            //Save TransferLimit for KasproBank to BNI
-            transferLimit.setDestination("BNI");
-            transferLimit.setTransactionLimit(tl.getBni());
-            logger.info("Inserting Transfer Limit: "+transferLimit.getDestination()+" Tier "+transferLimit.getTierType());
-            tlRepository.save(transferLimit);
-
-            //Save TransferLimit for KasproBank to OTHERBANK
-            transferLimit.setDestination("OTHERBANK");
-            transferLimit.setTransactionLimit(tl.getOtherBank());
-            logger.info("Inserting Transfer Limit: "+transferLimit.getDestination()+" Tier "+transferLimit.getTierType());
-            tlRepository.save(transferLimit);
-
-            //Save TransferLimit for KasproBank to eMoney
-            transferLimit.setDestination("EMONEY");
-            transferLimit.setTransactionLimit(tl.getEmoney());
-            logger.info("Inserting Transfer Limit: "+transferLimit.getDestination()+" Tier "+transferLimit.getTierType());
-            tlRepository.save(transferLimit);
-        }
-        logger.info("Finished insert TransferLimit");
 
         //TransferFee Insertion
 

@@ -11,11 +11,11 @@ import javax.persistence.*;
 @Data
 public class Partner extends Base {
 
-    @Column(nullable = false)
+    @Column(name = "NAMA",nullable = false)
     private String name;
 
-    @Column
-    private String email;
+    @Column(name = "ALIAS",nullable = false)
+    private String alias;
 
     @Column(name = "ALAMAT")
     private String address;
@@ -26,9 +26,9 @@ public class Partner extends Base {
     @Column(name = "NO_AKTA_PENDIRIAN")
     private String noAktaPendirian;
 
-    @Column
+    @Column(name = "NPWP")
     private String npwp;
 
-    @Column
+    @Column(name = "STATUS")
     private String status;
 }
