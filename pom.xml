@@ -118,6 +118,11 @@
 			<artifactId>json-utils</artifactId>
 			<version>0.1.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.vladmihalcea</groupId>
+			<artifactId>hibernate-types-52</artifactId>
+			<version>2.4.2</version>
+		</dependency>
 
 	</dependencies>
 

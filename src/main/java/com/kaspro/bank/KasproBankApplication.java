@@ -3,6 +3,7 @@ package com.kaspro.bank;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.kaspro.bank.services.AuditTrailService;
 import com.kaspro.bank.util.InitDB;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -13,6 +14,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.sql.Date;
 
 @Slf4j
 @SpringBootApplication
@@ -23,10 +25,11 @@ public class KasproBankApplication {
 		new SshTunnelStarter().init();
 		SpringApplication.run(KasproBankApplication.class, args);
 		//BniEncryption.TestBniEncryption(); // test encrypt decrypt
+		//InitDB config = InitDB.getInstance();
 
-		InitDB config = InitDB.getInstance();
-		log.info(config.get("1232131"));
-
+		AuditTrailService a = new AuditTrailService();
+		a.add(new Date(System.currentTimeMillis()),12312312, "test","test1","test2","u1",new Date(System.currentTimeMillis()),new Date(System.currentTimeMillis()));
+		log.info(a.toString());
 
 
 	}
