@@ -27,9 +27,9 @@ public class KasproBankApplication {
 		//BniEncryption.TestBniEncryption(); // test encrypt decrypt
 		//InitDB config = InitDB.getInstance();
 
-		AuditTrailService a = new AuditTrailService();
-		a.add(new Date(System.currentTimeMillis()),12312312, "test","test1","test2","u1",new Date(System.currentTimeMillis()),new Date(System.currentTimeMillis()));
-		log.info(a.toString());
+//		AuditTrailService a = new AuditTrailService();
+//		a.add(new Date(System.currentTimeMillis()),12312312, "test","test1","test2","u1",new Date(System.currentTimeMillis()),new Date(System.currentTimeMillis()));
+//		log.info(a.toString());
 
 
 	}

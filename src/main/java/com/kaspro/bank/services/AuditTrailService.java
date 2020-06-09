@@ -15,28 +15,9 @@ public class AuditTrailService {
     AuditTrailRepository auditTrailRepository;
 
     @Transactional
-    public AuditTrail add(Date partitionKey, int trxId, String serviceName, String valueBefore, String valueAfter, String userApp, Date startDtm, Date endDtm){
-        String state = "Error";
-        AuditTrail auditTrail = new AuditTrail();
-
-        auditTrail.setPartitionKey(partitionKey);
-        auditTrail.setTrxId(trxId);
-        auditTrail.setServiceName(serviceName);
-        auditTrail.setValueBefore(valueBefore);
-        auditTrail.setValueAfter(valueAfter);
-        auditTrail.setUserApp(userApp);
-        auditTrail.setEndDtm(endDtm);
-        auditTrail.setEndDtm(endDtm);
-
-        try {
-            auditTrailRepository.save(auditTrail);
-        }catch (Exception e){
-            state = e.toString();
-        }
-
-        return auditTrail;
+    public AuditTrail add(AuditTrail auditTrail){
+        AuditTrail savedAuditTrail = auditTrailRepository.save(auditTrail);
+        return savedAuditTrail;
     }
-
-
 
 }

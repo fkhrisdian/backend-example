@@ -7,10 +7,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.sql.Date;
 
 @Entity
@@ -18,23 +15,12 @@ import java.sql.Date;
 @TypeDef(name = "json", typeClass = JsonBinaryType.class)
 @DynamicUpdate
 @Data
-public class AuditTrail {
-    @Id
-    @Column(name = "PARTITION_KEY",nullable = false)
-    private Date partitionKey;
+public class AuditTrail extends Base{
 
-    @Column(name = "TRX_ID",nullable = false)
-    private int trxId;
-
-    @Column(name = "SERVICE_NAME",nullable = false)
-    private String serviceName;
-
-    @Type(type = "json")
-    @Column(name = "VALUE_BEFORE",nullable = false, columnDefinition = "json")
+    @Column(name = "VALUE_BEFORE",columnDefinition="LONGTEXT")
     private String valueBefore;
 
-    @Type(type = "json")
-    @Column(name = "VALUE_AFTER",nullable = false, columnDefinition = "json")
+    @Column(name = "VALUE_AFTER",columnDefinition="LONGTEXT")
     private String valueAfter;
 
     @Column(name = "USER_APP",nullable = false)
@@ -43,6 +29,7 @@ public class AuditTrail {
     @Column(name = "START_DTM",nullable = false)
     private Date startDtm;
 
-    @Column(name = "END_DTM",nullable = false)
-    private Date endDtm;
+    @ManyToOne(fetch= FetchType.LAZY)
+    @JoinColumn(name = "PARTNER_ID")
+    private Partner partner;
 }

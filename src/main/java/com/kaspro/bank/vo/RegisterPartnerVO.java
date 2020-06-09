@@ -1,9 +1,6 @@
 package com.kaspro.bank.vo;
 
-import com.kaspro.bank.persistance.domain.DataPIC;
-import com.kaspro.bank.persistance.domain.Lampiran;
-import com.kaspro.bank.persistance.domain.Partner;
-import com.kaspro.bank.persistance.domain.TransferFee;
+import com.kaspro.bank.persistance.domain.*;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -34,5 +31,7 @@ public class RegisterPartnerVO extends BaseVO {
     private String[] listTier;
 
     private String virtualAccount;
+
+    private List<AuditTrail> auditTrails;
 
 }
