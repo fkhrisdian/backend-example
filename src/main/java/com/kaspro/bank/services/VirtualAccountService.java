@@ -6,7 +6,6 @@ import com.kaspro.bank.persistance.domain.VirtualAccount;
 import com.kaspro.bank.persistance.repository.PartnerRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.util.InitDB;
-import javafx.scene.media.VideoTrack;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
