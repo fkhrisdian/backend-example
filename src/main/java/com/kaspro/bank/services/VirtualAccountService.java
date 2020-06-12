@@ -60,8 +60,14 @@ public class VirtualAccountService {
         savedVA.setStartEffDate(new Date(System.currentTimeMillis()));
         savedVA.setVa(vaNumber);
         savedVA.setStatus("ACTIVE");
+        savedVA.setMsisdn(msisdn);
         vaRepository.save(savedVA);
 
+        return savedVA;
+    }
+
+    public VirtualAccount update(VirtualAccount va){
+        VirtualAccount savedVA=vaRepository.save(va);
         return savedVA;
     }
 

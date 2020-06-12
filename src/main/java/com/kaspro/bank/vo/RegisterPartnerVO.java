@@ -30,7 +30,7 @@ public class RegisterPartnerVO extends BaseVO {
     @NotBlank(message = "transferFees is required")
     private String[] listTier;
 
-    private String virtualAccount;
+    private VirtualAccount virtualAccount;
 
     private List<AuditTrail> auditTrails;
 

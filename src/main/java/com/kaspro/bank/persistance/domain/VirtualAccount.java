@@ -20,12 +20,14 @@ public class VirtualAccount extends Base{
     @Column(name = "FLAG",nullable = false)
     private String flag;
 
+    @Column(name = "MSISDN",nullable = false)
+    private String msisdn;
+
     @Column(name = "START_EFF_DATE",nullable = false)
     private Date startEffDate;
 
     @Column(name = "END_EFF_DATE",nullable = false)
     private Date endEffDate;
-
 
     @OneToOne(fetch= FetchType.LAZY)
     @JoinColumn(name = "PARTNER_ID")

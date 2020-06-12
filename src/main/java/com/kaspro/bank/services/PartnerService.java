@@ -72,7 +72,7 @@ public class PartnerService {
         result.setListLampiran(listLampiran);
         result.setTransferFees(transferFees);
         result.setListTier(listTiers);
-        result.setVirtualAccount(va.getVa());
+        result.setVirtualAccount(va);
         result.setAuditTrails(ats);
 
         return result;
@@ -80,6 +80,109 @@ public class PartnerService {
 
     @Transactional
     public RegisterPartnerVO add(RegisterPartnerVO vo){
+
+        String serviceName=vo.getServiceName();
+        Date currDate = new Date(System.currentTimeMillis());
+        String tiers="";
+        for(String t : vo.getListTier()){
+            tiers=tiers+t+"|";
+        }
+
+        logger.info("Starting insert Partner");
+        Partner partner =vo.getPartner();
+        logger.info("Inserting partner: "+partner.getName());
+        logger.info("Tiers : "+tiers);
+        partner.setTiers(tiers);
+        Partner savedPartner=partnerRepository.save(partner);
+        logger.info("Finished insert Partner");
+
+        logger.info("Starting insert Data PIC");
+        DataPIC dataPIC =vo.getDataPIC();
+        dataPIC.setPartner(savedPartner);
+        logger.info("Inserting Data PIC: "+dataPIC.getName());
+        DataPIC savedPIC=dataPICRepository.save(dataPIC);
+        logger.info("Finished insert Data PIC");
+
+        logger.info("Starting insert Lampiran");
+        List<Lampiran> listLampiran = vo.getListLampiran();
+        List<Lampiran> savedLampirans= new ArrayList<>();
+        for(Lampiran lampiran:listLampiran){
+            logger.info("Inserting Lampiran: "+lampiran.getName());
+            lampiran.setPartner(savedPartner);
+            Lampiran savedLampiran = lampiranRepository.save(lampiran);
+            savedLampirans.add(savedLampiran);
+            logger.info("Finished insert Lampiran: "+lampiran.getName());
+
+        }
+
+        logger.info("Starting insert Transfer Fee");
+        List<TransferFee> transferFees = vo.getTransferFees();
+        List<TransferFee> savedTFS=new ArrayList<>();
+        for(TransferFee tf:transferFees){
+            logger.info("Inserting Transfer Fee: "+tf.getDestination());
+            tf.setPartner(savedPartner);
+            TransferFee savedTF=tfRepository.save(tf);
+            savedTFS.add(savedTF);
+            logger.info("Finished insert Transfer Fee: "+tf.getDestination());
+
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        String afterValue="";
+        String beforeValue="";
+        VirtualAccount va=new VirtualAccount();
+
+        logger.info("Starting insert Virtual Account");
+        try{
+            if(serviceName.equals("PARTNER_ADD")){
+                va=vaService.add(dataPIC.getMsisdn(), savedPartner, "C");
+            }else if(serviceName.equals("PARTNER_MODIFY")){
+                beforeValue = mapper.writeValueAsString(vo);
+                VirtualAccount oldVA = vaRepository.findByPartnerID(partner.getId());
+                if(oldVA.getMsisdn().equals(dataPIC.getMsisdn())){
+                    //Do nothing
+                }else{
+                    va=vaService.add(dataPIC.getMsisdn(), savedPartner, "C");
+                    oldVA.setStatus("INACTIVE");
+                    vaService.update(oldVA);
+                }
+            }
+        }catch (JsonProcessingException e){
+            e.printStackTrace();
+        }
+
+        logger.info("Finished insert Virtual Account: "+va.getVa());
+
+        RegisterPartnerVO savedVO = new RegisterPartnerVO();
+        savedVO.setPartner(savedPartner);
+        savedVO.setVirtualAccount(va);
+        savedVO.setTransferFees(savedTFS);
+        savedVO.setListLampiran(savedLampirans);
+        savedVO.setDataPIC(savedPIC);
+        savedVO.setListTier(vo.getListTier());
+
+        try {
+            afterValue = mapper.writeValueAsString(savedVO);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        logger.info("afterValue: "+afterValue);
+
+        AuditTrail at = new AuditTrail();
+        at.setStartDtm(currDate);
+        at.setUserApp("System");
+        at.setValueAfter(afterValue);
+        at.setValueBefore(beforeValue);
+        at.setPartner(savedPartner);
+        atService.add(at);
+
+        return vo;
+    }
+
+    @Transactional
+    public RegisterPartnerVO update(RegisterPartnerVO vo){
 
         Date currDate = new Date(System.currentTimeMillis());
         String tiers="";
@@ -132,7 +235,7 @@ public class PartnerService {
 
         RegisterPartnerVO savedVO = new RegisterPartnerVO();
         savedVO.setPartner(savedPartner);
-        savedVO.setVirtualAccount(va.getVa());
+        savedVO.setVirtualAccount(va);
         savedVO.setTransferFees(savedTFS);
         savedVO.setListLampiran(savedLampirans);
         savedVO.setDataPIC(savedPIC);
