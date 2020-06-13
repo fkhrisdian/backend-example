@@ -72,4 +72,9 @@ public class TransferLimitService {
         return transferLimits;
     }
 
+    public List<String> findTiers(){
+        List<String> result=transferLimitRepository.findTiers();
+        return result;
+    }
+
 }

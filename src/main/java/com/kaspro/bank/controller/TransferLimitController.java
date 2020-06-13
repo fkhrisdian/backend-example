@@ -62,6 +62,20 @@ public class TransferLimitController {
 
     @RequestMapping(method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/GetTiers")
+    @ResponseBody
+    public ResponseEntity<ResultVO> findTiers() {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return transferLimitService.findTiers();
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             value="/GetDetail")
     @ResponseBody
     public ResponseEntity<ResultVO> findPartnerDetail(@RequestParam (value="tier", required = true) String tier) {
