@@ -133,18 +133,22 @@ public class PartnerService {
         String afterValue="";
         String beforeValue="";
         VirtualAccount va=new VirtualAccount();
+        va.setOwnerID(savedPartner.getId());
+        va.setMsisdn(savedPIC.getMsisdn());
+        va.setFlag("CP");
+        VirtualAccount savedVA=new VirtualAccount();
 
         logger.info("Starting insert Virtual Account");
         try{
             if(serviceName.equals("PARTNER_ADD")){
-                va=vaService.add(dataPIC.getMsisdn(), savedPartner.getId(), "CP");
+                savedVA=vaService.add(va);
             }else if(serviceName.equals("PARTNER_MODIFY")){
                 beforeValue = mapper.writeValueAsString(vo);
                 VirtualAccount oldVA = vaRepository.findByPartnerID(partner.getId());
                 if(oldVA.getMsisdn().equals(dataPIC.getMsisdn())){
                     //Do nothing
                 }else{
-                    va=vaService.add(dataPIC.getMsisdn(), savedPartner.getId(), "CP");
+                    savedVA=vaService.add(va);
                     oldVA.setStatus("INACTIVE");
                     vaService.update(oldVA);
                 }
@@ -157,7 +161,7 @@ public class PartnerService {
 
         RegisterPartnerVO savedVO = new RegisterPartnerVO();
         savedVO.setPartner(savedPartner);
-        savedVO.setVirtualAccount(va);
+        savedVO.setVirtualAccount(savedVA);
         savedVO.setTransferFees(savedTFS);
         savedVO.setListLampiran(savedLampirans);
         savedVO.setDataPIC(savedPIC);
@@ -180,7 +184,7 @@ public class PartnerService {
         at.setOwnerID(savedPartner.getId());
         atService.add(at);
 
-        return vo;
+        return savedVO;
     }
 
 //    @Transactional

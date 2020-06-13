@@ -132,18 +132,22 @@ public class PartnerMemberService {
         String afterValue="";
         String beforeValue="";
         VirtualAccount va=new VirtualAccount();
+        va.setOwnerID(savedPartnerMember.getId());
+        va.setMsisdn(savedPIC.getMsisdn());
+        va.setFlag("CPM");
+        VirtualAccount savedVA=new VirtualAccount();
 
         logger.info("Starting insert Virtual Account");
         try{
             if(serviceName.equals("PARTNER_MEMBER_ADD")){
-                va=vaService.add(dataPIC.getMsisdn(), savedPartnerMember.getId(), "CPM");
+                savedVA=vaService.add(va);
             }else if(serviceName.equals("PARTNER_MEMBER_MODIFY")){
                 beforeValue = mapper.writeValueAsString(vo);
                 VirtualAccount oldVA = vaRepository.findByPartnerID(savedPartnerMember.getId());
                 if(oldVA.getMsisdn().equals(dataPIC.getMsisdn())){
                     //Do nothing
                 }else{
-                    va=vaService.add(dataPIC.getMsisdn(), savedPartnerMember.getId(), "CPM");
+                    savedVA=vaService.add(va);
                     oldVA.setStatus("INACTIVE");
                     vaService.update(oldVA);
                 }
@@ -156,7 +160,7 @@ public class PartnerMemberService {
 
         RegisterPartnerMemberVO savedVO = new RegisterPartnerMemberVO();
         savedVO.setPartnerMember(savedPartnerMember);
-        savedVO.setVirtualAccount(va);
+        savedVO.setVirtualAccount(savedVA);
         savedVO.setListLampiran(savedLampirans);
         savedVO.setDataPIC(savedPIC);
         savedVO.setListTransferInfoMember(savedTIS);

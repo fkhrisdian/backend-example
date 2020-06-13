@@ -18,22 +18,20 @@ public class VirtualAccountController {
     @Autowired
     VirtualAccountService virtualAccountService;
 
-//    @RequestMapping(method = RequestMethod.POST,
-//            consumes = MediaType.APPLICATION_JSON_VALUE,
-//            produces = MediaType.APPLICATION_JSON_VALUE,
-//            value="/Add")
-//    @ResponseBody
-//    public ResponseEntity<ResultVO> add(@RequestBody String msisdn,
-//                                        @RequestBody int partnerId,
-//                                        @RequestBody String flag) {
-//        AbstractRequestHandler handler = new AbstractRequestHandler() {
-//            @Override
-//            public Object processRequest() {
-//                return virtualAccountService.add(msisdn, partnerId, flag);
-//            }
-//        };
-//        return handler.getResult();
-//    }
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Add")
+    @ResponseBody
+    public ResponseEntity<ResultVO> add(@RequestBody VirtualAccount va) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return virtualAccountService.add(va);
+            }
+        };
+        return handler.getResult();
+    }
 
 //    @RequestMapping(method = RequestMethod.POST,
 //            consumes = MediaType.APPLICATION_JSON_VALUE,

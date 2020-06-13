@@ -30,7 +30,7 @@ public class VirtualAccountService {
 
     Logger logger = LoggerFactory.getLogger(VirtualAccount.class);
 
-    public VirtualAccount add(String msisdn, int ownerID, String flag){
+    public VirtualAccount add(VirtualAccount va){
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         VirtualAccount savedVA = new VirtualAccount();
@@ -39,28 +39,28 @@ public class VirtualAccountService {
         String endDate = x.get("VA.EndDate");
         String vaNumber ="";
 
-        if(msisdn.length()>12){
-            int start = msisdn.length()-12;
-            vaNumber=msisdn.substring(start, msisdn.length());
+        if(va.getMsisdn().length()>12){
+            int start = va.getMsisdn().length()-12;
+            vaNumber=va.getMsisdn().substring(start, va.getMsisdn().length());
             vaNumber=("000000000000"+vaNumber).substring(vaNumber.length());
         }else{
-            vaNumber=msisdn;
+            vaNumber=va.getMsisdn();
             vaNumber=("000000000000"+vaNumber).substring(vaNumber.length());
         }
 
         vaNumber=result+vaNumber;
-        savedVA.setOwnerID(ownerID);
+        savedVA.setOwnerID(va.getOwnerID());
         try {
             savedVA.setEndEffDate(new Date(df.parse(endDate).getTime()));
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        savedVA.setFlag(flag);
+        savedVA.setFlag(va.getFlag());
         savedVA.setStartEffDate(new Date(System.currentTimeMillis()));
         savedVA.setVa(vaNumber);
         savedVA.setStatus("ACTIVE");
-        savedVA.setMsisdn(msisdn);
-        vaRepository.save(savedVA);
+        savedVA.setMsisdn(va.getMsisdn());
+        savedVA=vaRepository.save(savedVA);
 
         return savedVA;
     }
