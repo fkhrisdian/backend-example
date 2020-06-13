@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface TransferFeeRepository extends BaseRepository<TransferFee>{
-    @Query(value="SELECT * FROM kasprobank.TRANSFER_FEE where partner_id=?1",
+    @Query(value="SELECT * FROM kasprobank.TRANSFER_FEE where owner_id=?1",
             nativeQuery = true)
     List<TransferFee> findByPartnerID(int id);
 }

@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface LampiranRepository extends BaseRepository<Lampiran>{
-    @Query(value="SELECT * FROM kasprobank.LAMPIRAN where partner_id=?1",
+    @Query(value="SELECT * FROM kasprobank.LAMPIRAN where owner_id=?1",
             nativeQuery = true)
     List<Lampiran> findByPartnerID(int id);
 }

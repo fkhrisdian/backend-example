@@ -28,7 +28,9 @@ public class DataPIC extends Base{
     @Column(name = "EMAIL",nullable = false)
     private String email;
 
-    @OneToOne(fetch= FetchType.LAZY)
-    @JoinColumn(name = "PARTNER_ID")
-    private Partner partner;
+    @Column(name = "FLAG",nullable = false)
+    private String flag;
+
+    @Column(name = "OWNER_ID",nullable = false)
+    private int ownerID;
 }

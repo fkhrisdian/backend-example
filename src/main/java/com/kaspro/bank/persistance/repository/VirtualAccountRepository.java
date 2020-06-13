@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VirtualAccountRepository extends BaseRepository<VirtualAccount>{
-    @Query(value="SELECT * FROM kasprobank.VIRTUAL_ACCOUNT where partner_id=?1 and status='ACTIVE'",
+    @Query(value="SELECT * FROM kasprobank.VIRTUAL_ACCOUNT where owner_id=?1 and status='ACTIVE'",
             nativeQuery = true)
     VirtualAccount findByPartnerID(int id);
 }

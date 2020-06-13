@@ -30,7 +30,7 @@ public class VirtualAccountService {
 
     Logger logger = LoggerFactory.getLogger(VirtualAccount.class);
 
-    public VirtualAccount add(String msisdn, Partner partner, String flag){
+    public VirtualAccount add(String msisdn, int ownerID, String flag){
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         VirtualAccount savedVA = new VirtualAccount();
@@ -49,7 +49,7 @@ public class VirtualAccountService {
         }
 
         vaNumber=result+vaNumber;
-        savedVA.setPartner(partner);
+        savedVA.setOwnerID(ownerID);
         try {
             savedVA.setEndEffDate(new Date(df.parse(endDate).getTime()));
         } catch (ParseException e) {

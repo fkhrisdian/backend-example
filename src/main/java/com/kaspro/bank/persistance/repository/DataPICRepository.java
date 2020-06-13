@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface DataPICRepository extends BaseRepository<DataPIC>{
-    @Query(value="SELECT * FROM kasprobank.DATA_PIC where partner_id=?1",
+    @Query(value="SELECT * FROM kasprobank.DATA_PIC where owner_id=?1",
             nativeQuery = true)
     DataPIC findByPartnerID(int id);
 }

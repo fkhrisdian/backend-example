@@ -29,7 +29,6 @@ public class AuditTrail extends Base{
     @Column(name = "START_DTM",nullable = false)
     private Date startDtm;
 
-    @ManyToOne(fetch= FetchType.LAZY)
-    @JoinColumn(name = "PARTNER_ID")
-    private Partner partner;
+    @Column(name = "OWNER_ID",nullable = false)
+    private int ownerID;
 }

@@ -18,7 +18,6 @@ public class TransferFee extends Base {
   @Column(name = "FEE")
   private BigDecimal fee;
 
-  @ManyToOne(fetch= FetchType.LAZY)
-  @JoinColumn(name = "PARTNER_ID")
-  private Partner partner;
+  @Column(name = "OWNER_ID",nullable = false)
+  private int ownerID;
 }

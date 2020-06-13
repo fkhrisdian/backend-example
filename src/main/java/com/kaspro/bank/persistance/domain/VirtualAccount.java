@@ -29,8 +29,7 @@ public class VirtualAccount extends Base{
     @Column(name = "END_EFF_DATE",nullable = false)
     private Date endEffDate;
 
-    @OneToOne(fetch= FetchType.LAZY)
-    @JoinColumn(name = "PARTNER_ID")
-    private Partner partner;
+    @Column(name = "OWNER_ID",nullable = false)
+    private int ownerID;
 
 }
