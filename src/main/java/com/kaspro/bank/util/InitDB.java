@@ -21,7 +21,7 @@ public class InitDB {
     private static final Map<String, String> params = new HashMap<String, String>();
     private static final Map<String, String> defaults = new HashMap<String, String>();
     private static final InitDB instance = new InitDB();
-    private static final int PERIOD = 300000;
+    private static final int PERIOD = 20000;
     private static final String EMPTY = "";
     private static long lastupdate = 0;
 
@@ -34,7 +34,7 @@ public class InitDB {
     }
 
     private void loadData() {
-        if ((System.currentTimeMillis() - lastupdate) > PERIOD) {
+        if ((0 - lastupdate) > PERIOD) {
             init();
         }
     }
@@ -47,7 +47,7 @@ public class InitDB {
             params.put(i.getParam_name(), i.getParam_value());
             log.info("param_name" + i.getParam_name().toString());
         }
-        lastupdate = System.currentTimeMillis();
+        lastupdate = 0;
 
     }
 

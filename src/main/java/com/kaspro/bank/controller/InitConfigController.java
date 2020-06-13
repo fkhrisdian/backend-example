@@ -3,6 +3,8 @@ package com.kaspro.bank.controller;
 import com.kaspro.bank.persistance.domain.KasprobankConfig;
 import com.kaspro.bank.services.InitConfigService;
 import com.kaspro.bank.util.InitDB;
+import com.kaspro.bank.util.InitDBHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 public class InitConfigController {
 
@@ -41,8 +44,10 @@ public class InitConfigController {
 
     @GetMapping(value = "/KasprobankConfigGet",produces = MediaType.APPLICATION_JSON_VALUE)
     public String get(@RequestParam String Name){
-        InitDB x  = InitDB.getInstance();
-        String result = x.get(Name);
+        String result = InitDBHandler.paramName(Name);
+        log.info("Loading Param :" +result);
         return result;
     }
+
+
 }
