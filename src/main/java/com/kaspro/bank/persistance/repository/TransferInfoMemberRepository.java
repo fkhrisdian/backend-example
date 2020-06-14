@@ -12,4 +12,8 @@ public interface TransferInfoMemberRepository extends BaseRepository<TransferInf
     @Query(value="SELECT * FROM kasprobank.TRANSFER_INFO_MEMBER where owner_id=?1",
             nativeQuery = true)
     List<TransferInfoMember> findByPartnerID(int id);
+
+    @Query(value="SELECT * FROM kasprobank.TRANSFER_INFO_MEMBER where owner_id=?1 and name=?2",
+            nativeQuery = true)
+    TransferInfoMember findDetail(int id, String name);
 }

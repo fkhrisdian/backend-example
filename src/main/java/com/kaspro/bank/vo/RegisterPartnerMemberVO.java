@@ -29,6 +29,4 @@ public class RegisterPartnerMemberVO extends BaseVO {
 
     private VirtualAccount virtualAccount;
 
-    private List<AuditTrail> auditTrails;
-
 }

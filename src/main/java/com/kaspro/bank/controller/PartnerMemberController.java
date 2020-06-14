@@ -60,4 +60,19 @@ public class PartnerMemberController {
         };
         return handler.getResult();
     }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Update")
+    @ResponseBody
+    public ResponseEntity<ResultVO> update(@RequestBody final RegisterPartnerMemberVO vo) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return pmService.update(vo);
+            }
+        };
+        return handler.getResult();
+    }
 }

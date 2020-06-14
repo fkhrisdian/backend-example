@@ -13,7 +13,15 @@ public interface PartnerMemberRepository extends BaseRepository<PartnerMember>{
             nativeQuery = true)
     PartnerMember findPartnerMember(int id);
 
-    @Query(value="SELECT name FROM kasprobank.PARTNER_MEMBER where id=?1",
+    @Query(value="SELECT * FROM kasprobank.PARTNER_MEMBER where id=?1",
+          nativeQuery = true)
+    List<PartnerMember> findListPartnerMember(int id);
+
+    @Query(value="SELECT * FROM kasprobank.PARTNER_MEMBER where PARTNER_ALIAS=?1",
             nativeQuery = true)
-    List<String> findName(int id);
+    PartnerMember findByPartner(String alias);
+
+    @Query(value="SELECT NAMA FROM kasprobank.PARTNER_MEMBER where NAMA=?1",
+            nativeQuery = true)
+    List<String> findName(String name);
 }

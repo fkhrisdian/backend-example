@@ -262,7 +262,6 @@ public class PartnerService {
             }
             savedLampirans.add(savedLampiran);
             logger.info("Finished insert Lampiran: "+lampiran.getName());
-
         }
 
         logger.info("Starting insert Transfer Fee");
