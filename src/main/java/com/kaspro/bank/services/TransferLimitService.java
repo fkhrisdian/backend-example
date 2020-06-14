@@ -2,7 +2,9 @@ package com.kaspro.bank.services;
 
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
+import com.kaspro.bank.persistance.domain.TrailAudit;
 import com.kaspro.bank.persistance.domain.TransferLimit;
+import com.kaspro.bank.persistance.repository.TrailAuditRepository;
 import com.kaspro.bank.persistance.repository.TransferLimitRepository;
 import com.kaspro.bank.vo.KeyValuePairedVO;
 import com.kaspro.bank.vo.TransferLimitVO;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
 import java.util.List;
 
 @Service
@@ -21,6 +24,9 @@ public class TransferLimitService {
 
     @Autowired
     TransferLimitRepository transferLimitRepository;
+
+    @Autowired
+    TrailAuditService trailAuditService;
 
     Logger logger = LoggerFactory.getLogger(TransferLimit.class);
 
@@ -49,6 +55,7 @@ public class TransferLimitService {
     @Transactional
     public TransferLimitVO update(TransferLimitVO transferLimitVO){
 
+        Date currDate = new Date(System.currentTimeMillis());
         String tier=transferLimitVO.getType();
         List<TransferLimit> transferLimitList=transferLimitRepository.findByTier(tier);
 
@@ -63,9 +70,19 @@ public class TransferLimitService {
                 logger.info("Destination : " + attribute.getKey());
                 logger.info("Transaction Limit : " + attribute.getValue());
                 TransferLimit updatedTransferLimit = transferLimitRepository.findByTierAndDest(tier, attribute.getKey());
-                updatedTransferLimit.setTransactionLimit(attribute.getValue());
-                logger.info("Updated Transaction Limit : " + updatedTransferLimit.getId());
-                transferLimitRepository.save(updatedTransferLimit);
+                if(!updatedTransferLimit.getTransactionLimit().equals(attribute.getValue())){
+                    TrailAudit ta = new TrailAudit();
+                    ta.setField(attribute.getKey());
+                    ta.setValueBefore(updatedTransferLimit.getTransactionLimit());
+                    ta.setValueAfter(attribute.getValue());
+                    ta.setStartDtm(currDate);
+                    ta.setUser("System");
+                    ta.setOwnerID(tier);
+                    updatedTransferLimit.setTransactionLimit(attribute.getValue());
+                    logger.info("Updated Transaction Limit : " + updatedTransferLimit.getId());
+                    transferLimitRepository.save(updatedTransferLimit);
+                    trailAuditService.add(ta);
+                }
             }
         }catch (NostraException e){
             throw new NostraException("Tier update is failed", StatusCode.ERROR);

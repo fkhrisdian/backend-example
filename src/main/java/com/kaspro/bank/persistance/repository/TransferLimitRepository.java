@@ -1,8 +1,10 @@
 package com.kaspro.bank.persistance.repository;
 
 import com.kaspro.bank.persistance.domain.TransferLimit;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +26,8 @@ public interface TransferLimitRepository extends BaseRepository<TransferLimit>{
             nativeQuery = true)
     TransferLimit findByTierAndDest(String tier, String dest);
 
+    @Transactional
+    @Modifying
     @Query(value="UPDATE kasprobank.TRANSFER_LIMIT T set T.TRX_LIMIT=?2 WHERE T.id=?1",
             nativeQuery = true)
     void updateByTrxLimit(int id, String limit);
