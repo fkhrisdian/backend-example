@@ -8,6 +8,7 @@ import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.*;
 import com.kaspro.bank.vo.RegisterPartnerVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +36,17 @@ public class PartnerService {
     @Autowired
     VirtualAccountRepository vaRepository;
 
+    @Autowired
+    TrailAuditService taService;
 
     @Autowired
     AuditTrailService atService;
 
     @Autowired
     AuditTrailRepository atRepository;
+
+    @Autowired
+    TransferLimitRepository tlRepository;
 
 
     Logger logger = LoggerFactory.getLogger(PartnerService.class);
@@ -60,16 +66,21 @@ public class PartnerService {
         List<TransferFee> transferFees=tfRepository.findByPartnerID(id);
         VirtualAccount va=vaRepository.findByPartnerID(id);
         List<AuditTrail> ats=atRepository.findByPartnerID(id);
+        List<TransferLimit> transferLimits=new ArrayList<>();
 
         String tiers=partner.getTiers();
         String[] listTiers=tiers.split("\\|");
+
+        for(String t:listTiers){
+            transferLimits.addAll(tlRepository.findByTier(t));
+        }
 
         result.setPartner(partner);
         result.setDataPIC(dataPIC);
         result.setListLampiran(listLampiran);
         result.setTransferFees(transferFees);
         result.setListTier(listTiers);
-        result.setAuditTrails(ats);
+        result.setTransferLimitList(transferLimits);
 
         return result;
     }
@@ -174,19 +185,66 @@ public class PartnerService {
             tiers=tiers+t+"|";
         }
 
-        logger.info("Starting update Tiers");
         Partner partner =vo.getPartner();
-        logger.info("Tiers : "+tiers);
-        partnerRepository.udpateTier(tiers,partner.getId());
+
+        TrailAudit ta=new TrailAudit();
+        ta.setStartDtm(currDate);
+        ta.setUser("System");
+        ta.setOwnerID(partner.getId().toString());
+
+        logger.info("Starting update Tiers");
+
+        if(!tiers.equals(listPartner.get(0).getTiers())){
+            ta.setField("Tiers");
+            ta.setValueBefore(listPartner.get(0).getTiers());
+            ta.setValueAfter(tiers);
+            partnerRepository.udpateTier(tiers,partner.getId());
+            taService.add(ta);
+        }
         Partner savedPartner=partnerRepository.findPartner(partner.getId());
         logger.info("Finished insert Partner");
 
         logger.info("Starting insert Data PIC");
+        DataPIC savedPIC=dataPICRepository.findByPartnerID(savedPartner.getId());
         DataPIC dataPIC =vo.getDataPIC();
-        dataPIC.setOwnerID(savedPartner.getId());
-        dataPIC.setFlag("CP");
+        if(!savedPIC.getMsisdn().equals(dataPIC.getMsisdn())){
+            ta.setField("MSISDN");
+            ta.setValueBefore(savedPIC.getMsisdn());
+            ta.setValueAfter(dataPIC.getMsisdn());
+            taService.add(ta);
+        }
+        if(!savedPIC.getName().equals(dataPIC.getName())){
+            ta.setField("Nama");
+            ta.setValueBefore(savedPIC.getName());
+            ta.setValueAfter(dataPIC.getName());
+            taService.add(ta);
+        }
+        if(!savedPIC.getAlamat().equals(dataPIC.getAlamat())){
+            ta.setField("Alamat");
+            ta.setValueBefore(savedPIC.getAlamat());
+            ta.setValueAfter(dataPIC.getAlamat());
+            taService.add(ta);
+        }
+        if(!savedPIC.getEmail().equals(dataPIC.getEmail())){
+            ta.setField("Email");
+            ta.setValueBefore(savedPIC.getEmail());
+            ta.setValueAfter(dataPIC.getEmail());
+            taService.add(ta);
+        }
+        if(!savedPIC.getKtp().equals(dataPIC.getKtp())){
+            ta.setField("KTP");
+            ta.setValueBefore(savedPIC.getKtp());
+            ta.setValueAfter(dataPIC.getKtp());
+            taService.add(ta);
+        }
+        if(!savedPIC.getNpwp().equals(dataPIC.getNpwp())){
+            ta.setField("NPWP");
+            ta.setValueBefore(savedPIC.getNpwp());
+            ta.setValueAfter(dataPIC.getNpwp());
+            taService.add(ta);
+        }
         logger.info("Inserting Data PIC: "+dataPIC.getName());
-        DataPIC savedPIC=dataPICRepository.save(dataPIC);
+        savedPIC=dataPICRepository.save(dataPIC);
         logger.info("Finished insert Data PIC");
 
         logger.info("Starting insert Lampiran");
@@ -194,9 +252,14 @@ public class PartnerService {
         List<Lampiran> savedLampirans= new ArrayList<>();
         for(Lampiran lampiran:listLampiran){
             logger.info("Inserting Lampiran: "+lampiran.getName());
-            lampiran.setOwnerID(savedPartner.getId());
-            lampiran.setFlag("CP");
-            Lampiran savedLampiran = lampiranRepository.save(lampiran);
+            Lampiran savedLampiran = lampiranRepository.findDetail(savedPartner.getId(),lampiran.getName());
+            if(!savedLampiran.getUrl().equals(lampiran.getUrl())){
+                ta.setField(savedLampiran.getName());
+                ta.setValueBefore(savedLampiran.getUrl());
+                ta.setValueAfter(lampiran.getUrl());
+                savedLampiran = lampiranRepository.save(lampiran);
+                taService.add(ta);
+            }
             savedLampirans.add(savedLampiran);
             logger.info("Finished insert Lampiran: "+lampiran.getName());
 
@@ -207,16 +270,22 @@ public class PartnerService {
         List<TransferFee> savedTFS=new ArrayList<>();
         for(TransferFee tf:transferFees){
             logger.info("Inserting Transfer Fee: "+tf.getDestination());
-            tf.setOwnerID(savedPartner.getId());
-            TransferFee savedTF=tfRepository.save(tf);
+            TransferFee savedTF=tfRepository.findDetail(savedPartner.getId(), tf.getDestination());
+            if(!savedTF.getFee().equals(tf.getFee())){
+                ta.setField(tf.getDestination());
+                ta.setValueBefore(savedTF.getFee().toString());
+                ta.setValueAfter(tf.getFee().toString());
+                savedTF = tfRepository.save(tf);
+                taService.add(ta);
+            }
             savedTFS.add(savedTF);
             logger.info("Finished insert Transfer Fee: "+tf.getDestination());
 
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        String afterValue="";
-        String beforeValue="";
+//        ObjectMapper mapper = new ObjectMapper();
+//        String afterValue="";
+//        String beforeValue="";
 
         RegisterPartnerVO savedVO = new RegisterPartnerVO();
         savedVO.setPartner(savedPartner);
@@ -225,23 +294,23 @@ public class PartnerService {
         savedVO.setDataPIC(savedPIC);
         savedVO.setListTier(vo.getListTier());
 
-        try {
-            afterValue = mapper.writeValueAsString(savedVO);
-            beforeValue = mapper.writeValueAsString(vo);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            throw new NostraException("Failure while updating Audit Trail",StatusCode.ERROR);
-        }
+//        try {
+//            afterValue = mapper.writeValueAsString(savedVO);
+//            beforeValue = mapper.writeValueAsString(vo);
+//        } catch (JsonProcessingException e) {
+//            e.printStackTrace();
+//            throw new NostraException("Failure while updating Audit Trail",StatusCode.ERROR);
+//        }
 
-        logger.info("afterValue: "+afterValue);
-
-        AuditTrail at = new AuditTrail();
-        at.setStartDtm(currDate);
-        at.setUserApp("System");
-        at.setValueAfter(afterValue);
-        at.setValueBefore(beforeValue);
-        at.setOwnerID(savedPartner.getId());
-        atService.add(at);
+//        logger.info("afterValue: "+afterValue);
+//
+//        AuditTrail at = new AuditTrail();
+//        at.setStartDtm(currDate);
+//        at.setUserApp("System");
+//        at.setValueAfter(afterValue);
+//        at.setValueBefore(beforeValue);
+//        at.setOwnerID(savedPartner.getId());
+//        atService.add(at);
 
         return savedVO;
     }
