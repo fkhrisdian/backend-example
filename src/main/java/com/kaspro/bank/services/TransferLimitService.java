@@ -1,5 +1,7 @@
 package com.kaspro.bank.services;
 
+import com.kaspro.bank.enums.StatusCode;
+import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.TransferLimit;
 import com.kaspro.bank.persistance.repository.TransferLimitRepository;
 import com.kaspro.bank.vo.KeyValuePairedVO;
@@ -26,6 +28,12 @@ public class TransferLimitService {
     public TransferLimitVO add(TransferLimitVO transferLimitVO){
 
         String tier=transferLimitVO.getType();
+        List<TransferLimit> transferLimitList=transferLimitRepository.findByTier(tier);
+
+        if(transferLimitList.size()>0){
+            throw new NostraException("Tier Already Exist", StatusCode.DATA_INTEGRITY);
+        }
+
         List<KeyValuePairedVO> attributes=transferLimitVO.getAttributes();
         for(KeyValuePairedVO attribute:attributes){
             TransferLimit transferLimit=new TransferLimit();
@@ -42,15 +50,25 @@ public class TransferLimitService {
     public TransferLimitVO update(TransferLimitVO transferLimitVO){
 
         String tier=transferLimitVO.getType();
-        logger.info("Tier : "+tier);
-        List<KeyValuePairedVO> attributes=transferLimitVO.getAttributes();
-        for(KeyValuePairedVO attribute:attributes){
-            logger.info("Destination : "+attribute.getKey());
-            logger.info("Transaction Limit : "+attribute.getValue());
-            TransferLimit updatedTransferLimit = transferLimitRepository.findByTierAndDest(tier,attribute.getKey());
-            updatedTransferLimit.setTransactionLimit(attribute.getValue());
-            logger.info("Updated Transaction Limit : "+updatedTransferLimit.getId());
-            transferLimitRepository.save(updatedTransferLimit);
+        List<TransferLimit> transferLimitList=transferLimitRepository.findByTier(tier);
+
+        if(transferLimitList.size()==0){
+            throw new NostraException("Tier not found", StatusCode.DATA_NOT_FOUND);
+        }
+
+        try {
+            logger.info("Tier : " + tier);
+            List<KeyValuePairedVO> attributes = transferLimitVO.getAttributes();
+            for (KeyValuePairedVO attribute : attributes) {
+                logger.info("Destination : " + attribute.getKey());
+                logger.info("Transaction Limit : " + attribute.getValue());
+                TransferLimit updatedTransferLimit = transferLimitRepository.findByTierAndDest(tier, attribute.getKey());
+                updatedTransferLimit.setTransactionLimit(attribute.getValue());
+                logger.info("Updated Transaction Limit : " + updatedTransferLimit.getId());
+                transferLimitRepository.save(updatedTransferLimit);
+            }
+        }catch (NostraException e){
+            throw new NostraException("Tier update is failed", StatusCode.ERROR);
         }
 
         return transferLimitVO;

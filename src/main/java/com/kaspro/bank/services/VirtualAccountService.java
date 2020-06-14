@@ -1,5 +1,7 @@
 package com.kaspro.bank.services;
 
+import com.kaspro.bank.enums.StatusCode;
+import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.DataPIC;
 import com.kaspro.bank.persistance.domain.Partner;
 import com.kaspro.bank.persistance.domain.VirtualAccount;
@@ -31,6 +33,11 @@ public class VirtualAccountService {
     Logger logger = LoggerFactory.getLogger(VirtualAccount.class);
 
     public VirtualAccount add(VirtualAccount va){
+
+        List<String> listMsisdn=vaRepository.findMsisdn(va.getMsisdn());
+        if(listMsisdn.size()>0){
+            throw new NostraException("MSISDN already used by other Virtual Account", StatusCode.DATA_INTEGRITY);
+        }
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         VirtualAccount savedVA = new VirtualAccount();
@@ -66,6 +73,10 @@ public class VirtualAccountService {
     }
 
     public VirtualAccount update(VirtualAccount va){
+        List<VirtualAccount> listVA=vaRepository.findVA(va.getId());
+        if(listVA.size()==0){
+            throw new NostraException("Virtual Account Not Found", StatusCode.DATA_NOT_FOUND);
+        }
         VirtualAccount savedVA=vaRepository.save(va);
         return savedVA;
     }

@@ -85,7 +85,6 @@ public class PartnerMemberService {
 
         String serviceName=vo.getServiceName();
         Date currDate = new Date(System.currentTimeMillis());
-        String tiers="";
 
         logger.info("Starting insert Partner Member");
         PartnerMember partnerMember =vo.getPartnerMember();
