@@ -2,8 +2,10 @@ package com.kaspro.bank.services;
 
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
+import com.kaspro.bank.persistance.domain.Partner;
 import com.kaspro.bank.persistance.domain.TrailAudit;
 import com.kaspro.bank.persistance.domain.TransferLimit;
+import com.kaspro.bank.persistance.repository.PartnerRepository;
 import com.kaspro.bank.persistance.repository.TrailAuditRepository;
 import com.kaspro.bank.persistance.repository.TransferLimitRepository;
 import com.kaspro.bank.vo.KeyValuePairedVO;
@@ -27,6 +29,9 @@ public class TransferLimitService {
 
     @Autowired
     TrailAuditService trailAuditService;
+
+    @Autowired
+    PartnerRepository pRepository;
 
     Logger logger = LoggerFactory.getLogger(TransferLimit.class);
 
@@ -107,9 +112,28 @@ public class TransferLimitService {
         return transferLimits;
     }
 
+    @Transactional
     public List<String> findTiers(){
         List<String> result=transferLimitRepository.findTiers();
         return result;
+    }
+
+    @Transactional
+    public String deleteTier(String tier){
+        List<Partner> partners = pRepository.findByTiersLike("%"+tier+"\\|%");
+        if(partners.size()>0){
+            throw new NostraException("Tier is used by Partner(s)",StatusCode.ERROR);
+        }else{
+            List<TransferLimit> tls=transferLimitRepository.findByTier(tier);
+            if(tls.size()>0){
+                for(TransferLimit tl:tls){
+                    transferLimitRepository.delete(tl);
+                }
+            }else{
+                throw new NostraException("Tier does not exist",StatusCode.DATA_NOT_FOUND);
+            }
+        }
+        return "Tier is deleted";
     }
 
 }

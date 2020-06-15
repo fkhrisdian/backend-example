@@ -46,6 +46,7 @@ public class TransferLimitController {
         return handler.getResult();
     }
 
+
     @RequestMapping(method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Get")
@@ -83,6 +84,20 @@ public class TransferLimitController {
             @Override
             public Object processRequest() {
                 return transferLimitService.findByTier(tier);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Delete")
+    @ResponseBody
+    public ResponseEntity<ResultVO> deleteTier(@RequestParam (value="tier", required = true) String tier) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return transferLimitService.deleteTier(tier);
             }
         };
         return handler.getResult();

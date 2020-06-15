@@ -32,4 +32,11 @@ public interface PartnerMemberRepository extends BaseRepository<PartnerMember>{
     @Query(value="update kasprobank.PARTNER_MEMBER set status=?1 where id=?2",
             nativeQuery = true)
     void udpateStatus(String status, int id);
+
+    @Query(value="SELECT kasprobank.PARTNER_MEMBER.id\n" +
+            "FROM kasprobank.PARTNER_MEMBER\n" +
+            "INNER JOIN kasprobank.TRANSFER_INFO_MEMBER ON kasprobank.PARTNER_MEMBER.id = kasprobank.TRANSFER_INFO_MEMBER.owner_id\n" +
+            "where kasprobank.PARTNER_MEMBER.PARTNER_ALIAS=?2 and kasprobank.TRANSFER_INFO_MEMBER.name='TierLimit' and kasprobank.TRANSFER_INFO_MEMBER.value=?1",
+            nativeQuery = true)
+    List<Integer> findUsedTier(String tier, String alias);
 }

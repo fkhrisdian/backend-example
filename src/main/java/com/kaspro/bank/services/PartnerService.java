@@ -50,6 +50,9 @@ public class PartnerService {
     @Autowired
     TransferLimitRepository tlRepository;
 
+    @Autowired
+    PartnerMemberRepository pmRepository;
+
 
     Logger logger = LoggerFactory.getLogger(PartnerService.class);
 
@@ -179,6 +182,27 @@ public class PartnerService {
         List<Partner> listPartner = partnerRepository.findListPartner(vo.getPartner().getId());
         if(listPartner.size()==0){
             throw new NostraException("Partner not found", StatusCode.DATA_NOT_FOUND);
+        }
+
+        Set<String> aSet = new HashSet<String>(Arrays.asList(vo.getListTier()));
+        String oldTier=listPartner.get(0).getTiers();
+        String[] oldTiers=oldTier.split("\\|");
+        List<String> missingTiers = new ArrayList<String>();
+        for(String tier:oldTiers){
+            if(!aSet.contains(tier)){
+                logger.info("Missing Tier: "+tier);
+                missingTiers.add(tier);
+            }
+        }
+
+        List<Integer> impactedPMS=new ArrayList<Integer>();
+        if(missingTiers.size()>0){
+            for (String missingT:missingTiers){
+                impactedPMS=pmRepository.findUsedTier(missingT,vo.getPartner().getAlias());
+                if(impactedPMS.size()>0){
+                    throw new NostraException("Tier used by Partner Member(s)",StatusCode.ERROR);
+                }
+            }
         }
 
         Date currDate = new Date(System.currentTimeMillis());

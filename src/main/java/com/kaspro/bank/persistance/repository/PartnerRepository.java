@@ -34,4 +34,6 @@ public interface PartnerRepository extends BaseRepository<Partner> {
     @Query(value="update kasprobank.PARTNER set status=?1 where id=?2",
             nativeQuery = true)
     void udpateStatus(String status, int id);
+
+    List<Partner> findByTiersLike(String tier);
 }
