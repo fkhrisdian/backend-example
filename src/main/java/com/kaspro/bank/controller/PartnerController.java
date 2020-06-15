@@ -3,6 +3,7 @@ package com.kaspro.bank.controller;
 import com.kaspro.bank.services.PartnerService;
 import com.kaspro.bank.vo.RegisterPartnerVO;
 import com.kaspro.bank.vo.ResultVO;
+import com.kaspro.bank.vo.UpdateStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +70,21 @@ public class PartnerController {
             @Override
             public Object processRequest() {
                 return partnerService.update(vo);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/UpdateStatus")
+    @ResponseBody
+    public ResponseEntity<ResultVO> updateStatus(@RequestBody UpdateStatusVO vo) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return partnerService.updateStatus(vo);
             }
         };
         return handler.getResult();

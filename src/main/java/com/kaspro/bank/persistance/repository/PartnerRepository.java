@@ -28,4 +28,10 @@ public interface PartnerRepository extends BaseRepository<Partner> {
     @Query(value="update kasprobank.PARTNER set tiers=?1 where id=?2",
             nativeQuery = true)
     void udpateTier(String tier, int id);
+
+    @Transactional
+    @Modifying
+    @Query(value="update kasprobank.PARTNER set status=?1 where id=?2",
+            nativeQuery = true)
+    void udpateStatus(String status, int id);
 }

@@ -8,6 +8,7 @@ import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.*;
 import com.kaspro.bank.vo.RegisterPartnerMemberVO;
 import com.kaspro.bank.vo.RegisterPartnerVO;
+import com.kaspro.bank.vo.UpdateStatusVO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -277,5 +278,16 @@ public class PartnerMemberService {
         savedVO.setListTransferInfoMember(savedTIS);
 
         return savedVO;
+    }
+
+    @Transactional
+    public String updateStatus(UpdateStatusVO vo){
+        List<PartnerMember> partnerMembers = pmRepository.findListPartnerMember(vo.getId());
+        if(partnerMembers.size()>0){
+            pmRepository.udpateStatus(vo.getStatus(), vo.getId());
+        }else{
+            throw new NostraException("Partner Member Does not Exist",StatusCode.DATA_NOT_FOUND);
+        }
+        return "Partner Member Status Has Been Updated";
     }
 }

@@ -2,8 +2,10 @@ package com.kaspro.bank.persistance.repository;
 
 import com.kaspro.bank.persistance.domain.Partner;
 import com.kaspro.bank.persistance.domain.PartnerMember;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,4 +26,10 @@ public interface PartnerMemberRepository extends BaseRepository<PartnerMember>{
     @Query(value="SELECT NAMA FROM kasprobank.PARTNER_MEMBER where NAMA=?1",
             nativeQuery = true)
     List<String> findName(String name);
+
+    @Transactional
+    @Modifying
+    @Query(value="update kasprobank.PARTNER_MEMBER set status=?1 where id=?2",
+            nativeQuery = true)
+    void udpateStatus(String status, int id);
 }

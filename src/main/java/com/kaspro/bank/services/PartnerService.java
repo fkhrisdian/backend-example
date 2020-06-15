@@ -6,7 +6,9 @@ import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.*;
+import com.kaspro.bank.vo.KeyValuePairedVO;
 import com.kaspro.bank.vo.RegisterPartnerVO;
+import com.kaspro.bank.vo.UpdateStatusVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
@@ -312,5 +314,16 @@ public class PartnerService {
 //        atService.add(at);
 
         return savedVO;
+    }
+
+    @Transactional
+    public String updateStatus(UpdateStatusVO vo){
+        List<Partner> partners = partnerRepository.findListPartner(vo.getId());
+        if(partners.size()>0){
+            partnerRepository.udpateStatus(vo.getStatus(), vo.getId());
+        }else{
+            throw new NostraException("Partner Does not Exist",StatusCode.DATA_NOT_FOUND);
+        }
+        return "Partner Status Has Been Updated";
     }
 }
