@@ -303,7 +303,7 @@ public class PartnerService {
         for(TransferFee tf:transferFees){
             logger.info("Inserting Transfer Fee: "+tf.getDestination());
             TransferFee savedTF=tfRepository.findDetail(savedPartner.getId(), tf.getDestination());
-            if(!savedTF.getFee().equals(tf.getFee())){
+            if(savedTF.getFee().compareTo(tf.getFee()) != 0){
                 ta.setField(tf.getDestination());
                 ta.setValueBefore(savedTF.getFee().toString());
                 ta.setValueAfter(tf.getFee().toString());
