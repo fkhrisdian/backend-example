@@ -289,8 +289,9 @@ public class PartnerService {
                 ta.setField(savedLampiran.getName());
                 ta.setValueBefore(savedLampiran.getUrl());
                 ta.setValueAfter(lampiran.getUrl());
-                savedLampiran = lampiranRepository.save(lampiran);
                 taService.add(ta);
+                savedLampiran.setUrl(lampiran.getUrl());
+                savedLampiran = lampiranRepository.save(savedLampiran);
             }
             savedLampirans.add(savedLampiran);
             logger.info("Finished insert Lampiran: "+lampiran.getName());
@@ -306,8 +307,9 @@ public class PartnerService {
                 ta.setField(tf.getDestination());
                 ta.setValueBefore(savedTF.getFee().toString());
                 ta.setValueAfter(tf.getFee().toString());
-                savedTF = tfRepository.save(tf);
                 taService.add(ta);
+                savedTF.setFee(tf.getFee());
+                savedTF = tfRepository.save(savedTF);
             }
             savedTFS.add(savedTF);
             logger.info("Finished insert Transfer Fee: "+tf.getDestination());
