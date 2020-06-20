@@ -238,39 +238,45 @@ public class PartnerService {
             ta.setValueBefore(savedPIC.getMsisdn());
             ta.setValueAfter(dataPIC.getMsisdn());
             taService.add(ta);
+            savedPIC.setMsisdn(dataPIC.getMsisdn());
         }
         if(!savedPIC.getName().equals(dataPIC.getName())){
             ta.setField("Nama");
             ta.setValueBefore(savedPIC.getName());
             ta.setValueAfter(dataPIC.getName());
             taService.add(ta);
+            savedPIC.setName(dataPIC.getName());
         }
         if(!savedPIC.getAlamat().equals(dataPIC.getAlamat())){
             ta.setField("Alamat");
             ta.setValueBefore(savedPIC.getAlamat());
             ta.setValueAfter(dataPIC.getAlamat());
             taService.add(ta);
+            savedPIC.setAlamat(dataPIC.getAlamat());
         }
         if(!savedPIC.getEmail().equals(dataPIC.getEmail())){
             ta.setField("Email");
             ta.setValueBefore(savedPIC.getEmail());
             ta.setValueAfter(dataPIC.getEmail());
             taService.add(ta);
+            savedPIC.setEmail(dataPIC.getEmail());
         }
         if(!savedPIC.getKtp().equals(dataPIC.getKtp())){
             ta.setField("KTP");
             ta.setValueBefore(savedPIC.getKtp());
             ta.setValueAfter(dataPIC.getKtp());
             taService.add(ta);
+            savedPIC.setKtp(dataPIC.getKtp());
         }
         if(!savedPIC.getNpwp().equals(dataPIC.getNpwp())){
             ta.setField("NPWP");
             ta.setValueBefore(savedPIC.getNpwp());
             ta.setValueAfter(dataPIC.getNpwp());
             taService.add(ta);
+            savedPIC.setNpwp(dataPIC.getNpwp());
         }
         logger.info("Inserting Data PIC: "+dataPIC.getName());
-        savedPIC=dataPICRepository.save(dataPIC);
+        savedPIC=dataPICRepository.save(savedPIC);
         logger.info("Finished insert Data PIC");
 
         logger.info("Starting insert Lampiran");
