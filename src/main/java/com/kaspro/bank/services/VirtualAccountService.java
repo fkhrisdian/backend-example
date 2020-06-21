@@ -2,10 +2,7 @@ package com.kaspro.bank.services;
 
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
-import com.kaspro.bank.persistance.domain.DataPIC;
-import com.kaspro.bank.persistance.domain.Individual;
-import com.kaspro.bank.persistance.domain.Partner;
-import com.kaspro.bank.persistance.domain.VirtualAccount;
+import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.PartnerRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.util.InitDB;
@@ -68,6 +65,41 @@ public class VirtualAccountService {
         savedVA.setVa(vaNumber);
         savedVA.setStatus("ACTIVE");
         savedVA.setMsisdn(va.getMsisdn());
+        savedVA=vaRepository.save(savedVA);
+
+        return savedVA;
+    }
+
+    public VirtualAccount addPartnerMember(PartnerMember pm, String msisdn){
+
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        VirtualAccount savedVA = new VirtualAccount();
+        InitDB x  = InitDB.getInstance();
+        String result = x.get("VA.Prefix");
+        String endDate = x.get("VA.EndDate");
+        String vaNumber ="";
+
+        String partnerCode = ("000"+pm.getPartner().getPartnerCode()).substring(pm.getPartner().getPartnerCode().length());
+        String partnerMemberCode = ("000000000"+pm.getPartnerMemberCode()).substring(pm.getPartnerMemberCode().length());
+
+        vaNumber=result+partnerCode+partnerMemberCode;
+        savedVA.setOwnerID(pm.getId());
+        try {
+            savedVA.setEndEffDate(new Date(df.parse(endDate).getTime()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        savedVA.setFlag("CPM");
+        savedVA.setStartEffDate(new Date(System.currentTimeMillis()));
+        savedVA.setVa(vaNumber);
+        savedVA.setStatus("ACTIVE");
+        savedVA.setMsisdn(msisdn);
+
+        List<String> vas=vaRepository.findVAs(vaNumber);
+        if(vas.size()>0){
+            throw new NostraException("Virtual Account already exist",StatusCode.DATA_INTEGRITY);
+        }
+
         savedVA=vaRepository.save(savedVA);
 
         return savedVA;

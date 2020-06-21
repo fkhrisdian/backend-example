@@ -54,6 +54,15 @@ public class PartnerService {
     @Autowired
     PartnerMemberRepository pmRepository;
 
+    @Autowired
+    PartnerTokenRepository ptRepo;
+
+    @Autowired
+    PartnerTokenPointerRepository ptpRepo;
+
+    @Autowired
+    PartnerMemberTokenRepository pmtRepo;
+
 
     Logger logger = LoggerFactory.getLogger(PartnerService.class);
 
@@ -94,6 +103,26 @@ public class PartnerService {
     @Transactional
     public RegisterPartnerVO add(RegisterPartnerVO vo){
 
+        PartnerTokenPointer ptp = new PartnerTokenPointer();
+        ptp=ptpRepo.save(ptp);
+
+        PartnerToken pt =ptRepo.findPT(ptp.getId());
+        try{
+            ptRepo.delete(pt);
+        }catch (Exception e){
+
+        }finally {
+            ptRepo.flush();
+        }
+
+        for(int i=1;i<100;i++){
+            PartnerMemberToken pmt=new PartnerMemberToken();
+            pmt.setPartnerCode(pt.getPartnerCode());
+            pmt.setPartnerMemberCode(new Long(i));
+            pmtRepo.saveAndFlush(pmt);
+
+        }
+
         List<Partner> partners = partnerRepository.findAlias(vo.getPartner().getAlias());
         if(partners.size()>0){
             throw new NostraException("Alias already exist", StatusCode.DATA_INTEGRITY);
@@ -110,6 +139,7 @@ public class PartnerService {
         logger.info("Inserting partner: "+partner.getName());
         logger.info("Tiers : "+tiers);
         partner.setTiers(tiers);
+        partner.setPartnerCode(pt.getPartnerCode().toString());
         Partner savedPartner=partnerRepository.save(partner);
         logger.info("Finished insert Partner");
 

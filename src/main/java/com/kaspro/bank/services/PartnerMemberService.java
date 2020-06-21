@@ -56,6 +56,9 @@ public class PartnerMemberService {
     @Autowired
     TrailAuditService taService;
 
+    @Autowired
+    PartnerMemberTokenRepository pmtRepo;
+
 
     Logger logger = LoggerFactory.getLogger(PartnerMemberService.class);
 
@@ -93,6 +96,14 @@ public class PartnerMemberService {
             throw new NostraException("Partner Alias Does Not Exist",StatusCode.DATA_NOT_FOUND);
         }
 
+        PartnerMemberToken pmt=pmtRepo.findMinId(partners.get(0).getPartnerCode());
+
+        try{
+            pmtRepo.delete(pmt);
+        }finally {
+            pmtRepo.flush();
+        }
+
         List<String> names=pmRepository.findName(vo.getPartnerMember().getName());
         if(names.size()>0){
             throw new NostraException("Partner Member with same name already exist", StatusCode.DATA_INTEGRITY);
@@ -103,6 +114,7 @@ public class PartnerMemberService {
         PartnerMember partnerMember =vo.getPartnerMember();
         logger.info("Inserting partner: "+partnerMember.getName());
         partnerMember.setPartner(partners.get(0));
+        partnerMember.setPartnerMemberCode(pmt.getPartnerMemberCode().toString());
         PartnerMember savedPartnerMember=pmRepository.save(partnerMember);
         logger.info("Finished insert Partner");
 
@@ -140,13 +152,9 @@ public class PartnerMemberService {
 
         }
 
-        VirtualAccount va=new VirtualAccount();
-        va.setOwnerID(savedPartnerMember.getId());
-        va.setMsisdn(savedPIC.getMsisdn());
-        va.setFlag("CPM");
-        VirtualAccount savedVA=vaService.add(va);
+        VirtualAccount savedVA=vaService.addPartnerMember(savedPartnerMember,savedPIC.getMsisdn());
 
-        logger.info("Finished insert Virtual Account: "+va.getVa());
+        logger.info("Finished insert Virtual Account: "+savedVA.getVa());
 
         RegisterPartnerMemberVO savedVO = new RegisterPartnerMemberVO();
         savedVO.setPartnerMember(savedPartnerMember);
