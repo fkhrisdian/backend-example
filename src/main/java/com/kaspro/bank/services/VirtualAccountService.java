@@ -105,9 +105,9 @@ public class VirtualAccountService {
         return savedVA;
     }
 
-    public VirtualAccount addIndividual(VirtualAccount va, Individual individual){
+    public VirtualAccount addIndividual(Individual individual){
 
-        List<String> listMsisdn=vaRepository.findMsisdn(va.getMsisdn());
+        List<String> listMsisdn=vaRepository.findMsisdn(individual.getMsisdn());
         if(listMsisdn.size()>0){
             throw new NostraException("MSISDN already used by other Virtual Account", StatusCode.DATA_INTEGRITY);
         }
@@ -119,27 +119,27 @@ public class VirtualAccountService {
         String endDate = x.get("VA.EndDate");
         String vaNumber ="";
 
-        if(va.getMsisdn().length()>12){
-            int start = va.getMsisdn().length()-12;
-            vaNumber=va.getMsisdn().substring(start, va.getMsisdn().length());
+        if(individual.getMsisdn().length()>12){
+            int start = individual.getMsisdn().length()-12;
+            vaNumber=individual.getMsisdn().substring(start, individual.getMsisdn().length());
             vaNumber=("000000000000"+vaNumber).substring(vaNumber.length());
         }else{
-            vaNumber=va.getMsisdn();
+            vaNumber=individual.getMsisdn();
             vaNumber=("000000000000"+vaNumber).substring(vaNumber.length());
         }
 
         vaNumber=result+vaNumber;
-        savedVA.setOwnerID(va.getOwnerID());
+        savedVA.setOwnerID(individual.getId());
         try {
             savedVA.setEndEffDate(new Date(df.parse(endDate).getTime()));
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        savedVA.setFlag(va.getFlag());
+        savedVA.setFlag("I");
         savedVA.setStartEffDate(new Date(System.currentTimeMillis()));
         savedVA.setVa(vaNumber);
         savedVA.setStatus("ACTIVE");
-        savedVA.setMsisdn(va.getMsisdn());
+        savedVA.setMsisdn(individual.getMsisdn());
         savedVA=vaRepository.save(savedVA);
 
         return savedVA;
@@ -153,6 +153,7 @@ public class VirtualAccountService {
         VirtualAccount savedVA=vaRepository.save(va);
         return savedVA;
     }
+
 
     public VirtualAccount findByPartnerId(int partnerId){
         VirtualAccount va = vaRepository.findByPartnerID(partnerId);

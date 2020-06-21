@@ -29,7 +29,7 @@ public class Individual extends Base{
     private String birth_place;
 
     @Column(name = "BIRTH_DATE")
-    private Date birth_date;
+    private String birth_date;
 
     @Column(name = "ID_TYPE")
     private String id_type;
@@ -61,7 +61,7 @@ public class Individual extends Base{
     @Column(name = "ADDITIONAL_INFO")
     private String additional_info;
 
-    @Column(name = "VIRTUAL_ACCOUNT")
-    private String virtual_account;
+    @Column(name = "TIER")
+    private String tier;
 
 }

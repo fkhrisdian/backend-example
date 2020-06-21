@@ -270,23 +270,23 @@ public class PartnerMemberService {
 
         }
 
-        VirtualAccount va=new VirtualAccount();
-        va.setOwnerID(savedPartnerMember.getId());
-        va.setMsisdn(savedPIC.getMsisdn());
-        va.setFlag("CPM");
-        VirtualAccount savedVA=new VirtualAccount();
-        VirtualAccount oldVA = vaRepository.findByPartnerID(savedPartnerMember.getId());
-        if(oldVA != null && !oldVA.getMsisdn().equals(dataPIC.getMsisdn())){
-            logger.info("Starting insert Virtual Account");
-            savedVA=vaService.add(va);
-            oldVA.setStatus("INACTIVE");
-            ta.setField("Virtual Account");
-            ta.setValueBefore(oldVA.getVa());
-            ta.setValueAfter(savedVA.getVa());
-            vaService.update(oldVA);
-            taService.add(ta);
-            logger.info("Finished insert Virtual Account: "+va.getVa());
-        }
+//        VirtualAccount va=new VirtualAccount();
+//        va.setOwnerID(savedPartnerMember.getId());
+//        va.setMsisdn(savedPIC.getMsisdn());
+//        va.setFlag("CPM");
+        VirtualAccount savedVA=vaRepository.findByPartnerID(savedPartnerMember.getId());
+//        VirtualAccount oldVA = vaRepository.findByPartnerID(savedPartnerMember.getId());
+//        if(oldVA != null && !oldVA.getMsisdn().equals(dataPIC.getMsisdn())){
+//            logger.info("Starting insert Virtual Account");
+//            savedVA=vaService.add(va);
+//            oldVA.setStatus("INACTIVE");
+//            ta.setField("Virtual Account");
+//            ta.setValueBefore(oldVA.getVa());
+//            ta.setValueAfter(savedVA.getVa());
+//            vaService.update(oldVA);
+//            taService.add(ta);
+//            logger.info("Finished insert Virtual Account: "+va.getVa());
+//        }
 
         RegisterPartnerMemberVO savedVO = new RegisterPartnerMemberVO();
         savedVO.setPartnerMember(savedPartnerMember);
