@@ -266,7 +266,7 @@ public class PartnerMemberService {
         va.setFlag("CPM");
         VirtualAccount savedVA=new VirtualAccount();
         VirtualAccount oldVA = vaRepository.findByPartnerID(savedPartnerMember.getId());
-        if(!oldVA.getMsisdn().equals(dataPIC.getMsisdn())){
+        if(oldVA != null && !oldVA.getMsisdn().equals(dataPIC.getMsisdn())){
             logger.info("Starting insert Virtual Account");
             savedVA=vaService.add(va);
             oldVA.setStatus("INACTIVE");
