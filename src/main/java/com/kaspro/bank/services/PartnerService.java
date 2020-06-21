@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.mail.Part;
 import java.sql.Date;
 import java.util.*;
 
@@ -93,8 +94,8 @@ public class PartnerService {
     @Transactional
     public RegisterPartnerVO add(RegisterPartnerVO vo){
 
-        List<String> listAlias = partnerRepository.findAlias(vo.getPartner().getAlias());
-        if(listAlias.size()>0){
+        List<Partner> partners = partnerRepository.findAlias(vo.getPartner().getAlias());
+        if(partners.size()>0){
             throw new NostraException("Alias already exist", StatusCode.DATA_INTEGRITY);
         }
 

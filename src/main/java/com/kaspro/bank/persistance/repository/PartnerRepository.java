@@ -19,9 +19,9 @@ public interface PartnerRepository extends BaseRepository<Partner> {
             nativeQuery = true)
     Partner findPartner(int id);
 
-    @Query(value="SELECT alias FROM kasprobank.PARTNER where alias=?1",
+    @Query(value="SELECT * FROM kasprobank.PARTNER where alias=?1",
             nativeQuery = true)
-    List<String> findAlias(String alias);
+    List<Partner> findAlias(String alias);
 
     @Transactional
     @Modifying

@@ -34,4 +34,7 @@ public class Partner extends Base {
 
     @Column(name = "STATUS")
     private String status;
+
+    @Column(name = "PARTNER_CODE")
+    private String partnerCode;
 }

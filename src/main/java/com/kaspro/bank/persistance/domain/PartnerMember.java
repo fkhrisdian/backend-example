@@ -31,4 +31,11 @@ public class PartnerMember extends Base {
 
   @Column(name = "STATUS")
   private String status;
+
+  @Column(name = "PARTNER_MEMBER_CODE")
+  private String partnerMemberCode;
+
+  @ManyToOne
+  @JoinColumn(name = "PARTNER_ID")
+  private Partner partner;
 }

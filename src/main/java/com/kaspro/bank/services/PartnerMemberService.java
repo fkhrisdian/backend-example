@@ -88,8 +88,8 @@ public class PartnerMemberService {
     public RegisterPartnerMemberVO add(RegisterPartnerMemberVO vo){
 
 
-        List<String> aliases=partnerRepository.findAlias(vo.getPartnerMember().getPartnerAlias());
-        if(aliases.size()==0){
+        List<Partner> partners=partnerRepository.findAlias(vo.getPartnerMember().getPartnerAlias());
+        if(partners.size()==0){
             throw new NostraException("Partner Alias Does Not Exist",StatusCode.DATA_NOT_FOUND);
         }
 
@@ -98,9 +98,11 @@ public class PartnerMemberService {
             throw new NostraException("Partner Member with same name already exist", StatusCode.DATA_INTEGRITY);
         }
 
+
         logger.info("Starting insert Partner Member");
         PartnerMember partnerMember =vo.getPartnerMember();
         logger.info("Inserting partner: "+partnerMember.getName());
+        partnerMember.setPartner(partners.get(0));
         PartnerMember savedPartnerMember=pmRepository.save(partnerMember);
         logger.info("Finished insert Partner");
 

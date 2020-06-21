@@ -3,6 +3,7 @@ package com.kaspro.bank.services;
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.DataPIC;
+import com.kaspro.bank.persistance.domain.Individual;
 import com.kaspro.bank.persistance.domain.Partner;
 import com.kaspro.bank.persistance.domain.VirtualAccount;
 import com.kaspro.bank.persistance.repository.PartnerRepository;
@@ -33,6 +34,46 @@ public class VirtualAccountService {
     Logger logger = LoggerFactory.getLogger(VirtualAccount.class);
 
     public VirtualAccount add(VirtualAccount va){
+
+        List<String> listMsisdn=vaRepository.findMsisdn(va.getMsisdn());
+        if(listMsisdn.size()>0){
+            throw new NostraException("MSISDN already used by other Virtual Account", StatusCode.DATA_INTEGRITY);
+        }
+
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        VirtualAccount savedVA = new VirtualAccount();
+        InitDB x  = InitDB.getInstance();
+        String result = x.get("VA.Prefix");
+        String endDate = x.get("VA.EndDate");
+        String vaNumber ="";
+
+        if(va.getMsisdn().length()>12){
+            int start = va.getMsisdn().length()-12;
+            vaNumber=va.getMsisdn().substring(start, va.getMsisdn().length());
+            vaNumber=("000000000000"+vaNumber).substring(vaNumber.length());
+        }else{
+            vaNumber=va.getMsisdn();
+            vaNumber=("000000000000"+vaNumber).substring(vaNumber.length());
+        }
+
+        vaNumber=result+vaNumber;
+        savedVA.setOwnerID(va.getOwnerID());
+        try {
+            savedVA.setEndEffDate(new Date(df.parse(endDate).getTime()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        savedVA.setFlag(va.getFlag());
+        savedVA.setStartEffDate(new Date(System.currentTimeMillis()));
+        savedVA.setVa(vaNumber);
+        savedVA.setStatus("ACTIVE");
+        savedVA.setMsisdn(va.getMsisdn());
+        savedVA=vaRepository.save(savedVA);
+
+        return savedVA;
+    }
+
+    public VirtualAccount addIndividual(VirtualAccount va, Individual individual){
 
         List<String> listMsisdn=vaRepository.findMsisdn(va.getMsisdn());
         if(listMsisdn.size()>0){
