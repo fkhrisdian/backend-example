@@ -182,39 +182,45 @@ public class PartnerMemberService {
             ta.setValueBefore(savedPIC.getMsisdn());
             ta.setValueAfter(dataPIC.getMsisdn());
             taService.add(ta);
+            savedPIC.setMsisdn(dataPIC.getMsisdn());
         }
         if(!savedPIC.getName().equals(dataPIC.getName())){
             ta.setField("Nama");
             ta.setValueBefore(savedPIC.getName());
             ta.setValueAfter(dataPIC.getName());
             taService.add(ta);
+            savedPIC.setName(dataPIC.getName());
         }
         if(!savedPIC.getAlamat().equals(dataPIC.getAlamat())){
             ta.setField("Alamat");
             ta.setValueBefore(savedPIC.getAlamat());
             ta.setValueAfter(dataPIC.getAlamat());
             taService.add(ta);
+            savedPIC.setAlamat(dataPIC.getAlamat());
         }
         if(!savedPIC.getEmail().equals(dataPIC.getEmail())){
             ta.setField("Email");
             ta.setValueBefore(savedPIC.getEmail());
             ta.setValueAfter(dataPIC.getEmail());
             taService.add(ta);
+            savedPIC.setEmail(savedPIC.getEmail());
         }
         if(!savedPIC.getKtp().equals(dataPIC.getKtp())){
             ta.setField("KTP");
             ta.setValueBefore(savedPIC.getKtp());
             ta.setValueAfter(dataPIC.getKtp());
             taService.add(ta);
+            savedPIC.setKtp(dataPIC.getKtp());
         }
         if(!savedPIC.getNpwp().equals(dataPIC.getNpwp())){
             ta.setField("NPWP");
             ta.setValueBefore(savedPIC.getNpwp());
             ta.setValueAfter(dataPIC.getNpwp());
             taService.add(ta);
+            savedPIC.setNpwp(dataPIC.getNpwp());
         }
         logger.info("Inserting Data PIC: "+dataPIC.getName());
-        savedPIC=dataPICRepository.save(dataPIC);
+        savedPIC=dataPICRepository.save(savedPIC);
         logger.info("Finished insert Data PIC");
 
         logger.info("Starting insert Lampiran");
@@ -227,8 +233,9 @@ public class PartnerMemberService {
                 ta.setField(savedLampiran.getName());
                 ta.setValueBefore(savedLampiran.getUrl());
                 ta.setValueAfter(lampiran.getUrl());
-                savedLampiran = lampiranRepository.save(lampiran);
                 taService.add(ta);
+                savedLampiran.setUrl(lampiran.getUrl());
+                savedLampiran = lampiranRepository.save(savedLampiran);
             }
             savedLampirans.add(savedLampiran);
             logger.info("Finished insert Lampiran: "+lampiran.getName());
@@ -244,8 +251,9 @@ public class PartnerMemberService {
                 ta.setField(ti.getName());
                 ta.setValueBefore(savedTI.getValue());
                 ta.setValueAfter(ti.getValue());
-                savedTI = tiRepository.save(ti);
                 taService.add(ta);
+                savedTI.setValue(ti.getValue());
+                savedTI = tiRepository.save(ti);
             }
             savedTIS.add(savedTI);
             logger.info("Finished insert Transfer Info Member: "+ti.getName());
