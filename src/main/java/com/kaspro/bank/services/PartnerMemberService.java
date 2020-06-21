@@ -253,7 +253,7 @@ public class PartnerMemberService {
                 ta.setValueAfter(ti.getValue());
                 taService.add(ta);
                 savedTI.setValue(ti.getValue());
-                savedTI = tiRepository.save(ti);
+                savedTI = tiRepository.save(savedTI);
             }
             savedTIS.add(savedTI);
             logger.info("Finished insert Transfer Info Member: "+ti.getName());
