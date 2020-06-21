@@ -203,7 +203,7 @@ public class PartnerMemberService {
             ta.setValueBefore(savedPIC.getEmail());
             ta.setValueAfter(dataPIC.getEmail());
             taService.add(ta);
-            savedPIC.setEmail(savedPIC.getEmail());
+            savedPIC.setEmail(dataPIC.getEmail());
         }
         if(!savedPIC.getKtp().equals(dataPIC.getKtp())){
             ta.setField("KTP");
