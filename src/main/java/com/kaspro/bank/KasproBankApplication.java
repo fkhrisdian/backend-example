@@ -65,7 +65,7 @@ class SshTunnelStarter {
 			// Connect to remote server
 			session.connect();
 			// Apply the port forwarding
-			session.setPortForwardingL(3307, "localhost", 3306);
+			session.setPortForwardingL(3306, "localhost", 3306);
 			log.info("Ssh Tunnel started please turn off if not needed");
 
 
