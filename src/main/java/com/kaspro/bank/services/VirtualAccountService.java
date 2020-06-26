@@ -1,17 +1,24 @@
 package com.kaspro.bank.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.PartnerRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.util.InitDB;
+import com.kaspro.bank.vo.CreateVAResponseVO;
+import com.kaspro.bank.vo.CreateVAVO;
+import com.kaspro.bank.vo.EncCreateVAVO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -27,6 +34,13 @@ public class VirtualAccountService {
 
     @Autowired
     PartnerRepository partnerRepository;
+
+    @Autowired
+    HttpProcessingService httpProcessingService;
+
+    BniEncryption bniEncryption;
+    String cid = "513"; // from BNI, testing purpose
+    String key = "ffcff955e7a53ebf76cda9cd16232ac4";
 
     Logger logger = LoggerFactory.getLogger(VirtualAccount.class);
 
@@ -140,6 +154,58 @@ public class VirtualAccountService {
         savedVA.setVa(vaNumber);
         savedVA.setStatus("ACTIVE");
         savedVA.setMsisdn(individual.getMsisdn());
+
+        CreateVAVO createVAVO = new CreateVAVO();
+        createVAVO.setClient_id("513");
+        createVAVO.setCustomer_email(individual.getEmail());
+        createVAVO.setCustomer_name(individual.getName());
+        createVAVO.setCustomer_phone(individual.getMsisdn());
+        createVAVO.setDatetime_expired(endDate+"T00:00:00+07:00");
+        createVAVO.setTrx_amount("0");
+        createVAVO.setTrx_id(individual.getMsisdn());
+        createVAVO.setVirtual_account(vaNumber);
+        createVAVO.setDescription("Creatve VA "+vaNumber);
+        createVAVO.setType("createBilling");
+        createVAVO.setBilling_type("z");
+
+        ObjectMapper obj = new ObjectMapper();
+        String inputString="";
+        try {
+            inputString=obj.writeValueAsString(createVAVO);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        String data=bniEncryption.hashData(inputString, cid, key);
+        EncCreateVAVO reqPost=new EncCreateVAVO();
+        reqPost.setClient_id(cid);
+        reqPost.setData(data);
+
+        try {
+            inputString=obj.writeValueAsString(reqPost);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            String outputString=httpProcessingService.postUser("https://apibeta.bni-ecollection.com:8067/",inputString);
+            Gson g = new Gson();
+            CreateVAResponseVO resPost=g.fromJson(outputString,CreateVAResponseVO.class);
+            if(resPost.getStatus().equals("000")){
+                data=resPost.getData();
+                resPost=g.fromJson(bniEncryption.parseData(data,cid,key),CreateVAResponseVO.class);
+
+            }else {
+                throw new NostraException(resPost.getMessage(),StatusCode.ERROR);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         savedVA=vaRepository.save(savedVA);
 
         return savedVA;

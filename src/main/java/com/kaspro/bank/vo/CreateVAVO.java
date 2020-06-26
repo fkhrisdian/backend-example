@@ -2,8 +2,10 @@ package com.kaspro.bank.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class CreateVAVO {
     private String client_id;
     private String trx_amount;
@@ -15,7 +17,5 @@ public class CreateVAVO {
     private String datetime_expired;
     private String description;
     private String type;
-    private String data;
-    private String status;
-    private String message;
+    private String billing_type;
 }
