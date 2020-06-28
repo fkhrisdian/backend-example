@@ -1,0 +1,107 @@
+package com.kaspro.bank.services;
+
+import com.google.gson.Gson;
+import com.kaspro.bank.converter.OGPConverter;
+import com.kaspro.bank.vo.BalanceVO;
+import com.kaspro.bank.vo.InHouseInquiryVO;
+import com.kaspro.bank.vo.InHousePaymentVO;
+import com.kaspro.bank.vo.InterBankInquiryVO;
+import com.kaspro.bank.vo.ogp.OgpBalanceReqVO;
+import com.kaspro.bank.vo.ogp.OgpBalanceRespVO;
+import com.kaspro.bank.vo.ogp.OgpInHouseInquiryReqVO;
+import com.kaspro.bank.vo.ogp.OgpInHouseInquiryRespVO;
+import com.kaspro.bank.vo.ogp.OgpInterBankInquiryReqVO;
+import com.kaspro.bank.vo.ogp.OgpInterBankInquiryRespVO;
+import com.kaspro.bank.vo.ogp.OgpInHousePaymentReqVO;
+import com.kaspro.bank.vo.ogp.OgpInHousePaymentRespVO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+
+@Slf4j
+@Service
+public class OGPService {
+
+  @Value("${ogp.url.balance}")
+  private String ogpBalanceUrl;
+
+  @Value("${ogp.url.inhouse.inquiry}")
+  private String ogpInHouseInquiryUrl;
+
+  @Value("${ogp.url.interbank.inquiry}")
+  private String ogpInterBankInquiryUrl;
+
+  @Value("${ogp.url.payment}")
+  private String ogpPaymentUrl;
+
+  @Value("${ogp.client.id}")
+  private String ogpClientId;
+
+  @Autowired
+  OGPEncryptionService encryptionService;
+
+  @Autowired
+  OGPHttpService ogpHttpService;
+
+  @Autowired
+  OGPConverter OGPConverter;
+
+  private Gson gson = new Gson();
+
+  public OgpBalanceRespVO balance(BalanceVO vo) {
+    OgpBalanceReqVO request = OGPConverter.convertBalance(
+        vo, ogpClientId, encryptionService.encrypt(ogpClientId + vo.getAccountNo()));
+
+    String responseBody = ogpHttpService.callHttpPost(ogpBalanceUrl, request);
+    return gson.fromJson(responseBody, OgpBalanceRespVO.class);
+  }
+
+  public OgpInHouseInquiryRespVO inHouseInquiry(InHouseInquiryVO vo) {
+    OgpInHouseInquiryReqVO request = OGPConverter.convertInHouseInquiry(
+        vo, ogpClientId, encryptionService.encrypt(ogpClientId + vo.getAccountNo()));
+
+    String responseBody = ogpHttpService.callHttpPost(ogpInHouseInquiryUrl, request);
+    return gson.fromJson(responseBody, OgpInHouseInquiryRespVO.class);
+  }
+
+  public OgpInterBankInquiryRespVO interBankInquiry(InterBankInquiryVO vo) {
+    OgpInterBankInquiryReqVO request = OGPConverter.convertInterBankInquiry(
+        vo, getCustomerReferenceNumber(new Date()), ogpClientId,
+        encryptionService.encrypt(
+            ogpClientId + vo.getDestinationBankCode() + vo.getDestinationAccountNo() + vo.getAccountNo()
+        )
+    );
+
+    String responseBody = ogpHttpService.callHttpPost(ogpInterBankInquiryUrl, request);
+    return gson.fromJson(responseBody, OgpInterBankInquiryRespVO.class);
+  }
+
+  public OgpInHousePaymentRespVO inHousePayment(InHousePaymentVO vo) {
+    Date currentTime = new Date();
+    String referenceNumber = getCustomerReferenceNumber(currentTime);
+    OgpInHousePaymentReqVO request = OGPConverter.convertPayment(
+        vo, getValueDate(currentTime), referenceNumber, ogpClientId,
+        encryptionService.encrypt(
+            ogpClientId + referenceNumber + "0" + vo.getDebitAccountNo() + vo.getCreditAccountNo() + vo.getAmount() + "IDR"
+        )
+    );
+
+    String responseBody = ogpHttpService.callHttpPost(ogpPaymentUrl, request);
+    return gson.fromJson(responseBody, OgpInHousePaymentRespVO.class);
+  }
+
+  private String getValueDate(Date date) {
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+    return formatter.format(date);
+  }
+
+  private String getCustomerReferenceNumber(Date date) {
+    Random random = new Random();
+    return getValueDate(date).concat(String.valueOf(random.nextInt(900) + 100));
+  }
+}
