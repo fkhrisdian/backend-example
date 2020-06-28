@@ -5,6 +5,7 @@ import com.kaspro.bank.vo.BalanceVO;
 import com.kaspro.bank.vo.InHouseInquiryVO;
 import com.kaspro.bank.vo.InHousePaymentVO;
 import com.kaspro.bank.vo.InterBankInquiryVO;
+import com.kaspro.bank.vo.PaymentStatusVO;
 import com.kaspro.bank.vo.ResultVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -81,6 +82,22 @@ public class TransferController {
       @Override
       public Object processRequest() {
         return transferService.inHousePayment(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      value="/Payment/Status"
+  )
+  @ResponseBody
+  public ResponseEntity<ResultVO> paymentStatus(@RequestBody final PaymentStatusVO vo) {
+    AbstractRequestHandler handler = new AbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.paymentStatus(vo);
       }
     };
     return handler.getResult();

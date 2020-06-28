@@ -4,10 +4,12 @@ import com.kaspro.bank.vo.BalanceVO;
 import com.kaspro.bank.vo.InHouseInquiryVO;
 import com.kaspro.bank.vo.InHousePaymentVO;
 import com.kaspro.bank.vo.InterBankInquiryVO;
+import com.kaspro.bank.vo.PaymentStatusVO;
 import com.kaspro.bank.vo.ogp.OgpBalanceReqVO;
 import com.kaspro.bank.vo.ogp.OgpInHouseInquiryReqVO;
 import com.kaspro.bank.vo.ogp.OgpInterBankInquiryReqVO;
 import com.kaspro.bank.vo.ogp.OgpInHousePaymentReqVO;
+import com.kaspro.bank.vo.ogp.OgpPaymentStatusReqVO;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,7 +42,7 @@ public class OGPConverter {
     return request;
   }
 
-  public OgpInHousePaymentReqVO convertPayment(InHousePaymentVO vo, String date, String refNo, String ogpClientId, String signature) {
+  public OgpInHousePaymentReqVO convertInHousePayment(InHousePaymentVO vo, String date, String refNo, String ogpClientId, String signature) {
     OgpInHousePaymentReqVO request = new OgpInHousePaymentReqVO();
     request.setPaymentMethod("0");
     request.setCustomerReferenceNumber(refNo);
@@ -50,6 +52,14 @@ public class OGPConverter {
     request.setValueAmount(vo.getAmount());
     request.setValueCurrency("IDR");
     request.setRemark(vo.getRemark());
+    request.setClientId(ogpClientId);
+    request.setSignature(signature);
+    return request;
+  }
+
+  public OgpPaymentStatusReqVO convertPaymentStatus(PaymentStatusVO vo, String ogpClientId, String signature) {
+    OgpPaymentStatusReqVO request = new OgpPaymentStatusReqVO();
+    request.setCustomerReferenceNumber(vo.getCustomerReferenceNumber());
     request.setClientId(ogpClientId);
     request.setSignature(signature);
     return request;

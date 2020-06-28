@@ -4,10 +4,12 @@ import com.kaspro.bank.vo.BalanceVO;
 import com.kaspro.bank.vo.InHouseInquiryVO;
 import com.kaspro.bank.vo.InHousePaymentVO;
 import com.kaspro.bank.vo.InterBankInquiryVO;
+import com.kaspro.bank.vo.PaymentStatusVO;
 import com.kaspro.bank.vo.ogp.OgpBalanceRespVO;
 import com.kaspro.bank.vo.ogp.OgpInHouseInquiryRespVO;
 import com.kaspro.bank.vo.ogp.OgpInterBankInquiryRespVO;
 import com.kaspro.bank.vo.ogp.OgpInHousePaymentRespVO;
+import com.kaspro.bank.vo.ogp.OgpPaymentStatusRespVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,5 +39,10 @@ public class TransferService {
   public String inHousePayment(InHousePaymentVO vo) {
     OgpInHousePaymentRespVO paymentRespVO = ogpService.inHousePayment(vo);
     return paymentRespVO.getDoPaymentResponse().getParameters().getResponseCode();
+  }
+
+  public String paymentStatus(PaymentStatusVO vo) {
+    OgpPaymentStatusRespVO paymentStatusRespVO = ogpService.paymentStatus(vo);
+    return paymentStatusRespVO.getGetPaymentStatusResponse().getParameters().getPreviousResponse().getValueAmount();
   }
 }
