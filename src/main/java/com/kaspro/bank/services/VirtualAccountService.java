@@ -84,7 +84,7 @@ public class VirtualAccountService {
         return savedVA;
     }
 
-    public VirtualAccount addPartnerMember(PartnerMember pm, String msisdn){
+    public VirtualAccount addPartnerMember(PartnerMember pm, String msisdn, DataPIC pic){
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         VirtualAccount savedVA = new VirtualAccount();
@@ -112,6 +112,56 @@ public class VirtualAccountService {
         List<String> vas=vaRepository.findVAs(vaNumber);
         if(vas.size()>0){
             throw new NostraException("Virtual Account already exist",StatusCode.DATA_INTEGRITY);
+        }
+
+        CreateVAVO createVAVO = new CreateVAVO();
+        createVAVO.setClient_id("513");
+        createVAVO.setCustomer_email(pic.getEmail());
+        createVAVO.setCustomer_name(pic.getName());
+        createVAVO.setCustomer_phone(pic.getMsisdn());
+        createVAVO.setDatetime_expired(endDate+"T00:00:00+07:00");
+        createVAVO.setTrx_amount("0");
+        createVAVO.setTrx_id(pic.getMsisdn());
+        createVAVO.setVirtual_account(vaNumber);
+        createVAVO.setDescription("Creatve VA "+vaNumber);
+        createVAVO.setType("createBilling");
+        createVAVO.setBilling_type("z");
+
+        ObjectMapper obj = new ObjectMapper();
+        String inputString="";
+        try {
+            inputString=obj.writeValueAsString(createVAVO);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        String data=bniEncryption.hashData(inputString, cid, key);
+        EncCreateVAVO reqPost=new EncCreateVAVO();
+        reqPost.setClient_id(cid);
+        reqPost.setData(data);
+
+        try {
+            inputString=obj.writeValueAsString(reqPost);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            String outputString=httpProcessingService.postUser("https://apibeta.bni-ecollection.com:8067/",inputString);
+            Gson g = new Gson();
+            CreateVAResponseVO resPost=g.fromJson(outputString,CreateVAResponseVO.class);
+            if(resPost.getStatus().equals("000")){
+                data=resPost.getData();
+                resPost=g.fromJson(bniEncryption.parseData(data,cid,key),CreateVAResponseVO.class);
+
+            }else {
+                throw new NostraException(resPost.getMessage(),StatusCode.ERROR);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         savedVA=vaRepository.save(savedVA);

@@ -152,7 +152,7 @@ public class PartnerMemberService {
 
         }
 
-        VirtualAccount savedVA=vaService.addPartnerMember(savedPartnerMember,savedPIC.getMsisdn());
+        VirtualAccount savedVA=vaService.addPartnerMember(savedPartnerMember,savedPIC.getMsisdn(), savedPIC);
 
         logger.info("Finished insert Virtual Account: "+savedVA.getVa());
 
