@@ -59,6 +59,12 @@ public class PartnerMemberService {
     @Autowired
     PartnerMemberTokenRepository pmtRepo;
 
+    @Autowired
+    TransferLimitRepository tlRepo;
+
+    @Autowired
+    UsageAccumulatorRepository uaRepo;
+
 
     Logger logger = LoggerFactory.getLogger(PartnerMemberService.class);
 
@@ -148,7 +154,18 @@ public class PartnerMemberService {
             ti.setFlag("CPM");
             TransferInfoMember savedTI = tiRepository.save(ti);
             savedTIS.add(savedTI);
-            logger.info("Finished insert Lampiran: "+ti.getName());
+            if(savedTI.getName().equals("TierLimit")){
+                List<TransferLimit> tls=tlRepo.findByTier(savedTI.getValue());
+                for(TransferLimit tl:tls){
+                    UsageAccumulator ua=new UsageAccumulator();
+                    ua.setDestination(tl.getDestination());
+                    ua.setOwnerId(savedPartnerMember.getId());
+                    ua.setTier(tl.getTierType());
+                    ua.setUsage("0");
+                    uaRepo.save(ua);
+                }
+            }
+            logger.info("Finished insert Transfer Info Member: "+ti.getName());
 
         }
 

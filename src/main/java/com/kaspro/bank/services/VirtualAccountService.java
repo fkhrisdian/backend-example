@@ -38,9 +38,14 @@ public class VirtualAccountService {
     @Autowired
     HttpProcessingService httpProcessingService;
 
+    @Autowired
+    OGPService ogpService;
+
     BniEncryption bniEncryption;
     String cid = "513"; // from BNI, testing purpose
     String key = "ffcff955e7a53ebf76cda9cd16232ac4";
+
+
 
     Logger logger = LoggerFactory.getLogger(VirtualAccount.class);
 
@@ -113,7 +118,8 @@ public class VirtualAccountService {
         if(vas.size()>0){
             throw new NostraException("Virtual Account already exist",StatusCode.DATA_INTEGRITY);
         }
-
+        java.util.Date currentTime = new java.util.Date();
+        String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime);
         CreateVAVO createVAVO = new CreateVAVO();
         createVAVO.setClient_id("513");
         createVAVO.setCustomer_email(pic.getEmail());
@@ -121,7 +127,7 @@ public class VirtualAccountService {
         createVAVO.setCustomer_phone(pic.getMsisdn());
         createVAVO.setDatetime_expired(endDate+"T00:00:00+07:00");
         createVAVO.setTrx_amount("0");
-        createVAVO.setTrx_id(pic.getMsisdn());
+        createVAVO.setTrx_id(referenceNumber);
         createVAVO.setVirtual_account(vaNumber);
         createVAVO.setDescription("Creatve VA "+vaNumber);
         createVAVO.setType("createBilling");
@@ -205,6 +211,8 @@ public class VirtualAccountService {
         savedVA.setStatus("ACTIVE");
         savedVA.setMsisdn(individual.getMsisdn());
 
+        java.util.Date currentTime = new java.util.Date();
+        String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime);
         CreateVAVO createVAVO = new CreateVAVO();
         createVAVO.setClient_id("513");
         createVAVO.setCustomer_email(individual.getEmail());
@@ -212,7 +220,7 @@ public class VirtualAccountService {
         createVAVO.setCustomer_phone(individual.getMsisdn());
         createVAVO.setDatetime_expired(endDate+"T00:00:00+07:00");
         createVAVO.setTrx_amount("0");
-        createVAVO.setTrx_id(individual.getMsisdn());
+        createVAVO.setTrx_id(referenceNumber);
         createVAVO.setVirtual_account(vaNumber);
         createVAVO.setDescription("Creatve VA "+vaNumber);
         createVAVO.setType("createBilling");

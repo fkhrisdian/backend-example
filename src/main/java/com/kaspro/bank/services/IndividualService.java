@@ -2,12 +2,10 @@ package com.kaspro.bank.services;
 
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
-import com.kaspro.bank.persistance.domain.Individual;
-import com.kaspro.bank.persistance.domain.TrailAudit;
-import com.kaspro.bank.persistance.domain.TransferLimit;
-import com.kaspro.bank.persistance.domain.VirtualAccount;
+import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.IndividualRepository;
 import com.kaspro.bank.persistance.repository.TransferLimitRepository;
+import com.kaspro.bank.persistance.repository.UsageAccumulatorRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.vo.IndividualVO;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +33,9 @@ public class IndividualService {
     @Autowired
     TransferLimitRepository tlRepo;
 
+    @Autowired
+    UsageAccumulatorRepository uaRepo;
+
     public IndividualVO registerIndividual(IndividualVO vo){
         Individual existingIndividual=iRepo.findByMsisdn(vo.getIndividual().getMsisdn());
         if(existingIndividual!=null){
@@ -43,6 +44,17 @@ public class IndividualService {
 
         Individual savedIndividual=iRepo.save(vo.getIndividual());
         VirtualAccount va=vaService.addIndividual(savedIndividual);
+
+        List<TransferLimit> tls=tlRepo.findByTier(savedIndividual.getTier());
+        for(TransferLimit tl:tls){
+            UsageAccumulator ua=new UsageAccumulator();
+            ua.setDestination(tl.getDestination());
+            ua.setOwnerId(savedIndividual.getId());
+            ua.setTier(tl.getTierType());
+            ua.setUsage("0");
+            uaRepo.save(ua);
+        }
+
         IndividualVO savedVO= new IndividualVO();
         savedVO.setIndividual(savedIndividual);
         savedVO.setVirtualAccount(va);

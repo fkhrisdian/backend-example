@@ -6,7 +6,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.math.BigInteger;
 
 @Entity
 @Table(name = "USAGE_ACCUMULATOR")
@@ -14,7 +13,7 @@ import java.math.BigInteger;
 @Data
 public class UsageAccumulator extends Base{
     @Column(name = "OWNER_ID")
-    private String ownerId;
+    private int ownerId;
 
     @Column(name = "TIER")
     private String tier;
@@ -22,7 +21,7 @@ public class UsageAccumulator extends Base{
     @Column(name = "DEST")
     private String destination;
 
-    @Column(name = "USAGE")
-    private BigInteger usage;
+    @Column(name = "USAGE_LIMIT")
+    private String usage;
 
 }

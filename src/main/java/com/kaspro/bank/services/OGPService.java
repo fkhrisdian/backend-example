@@ -110,7 +110,7 @@ public class OGPService {
     return formatter.format(date);
   }
 
-  private String getCustomerReferenceNumber(Date date) {
+  public String getCustomerReferenceNumber(Date date) {
     Random random = new Random();
     return getValueDate(date).concat(String.valueOf(random.nextInt(900) + 100));
   }
