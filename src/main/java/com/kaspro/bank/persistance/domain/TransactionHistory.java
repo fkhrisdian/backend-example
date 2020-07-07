@@ -21,6 +21,9 @@ public class TransactionHistory extends Base{
     @Column(name = "CREDIT_ACC")
     private String creditAcc;
 
+    @Column(name = "SKU")
+    private String sku;
+
     @Column(name = "AMOUNT")
     private String amount;
 

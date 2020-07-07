@@ -17,13 +17,17 @@ public interface VirtualAccountRepository extends BaseRepository<VirtualAccount>
             nativeQuery = true)
     List<String>  findMsisdn(String msisdn);
 
-    @Query(value="SELECT * FROM kasprobank.VIRTUAL_ACCOUNT where msisdn=?1 and status='ACTIVE' and flag=?2",
+    @Query(value="SELECT * FROM kasprobank.VIRTUAL_ACCOUNT where msisdn=?1 and status='ACTIVE'",
             nativeQuery = true)
-    VirtualAccount findByMsisdn(String msisdn, String flag);
+    VirtualAccount findByMsisdn(String msisdn);
 
     @Query(value="SELECT * FROM kasprobank.VIRTUAL_ACCOUNT where id=?1",
             nativeQuery = true)
     List<VirtualAccount> findVA(int id);
+
+    @Query(value="SELECT * FROM kasprobank.VIRTUAL_ACCOUNT where va=?1",
+            nativeQuery = true)
+    VirtualAccount findByVA(String va);
 
     @Query(value="SELECT va FROM kasprobank.VIRTUAL_ACCOUNT where va=?1",
             nativeQuery = true)

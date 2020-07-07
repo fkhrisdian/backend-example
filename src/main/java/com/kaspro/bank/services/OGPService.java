@@ -105,7 +105,7 @@ public class OGPService {
     return gson.fromJson(responseBody, OgpPaymentStatusRespVO.class);
   }
 
-  private String getValueDate(Date date) {
+  public String getValueDate(Date date) {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     return formatter.format(date);
   }

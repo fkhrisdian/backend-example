@@ -118,11 +118,41 @@ public class TransferController {
           produces = MediaType.APPLICATION_JSON_VALUE,
           value="/Transfer/KasproBank")
   @ResponseBody
-  public ResponseEntity<ResultVO> add(@RequestBody final TransferKasproBankReqVO vo) {
+  public ResponseEntity<ResultVO> transferKasproBank(@RequestBody final TransferKasproBankReqVO vo) {
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
         return transferService.transferKasproBank(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/Transfer/BNI")
+  @ResponseBody
+  public ResponseEntity<ResultVO> transferBNI(@RequestBody final TransferKasproBankReqVO vo) {
+    AbstractRequestHandler handler = new AbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.transferBNI(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/Transfer/Kaspro")
+  @ResponseBody
+  public ResponseEntity<ResultVO> transferKaspro(@RequestBody final TransferKasproBankReqVO vo) {
+    AbstractRequestHandler handler = new AbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.transferKaspro(vo);
       }
     };
     return handler.getResult();
