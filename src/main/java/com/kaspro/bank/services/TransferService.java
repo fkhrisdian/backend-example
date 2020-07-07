@@ -12,6 +12,7 @@ import com.kaspro.bank.vo.ogp.OgpBalanceRespVO;
 import com.kaspro.bank.vo.ogp.OgpInHouseInquiryRespVO;
 import com.kaspro.bank.vo.ogp.OgpInterBankInquiryRespVO;
 import com.kaspro.bank.vo.ogp.OgpInHousePaymentRespVO;
+import com.kaspro.bank.vo.ogp.OgpInterBankPaymentRespVO;
 import com.kaspro.bank.vo.ogp.OgpPaymentStatusRespVO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -68,6 +69,11 @@ public class TransferService {
   public String inHousePayment(InHousePaymentVO vo) {
     OgpInHousePaymentRespVO paymentRespVO = ogpService.inHousePayment(vo);
     return paymentRespVO.getDoPaymentResponse().getParameters().getResponseCode();
+  }
+
+  public String interBankPayment(InterBankPaymentVO vo) {
+    OgpInterBankPaymentRespVO paymentRespVO = ogpService.interBankPayment(vo);
+    return paymentRespVO.getGetInterbankPaymentResponse().getParameters().getResponseCode();
   }
 
   public String paymentStatus(PaymentStatusVO vo) {
