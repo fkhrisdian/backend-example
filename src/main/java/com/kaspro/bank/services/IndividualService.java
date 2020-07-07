@@ -221,6 +221,27 @@ public class IndividualService {
         return savedVO;
     }
 
+    public IndividualVO updateTier(IndividualVO individualVO) {
+        Individual vo = individualVO.getIndividual();
+        Individual savedIndividual = iRepo.findIndividual(vo.getId());
+        if (savedIndividual == null) {
+            throw new NostraException("Subscriber not found", StatusCode.DATA_NOT_FOUND);
+        }
+
+        TrailAudit ta = new TrailAudit();
+        ta.setOwnerID(savedIndividual.getId().toString());
+        ta.setUser("System");
+        if(!vo.getTier().equals(savedIndividual.getTier())){
+            ta.setField("Tier");
+            ta.setValueBefore(savedIndividual.getTier());
+            ta.setValueAfter(vo.getTier());
+            taService.add(ta);
+            savedIndividual.setTier(vo.getTier());
+        }
+        iRepo.save(savedIndividual);
+        return individualVO;
+    }
+
     public IndividualVO getIndividualDetail(int id){
         Individual individual=iRepo.findIndividual(id);
         if(individual==null){

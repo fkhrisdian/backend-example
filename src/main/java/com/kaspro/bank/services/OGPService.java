@@ -6,6 +6,7 @@ import com.kaspro.bank.vo.BalanceVO;
 import com.kaspro.bank.vo.InHouseInquiryVO;
 import com.kaspro.bank.vo.InHousePaymentVO;
 import com.kaspro.bank.vo.InterBankInquiryVO;
+import com.kaspro.bank.vo.InterBankPaymentVO;
 import com.kaspro.bank.vo.PaymentStatusVO;
 import com.kaspro.bank.vo.ogp.OgpBalanceReqVO;
 import com.kaspro.bank.vo.ogp.OgpBalanceRespVO;
@@ -15,6 +16,8 @@ import com.kaspro.bank.vo.ogp.OgpInterBankInquiryReqVO;
 import com.kaspro.bank.vo.ogp.OgpInterBankInquiryRespVO;
 import com.kaspro.bank.vo.ogp.OgpInHousePaymentReqVO;
 import com.kaspro.bank.vo.ogp.OgpInHousePaymentRespVO;
+import com.kaspro.bank.vo.ogp.OgpInterBankPaymentReqVO;
+import com.kaspro.bank.vo.ogp.OgpInterBankPaymentRespVO;
 import com.kaspro.bank.vo.ogp.OgpPaymentStatusReqVO;
 import com.kaspro.bank.vo.ogp.OgpPaymentStatusRespVO;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +42,11 @@ public class OGPService {
   @Value("${ogp.url.interbank.inquiry}")
   private String ogpInterBankInquiryUrl;
 
-  @Value("${ogp.url.payment}")
-  private String ogpPaymentUrl;
+  @Value("${ogp.url.inhouse.payment}")
+  private String ogpInHousePaymentUrl;
+
+  @Value("${ogp.url.interbank.payment}")
+  private String ogpInterBankPaymentUrl;
 
   @Value("${ogp.url.payment.status}")
   private String ogpPaymentStatusUrl;
@@ -93,8 +99,21 @@ public class OGPService {
         encryptionService.encrypt(
             ogpClientId + referenceNumber + "0" + vo.getDebitAccountNo() + vo.getCreditAccountNo() + vo.getAmount() + "IDR"));
 
-    String responseBody = ogpHttpService.callHttpPost(ogpPaymentUrl, request);
+    String responseBody = ogpHttpService.callHttpPost(ogpInHousePaymentUrl, request);
     return gson.fromJson(responseBody, OgpInHousePaymentRespVO.class);
+  }
+
+  public OgpInterBankPaymentRespVO interBankPayment(InterBankPaymentVO vo) {
+    Date currentTime = new Date();
+    String referenceNumber = getCustomerReferenceNumber(currentTime);
+    OgpInterBankPaymentReqVO request = OGPConverter.convertInterBankPayment(
+        vo, referenceNumber, ogpClientId,
+        encryptionService.encrypt(
+            ogpClientId + vo.getDestinationAccountNo() + vo.getDestinationBankCode() + vo.getAccountNo() + vo.getAmount() + vo.getRetrievalReffNo())
+    );
+
+    String responseBody = ogpHttpService.callHttpPost(ogpInterBankPaymentUrl, request);
+    return gson.fromJson(responseBody, OgpInterBankPaymentRespVO.class);
   }
 
   public OgpPaymentStatusRespVO paymentStatus(PaymentStatusVO vo) {

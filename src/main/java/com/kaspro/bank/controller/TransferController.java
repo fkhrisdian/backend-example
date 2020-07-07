@@ -83,6 +83,22 @@ public class TransferController {
   @RequestMapping(method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE,
+      value="/Payment/InterBank"
+  )
+  @ResponseBody
+  public ResponseEntity<ResultVO> paymentInterBank(@RequestBody final InterBankPaymentVO vo) {
+    AbstractRequestHandler handler = new AbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.interBankPayment(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE,
       value="/Payment/Status"
   )
   @ResponseBody
