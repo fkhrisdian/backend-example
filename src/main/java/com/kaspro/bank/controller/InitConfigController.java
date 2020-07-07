@@ -49,5 +49,8 @@ public class InitConfigController {
         return result;
     }
 
-
+    @PostMapping(value = "/KasprobankConfig/Update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public KasprobankConfig update(@RequestBody KasprobankConfig input){
+        return initConfigService.add(input);
+    }
 }

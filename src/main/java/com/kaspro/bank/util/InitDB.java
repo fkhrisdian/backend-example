@@ -45,7 +45,7 @@ public class InitDB {
         List<KasprobankConfig> xx = initConfigService.findAll();
         for (KasprobankConfig i : xx) {
             params.put(i.getParam_name(), i.getParam_value());
-            log.info("param_name" + i.getParam_name().toString());
+            log.info("param_name" + i.getParam_name());
         }
         lastupdate = 0;
 
