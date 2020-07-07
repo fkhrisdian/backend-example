@@ -77,6 +77,21 @@ public class IndividualController {
         return handler.getResult();
     }
 
+    @RequestMapping(method = RequestMethod.POST,
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        value="/UpdateTier")
+    @ResponseBody
+    public ResponseEntity<ResultVO> updateTier(@RequestBody final IndividualVO vo) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return iService.updateTier(vo);
+            }
+        };
+        return handler.getResult();
+    }
+
 //    @RequestMapping(method = RequestMethod.POST,
 //            consumes = MediaType.APPLICATION_JSON_VALUE,
 //            produces = MediaType.APPLICATION_JSON_VALUE,
