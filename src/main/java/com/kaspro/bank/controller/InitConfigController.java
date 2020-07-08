@@ -49,6 +49,13 @@ public class InitConfigController {
         return result;
     }
 
+    @GetMapping(value = "/api/v1/KasprobankConfigGet",produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getApi(@RequestParam String Name){
+        String result = InitDBHandler.paramName(Name);
+        log.info("Loading Param :" +result);
+        return result;
+    }
+
     @PostMapping(value = "/KasprobankConfig/Update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public KasprobankConfig update(@RequestBody KasprobankConfig input){
         return initConfigService.add(input);
