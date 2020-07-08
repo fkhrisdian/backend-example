@@ -4,9 +4,11 @@ import com.kaspro.bank.persistance.domain.KasprobankConfig;
 import com.kaspro.bank.services.InitConfigService;
 import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.util.InitDBHandler;
+import com.kaspro.bank.vo.ResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,13 +52,17 @@ public class InitConfigController {
     }
 
     @GetMapping(value = "/api/v1/KasprobankConfigGet",produces = MediaType.APPLICATION_JSON_VALUE)
-    public String getApi(@RequestParam String Name){
-        String result = InitDBHandler.paramName(Name);
-        log.info("Loading Param :" +result);
-        return result;
+    public ResponseEntity<ResultVO> getDetail(@RequestParam (value="name", required = true) String name) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return InitDBHandler.paramName(name);
+            }
+        };
+        return handler.getResult();
     }
 
-    @PostMapping(value = "/KasprobankConfig/Update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/api/v1/KasprobankConfig/Update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public KasprobankConfig update(@RequestBody KasprobankConfig input){
         return initConfigService.add(input);
     }
