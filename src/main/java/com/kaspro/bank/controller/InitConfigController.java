@@ -52,11 +52,11 @@ public class InitConfigController {
     }
 
     @GetMapping(value = "/api/v1/KasprobankConfigGet",produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResultVO> getDetail(@RequestParam (value="name", required = true) String name) {
+    public ResponseEntity<ResultVO> getDetail(@RequestParam (value="id", required = true) int id) {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
-                return InitDBHandler.paramName(name);
+                return initConfigService.detail(id).getParam_value();
             }
         };
         return handler.getResult();
@@ -64,6 +64,6 @@ public class InitConfigController {
 
     @PostMapping(value = "/api/v1/KasprobankConfig/Update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public KasprobankConfig update(@RequestBody KasprobankConfig input){
-        return initConfigService.add(input);
+        return initConfigService.update(input);
     }
 }

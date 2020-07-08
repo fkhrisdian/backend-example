@@ -34,11 +34,16 @@ public class InitConfigService {
         return saved;
     }
 
+    public KasprobankConfig detail(int id) {
+        return kasproBankConfigRepository.findById(id).get();
+    }
+
     public KasprobankConfig update(KasprobankConfig kasprobankConfig){
         Optional<KasprobankConfig> saved = kasproBankConfigRepository.findById(kasprobankConfig.getId());
         KasprobankConfig config = saved.get();
         config.setParam_value(kasprobankConfig.getParam_value());
         config.setParam_name(kasprobankConfig.getParam_name());
-        return kasproBankConfigRepository.save(config);
+        kasproBankConfigRepository.save(config);
+        return config;
     }
 }
