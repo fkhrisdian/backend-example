@@ -11,6 +11,7 @@ import com.kaspro.bank.vo.IndividualVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class IndividualService {
     @Autowired
     UsageAccumulatorRepository uaRepo;
 
+    @Transactional
     public IndividualVO registerIndividual(IndividualVO vo){
         Individual existingIndividual=iRepo.findByMsisdn(vo.getIndividual().getMsisdn());
         if(existingIndividual!=null){
@@ -43,7 +45,13 @@ public class IndividualService {
         }
 
         Individual savedIndividual=iRepo.save(vo.getIndividual());
-        VirtualAccount va=vaService.addIndividual(savedIndividual);
+        VirtualAccount va= new VirtualAccount();
+
+        try{
+            vaService.addIndividual(savedIndividual);
+        }catch (NostraException ne){
+            throw new NostraException(ne.getMessage(),StatusCode.ERROR);
+        }
 
         List<TransferLimit> tls=tlRepo.findByTier(savedIndividual.getTier());
         for(TransferLimit tl:tls){

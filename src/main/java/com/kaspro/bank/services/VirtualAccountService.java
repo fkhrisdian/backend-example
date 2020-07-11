@@ -13,10 +13,13 @@ import com.kaspro.bank.vo.CreateVAResponseVO;
 import com.kaspro.bank.vo.CreateVAVO;
 import com.kaspro.bank.vo.EncCreateVAVO;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -175,7 +178,32 @@ public class VirtualAccountService {
         return savedVA;
     }
 
+    @Transactional
     public VirtualAccount addIndividual(Individual individual){
+
+        try {
+            JSONObject resValidate= new JSONObject(httpProcessingService.kasproValidate(individual.getMsisdn()));
+            logger.info(resValidate.toString());
+            if(resValidate.getInt("code")!=0){
+                throw new NostraException(resValidate.getString("message"),StatusCode.ERROR);
+            }else {
+                JSONObject resPayu = new JSONObject(httpProcessingService.kasproPayu(resValidate.getString("account-number")));
+                logger.info(resPayu.toString());
+                if(resPayu.getInt("code")!=0){
+                    throw new NostraException(resPayu.getString("message"), StatusCode.ERROR);
+                }else{
+                    String accountType=resPayu.getJSONObject("account").getString("account-type");
+                    String accountStatus=resPayu.getJSONObject("account").getString("account-status");
+                    if(!(accountStatus.equals("ACTIVE") && accountType.equals("premium"))){
+                        throw new NostraException("Account is not premium or not active", StatusCode.ERROR);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         List<String> listMsisdn=vaRepository.findMsisdn(individual.getMsisdn());
         if(listMsisdn.size()>0){

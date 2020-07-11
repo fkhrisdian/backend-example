@@ -64,4 +64,7 @@ public class Individual extends Base{
     @Column(name = "TIER")
     private String tier;
 
+    @Column(name = "STATUS")
+    private String status;
+
 }
