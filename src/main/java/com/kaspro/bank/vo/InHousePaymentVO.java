@@ -8,4 +8,7 @@ public class InHousePaymentVO {
   private String creditAccountNo;
   private String amount;
   private String remark;
+  private String paymentMethod;
+  private String destinationBankCode;
+  private String chargingModelId;
 }

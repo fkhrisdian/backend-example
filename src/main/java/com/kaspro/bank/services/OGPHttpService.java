@@ -16,6 +16,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.ILoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class OGPHttpService {
     try {
       ObjectMapper mapper = new ObjectMapper();
       String valueAsString = mapper.writeValueAsString(object);
+      log.info("Request : "+valueAsString);
       return callHttpPost(url, MediaType.APPLICATION_JSON_VALUE, new StringEntity(valueAsString));
     } catch (JsonProcessingException e) {
       log.warn("Got Json Processing Exception " + e);

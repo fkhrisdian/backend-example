@@ -1,5 +1,7 @@
 package com.kaspro.bank.converter;
 
+import com.kaspro.bank.persistance.domain.TransactionHistory;
+import com.kaspro.bank.persistance.domain.TransactionHistoryStaging;
 import com.kaspro.bank.vo.BalanceVO;
 import com.kaspro.bank.vo.InHouseInquiryVO;
 import com.kaspro.bank.vo.InHousePaymentVO;
@@ -46,7 +48,7 @@ public class OGPConverter {
 
   public OgpInHousePaymentReqVO convertInHousePayment(InHousePaymentVO vo, String date, String refNo, String ogpClientId, String signature) {
     OgpInHousePaymentReqVO request = new OgpInHousePaymentReqVO();
-    request.setPaymentMethod("0");
+    request.setPaymentMethod(vo.getPaymentMethod());
     request.setCustomerReferenceNumber(refNo);
     request.setDebitAccountNo(vo.getDebitAccountNo());
     request.setCreditAccountNo(vo.getCreditAccountNo());
@@ -56,6 +58,14 @@ public class OGPConverter {
     request.setRemark(vo.getRemark());
     request.setClientId(ogpClientId);
     request.setSignature(signature);
+    if(!vo.getPaymentMethod().equals("0")){
+      request.setDestinationBankCode(vo.getDestinationBankCode());
+    }
+    if(vo.getChargingModelId()==null){
+      request.setChargingModelId("OUR");
+    }else{
+      request.setChargingModelId(vo.getChargingModelId());
+    }
     return request;
   }
 
@@ -80,5 +90,29 @@ public class OGPConverter {
     request.setClientId(ogpClientId);
     request.setSignature(signature);
     return request;
+  }
+
+  public TransactionHistory convertTransactionHistory(TransactionHistoryStaging thSTG){
+    TransactionHistory th=new TransactionHistory();
+    th.setChargingModelId(thSTG.getChargingModelId());
+    th.setPaymentMethod(thSTG.getPaymentMethod());
+    th.setDebitName(thSTG.getDebitName());
+    th.setCreditName(thSTG.getCreditName());
+    th.setRemark(thSTG.getRemark());
+    th.setStatus(thSTG.getStatus());
+    th.setSku(thSTG.getSku());
+    th.setTotalAmount(thSTG.getTotalAmount());
+    th.setInterBankFee(thSTG.getInterBankFee());
+    th.setAdminFee(thSTG.getAdminFee());
+    th.setTid(thSTG.getTid());
+    th.setCreditAcc(thSTG.getCreditAcc());
+    th.setDebitAcc(thSTG.getDebitAcc());
+    th.setCurrency(thSTG.getCurrency());
+    th.setAmount(thSTG.getAmount());
+    th.setBankRef(thSTG.getBankRef());
+    th.setCustRef(thSTG.getCustRef());
+    th.setDestinationBankCode(thSTG.getDestinationBankCode());
+
+    return th;
   }
 }

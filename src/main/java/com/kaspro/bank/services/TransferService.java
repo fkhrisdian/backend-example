@@ -1,10 +1,12 @@
 package com.kaspro.bank.services;
 
 import com.google.gson.Gson;
+import com.kaspro.bank.converter.OGPConverter;
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.*;
+import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.*;
 import com.kaspro.bank.vo.Inquiry.InquiryKasproBankResVO;
 import com.kaspro.bank.vo.TransferKasproBank.TransferKasproBankReqVO;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -50,6 +53,9 @@ public class TransferService {
   TransactionHistoryRepository thRepo;
 
   @Autowired
+  TransactionHistoryStagingRepository thSTGRepo;
+
+  @Autowired
   PartnerService pService;
 
   @Autowired
@@ -57,6 +63,12 @@ public class TransferService {
 
   @Autowired
   HttpProcessingService httpProcessingService;
+
+  @Autowired
+  IndividualService iService;
+
+  @Autowired
+  OGPConverter ogpConverter;
 
   Logger logger = LoggerFactory.getLogger(TransferService.class);
 
@@ -90,35 +102,92 @@ public class TransferService {
     return paymentStatusRespVO.getGetPaymentStatusResponse().getParameters().getPreviousResponse().getValueAmount();
   }
 
+
+  public List<TransactionHistory> findEntireTransaction(){
+    List<TransactionHistory> ths=thRepo.findEntireTransaction();
+    return ths;
+  }
+
   @Transactional
-  public InquiryKasproBankResVO kasproBankInquiry(String source, String destination, String sku, String amount){
+  public InquiryKasproBankResVO kasproBankInquiry(String source, String destination, String sku, String amount, String paymentMethod, String chargingModel){
 
     VirtualAccount va = new VirtualAccount();
     RegisterPartnerMemberVO pmVO = new RegisterPartnerMemberVO();
     InHouseInquiryVO ihi = new InHouseInquiryVO();
     OgpInHouseInquiryRespVO ihiResp = new OgpInHouseInquiryRespVO();
-    TransactionHistory th=new TransactionHistory();
+    TransactionHistoryStaging th=new TransactionHistoryStaging();
     InquiryKasproBankResVO vo = new InquiryKasproBankResVO();
+    VirtualAccount vaSource=new VirtualAccount();
+    String bankCode="";
+    String bankCodeRTGS="";
+    RegisterPartnerMemberVO pmVOSource = new RegisterPartnerMemberVO();
+    RegisterPartnerVO pVOSource=new RegisterPartnerVO();
+    IndividualVO iVOSource=new IndividualVO();
+    IndividualVO iVo= new IndividualVO();
+    paymentMethod=paymentMethod.toUpperCase();
+    InitDB x  = InitDB.getInstance();
+    paymentMethod = x.get("Code.PaymentMethod."+paymentMethod);
+    logger.info("Payment methid: "+paymentMethod);
 
+    if(source.startsWith("628")||source.startsWith("08")){
+      if(source.startsWith("08")){
+        source="62"+source.substring(1);
+      }
+      vaSource=vaRepo.findIndividual(source);
+      if(vaSource!=null){
+        iVOSource=iService.getIndividualDetail(vaSource.getOwnerID());
+        if(!iVOSource.getIndividual().getStatus().equals("ACTIVE")){
+          throw new NostraException("Source account is not active",StatusCode.ERROR);
+        }
+        th.setDebitName(iVOSource.getIndividual().getName());
+      }
 
-    VirtualAccount vaSource=vaRepo.findByMsisdn(source);
+    }else {
+      vaSource=vaRepo.findCorporate(source);
+      if(vaSource!=null){
+        pmVOSource = pmService.findDetail(vaSource.getOwnerID());
+        if(!pmVOSource.getPartnerMember().getStatus().equals("ACTIVE")){
+          throw new NostraException("Source account is not active",StatusCode.ERROR);
+        }
+        pVOSource=pService.findDetail(pmVOSource.getPartnerMember().getPartner().getId());
+        th.setDebitName(pmVOSource.getPartnerMember().getName());
+      }
+    }
+
     if(vaSource==null){
       throw new NostraException("Source account is not found", StatusCode.DATA_NOT_FOUND);
     }
-    RegisterPartnerMemberVO pmVOSource = pmService.findDetail(vaSource.getOwnerID());
-    RegisterPartnerVO pVOSource=pService.findDetail(pmVOSource.getPartnerMember().getPartner().getId());
 
     if(sku.equals("KasproBank")){
-      va=vaRepo.findByMsisdn(destination);
+      if(destination.startsWith("628")||destination.startsWith("08")){
+        if(destination.startsWith("08")){
+          destination="62"+destination.substring(1);
+        }
+        va=vaRepo.findIndividual(destination);
+        if(va!=null){
+          iVo=iService.getIndividualDetail(va.getOwnerID());
+          if(!iVo.getIndividual().getStatus().equals("ACTIVE")){
+            throw new NostraException("Source account is not active",StatusCode.ERROR);
+          }
+          th.setDebitName(iVo.getIndividual().getName());
+        }
+      }else{
+        va=vaRepo.findCorporate(destination);
+        if(va!=null){
+          pmVO = pmService.findDetail(va.getOwnerID());
+          if(!pmVO.getPartnerMember().getStatus().equals("ACTIVE")){
+            throw new NostraException("Source account is not active",StatusCode.ERROR);
+          }
+          th.setDebitName(pmVOSource.getPartnerMember().getName());
+        }
+      }
       if(va==null) {
         throw new NostraException("Destination account is not found", StatusCode.DATA_NOT_FOUND);
       }
-      pmVO = pmService.findDetail(va.getOwnerID());
-      if(!pmVO.getPartnerMember().getStatus().equals("ACTIVE")){
-        throw new NostraException("Destination Account is not active", StatusCode.ERROR);
-      }
+
       vo.setDestinationAccount(va.getVa());
       vo.setDestinationName(pmVO.getPartnerMember().getName());
+      th.setCreditName(pmVO.getPartnerMember().getName());
       th.setCreditAcc(va.getVa());
     }else if(sku.equals("BNI")){
       ihi.setAccountNo(destination);
@@ -128,6 +197,7 @@ public class TransferService {
       }else{
         vo.setDestinationAccount(ihiResp.getGetInHouseInquiryResponse().getParameters().getAccountNumber());
         vo.setDestinationName(ihiResp.getGetInHouseInquiryResponse().getParameters().getCustomerName());
+        th.setCreditName(vo.getDestinationName());
         th.setCreditAcc(ihiResp.getGetInHouseInquiryResponse().getParameters().getAccountNumber());
       }
     }else if(sku.equals("Kaspro")){
@@ -145,6 +215,8 @@ public class TransferService {
             String accountName=resPayu.getJSONObject("account").getString("account-name");
             vo.setDestinationName(accountName);
             vo.setDestinationAccount(resValidate.getString("account-number"));
+            th.setCreditName(vo.getDestinationName());
+            logger.info("Account number: "+resValidate.getString("account-number"));
             th.setCreditAcc(resValidate.getString("account-number"));
           }
         }
@@ -207,7 +279,9 @@ public class TransferService {
       th.setRemark("Pending for confirmation");
       th.setTid(referenceNumber);
       th.setSku(sku);
-      TransactionHistory savedTH=thRepo.save(th);
+      th.setPaymentMethod(paymentMethod);
+      th.setChargingModelId(chargingModel);
+      TransactionHistoryStaging savedTH=thSTGRepo.save(th);
 
       vo.setAmount(amount);
       vo.setSourceAccount(vaSource.getVa());
@@ -222,58 +296,68 @@ public class TransferService {
   }
 
 
-  @Transactional
   public TransferKasproBankResVO transferKasproBank(TransferKasproBankReqVO vo){
-    TransactionHistory th=thRepo.findByTID(vo.getTid(),"KasproBank");
-    if(th==null){
-      throw new NostraException("Transaction ID is not found",StatusCode.DATA_NOT_FOUND);
+    TransactionHistoryStaging thSTG=thSTGRepo.findByTID(vo.getTid(),"KasproBank");
+    TransactionHistory th = new TransactionHistory();
+    if(thSTG==null){
+      throw new NostraException(vo.getTid()+" Transaction ID is not found",StatusCode.DATA_NOT_FOUND);
+    }else {
+      thSTGRepo.delete(thSTG);
+      thSTGRepo.flush();
+      th=ogpConverter.convertTransactionHistory(thSTG);
     }
     String escrow="0115476151";
     String feeAccount="0115476151";
     try{
-      logger.info("Starting transfer to escrow account: "+feeAccount+" with amount: "+th.getAdminFee());
+      logger.info(vo.getTid()+" Starting transfer to escrow account: "+feeAccount+" with amount: "+th.getAdminFee());
       InHousePaymentVO ihpVO=new InHousePaymentVO();
       ihpVO.setAmount(th.getAdminFee());
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(feeAccount);
+      ihpVO.setChargingModelId(th.getChargingModelId());
+      ihpVO.setPaymentMethod(th.getPaymentMethod());
       ihpVO.setRemark("Transfer Admin Fee to Fee Account");
       String resIHP=inHousePayment(ihpVO);
-      logger.info("Finished transfer to Fee account with response: "+resIHP);
+      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
     }catch (Exception e){
       th.setStatus("Error");
       th.setRemark("Exception during transfer to Fee account");
-      thRepo.save(th);
-      throw new NostraException("Exception during transfer to Fee account",StatusCode.ERROR);
+      thRepo.saveAndFlush(th);
+      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
     }
     try{
-      logger.info("Starting transfer to escrow account: "+escrow+" with amount: "+th.getAmount());
+      logger.info(vo.getTid()+" Starting transfer to escrow account: "+escrow+" with amount: "+th.getAmount());
       InHousePaymentVO ihpVO=new InHousePaymentVO();
       ihpVO.setAmount(th.getAmount());
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(escrow);
+      ihpVO.setChargingModelId(th.getChargingModelId());
+      ihpVO.setPaymentMethod(th.getPaymentMethod());
       ihpVO.setRemark("Transfer from source account to escrow account");
       String resIHP=inHousePayment(ihpVO);
-      logger.info("Finished transfer to escrow account with response: "+resIHP);
+      logger.info(vo.getTid()+" Finished transfer to escrow account with response: "+resIHP);
     }catch (Exception e){
       th.setStatus("Error");
       th.setRemark("Exception during transfer to escrow account");
-      thRepo.save(th);
-      throw new NostraException("Exception during transfer to escrow account",StatusCode.ERROR);
+      thRepo.saveAndFlush(th);
+      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account",StatusCode.ERROR);
     }
     try{
-      logger.info("Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
+      logger.info(vo.getTid()+" Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
       InHousePaymentVO ihpVO=new InHousePaymentVO();
       ihpVO.setAmount(th.getAmount());
       ihpVO.setDebitAccountNo(escrow);
       ihpVO.setCreditAccountNo(th.getDebitAcc());
+      ihpVO.setChargingModelId(th.getChargingModelId());
+      ihpVO.setPaymentMethod(th.getPaymentMethod());
       ihpVO.setRemark("Transfer from escrow account to destination account");
       String resIHP=inHousePayment(ihpVO);
-      logger.info("Finished transfer to destination account with response: "+resIHP);
+      logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHP);
     }catch (Exception e){
       th.setStatus("Error");
       th.setRemark("Exception during transfer to destination account");
-      thRepo.save(th);
-      throw new NostraException("Exception during transfer to destination account",StatusCode.ERROR);
+      thRepo.saveAndFlush(th);
+      throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
     }
     th.setStatus("Success");
     th.setRemark("Success");
@@ -299,44 +383,53 @@ public class TransferService {
     return resVO;
   }
 
-  @Transactional
+
   public TransferKasproBankResVO transferBNI(TransferKasproBankReqVO vo){
-    TransactionHistory th=thRepo.findByTID(vo.getTid(),"BNI");
-    if(th==null){
-      throw new NostraException("Transaction ID is not found",StatusCode.DATA_NOT_FOUND);
+    TransactionHistoryStaging thSTG=thSTGRepo.findByTID(vo.getTid(),"BNI");
+    TransactionHistory th = new TransactionHistory();
+    if(thSTG==null){
+      throw new NostraException(vo.getTid()+" Transaction ID is not found",StatusCode.DATA_NOT_FOUND);
+    }else {
+      thSTGRepo.delete(thSTG);
+      thSTGRepo.flush();
+      th=ogpConverter.convertTransactionHistory(thSTG);
     }
 
     String feeAccount="0115476151";
     try{
-      logger.info("Starting transfer to fee account: "+feeAccount+" with amount: "+th.getAdminFee());
+      logger.info(vo.getTid()+" Starting transfer to fee account: "+feeAccount+" with amount: "+th.getAdminFee());
       InHousePaymentVO ihpVO=new InHousePaymentVO();
       ihpVO.setAmount(th.getAdminFee());
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(feeAccount);
+      ihpVO.setChargingModelId(th.getChargingModelId());
+      ihpVO.setPaymentMethod(th.getPaymentMethod());
       ihpVO.setRemark("Transfer Admin Fee to Fee Account");
       String resIHP=inHousePayment(ihpVO);
-      logger.info("Finished transfer to Fee account with response: "+resIHP);
+      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
     }catch (Exception e){
       th.setStatus("Error");
       th.setRemark("Exception during transfer to Fee account");
       thRepo.save(th);
-      throw new NostraException("Exception during transfer to Fee account",StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
     }
 
     try{
-      logger.info("Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
+      logger.info(vo.getTid()+" Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
       InHousePaymentVO ihpVO=new InHousePaymentVO();
       ihpVO.setAmount(th.getAmount());
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(th.getCreditAcc());
+      ihpVO.setChargingModelId(th.getChargingModelId());
+      ihpVO.setPaymentMethod(th.getPaymentMethod());
       ihpVO.setRemark("Transfer from Source account to destination account");
       String resIHP=inHousePayment(ihpVO);
-      logger.info("Finished transfer to destination account with response: "+resIHP);
+      logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHP);
     }catch (Exception e){
       th.setStatus("Error");
       th.setRemark("Exception during transfer to destination account");
       thRepo.save(th);
-      throw new NostraException("Exception during transfer to destination account",StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
     }
     th.setStatus("Success");
     th.setRemark("Success");
@@ -364,45 +457,55 @@ public class TransferService {
 
   @Transactional
   public TransferKasproBankResVO transferKaspro(TransferKasproBankReqVO vo){
-    TransactionHistory th=thRepo.findByTID(vo.getTid(),"Kaspro");
-    if(th==null){
-      throw new NostraException("Transaction ID is not found",StatusCode.DATA_NOT_FOUND);
+    TransactionHistoryStaging thSTG=thSTGRepo.findByTID(vo.getTid(),"Kaspro");
+    TransactionHistory th = new TransactionHistory();
+    if(thSTG==null){
+      throw new NostraException(vo.getTid()+" Transaction ID is not found",StatusCode.DATA_NOT_FOUND);
+    }else {
+      thSTGRepo.delete(thSTG);
+      thSTGRepo.flush();
+      th=ogpConverter.convertTransactionHistory(thSTG);
     }
 
     String feeAccount="0115476151";
     String custodian="0115476151";
     try{
-      logger.info("Starting transfer to fee account: "+feeAccount+" with amount: "+th.getAdminFee());
+      logger.info(vo.getTid()+" Starting transfer to fee account: "+feeAccount+" with amount: "+th.getAdminFee());
       InHousePaymentVO ihpVO=new InHousePaymentVO();
       ihpVO.setAmount(th.getAdminFee());
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(feeAccount);
+      ihpVO.setChargingModelId(th.getChargingModelId());
+      ihpVO.setPaymentMethod(th.getPaymentMethod());
       ihpVO.setRemark("Transfer Admin Fee to Fee Account");
       String resIHP=inHousePayment(ihpVO);
-      logger.info("Finished transfer to Fee account with response: "+resIHP);
+      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
     }catch (Exception e){
       th.setStatus("Error");
       th.setRemark("Exception during transfer to Fee account");
       thRepo.save(th);
-      throw new NostraException("Exception during transfer to Fee account",StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
     }
 
     try{
-      logger.info("Starting transfer to custodian account: "+custodian+" with amount: "+th.getAmount());
+      logger.info(vo.getTid()+" Starting transfer to custodian account: "+custodian+" with amount: "+th.getAmount());
       InHousePaymentVO ihpVO=new InHousePaymentVO();
       ihpVO.setAmount(th.getAmount());
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(th.getCreditAcc());
+      ihpVO.setChargingModelId(th.getChargingModelId());
+      ihpVO.setPaymentMethod(th.getPaymentMethod());
       ihpVO.setRemark("Transfer from Source account to custodian account");
       String resIHP=inHousePayment(ihpVO);
-      logger.info("Finished transfer to custodian account with response: "+resIHP);
+      logger.info(vo.getTid()+" Finished transfer to custodian account with response: "+resIHP);
     }catch (Exception e){
       th.setStatus("Error");
       th.setRemark("Exception during transfer to destination account");
       thRepo.save(th);
-      throw new NostraException("Exception during transfer to destination account",StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
     }
 
+    logger.info(vo.getTid()+" Start doing Cash In");
     String requestId=ogpService.getValueDate(new Date()).concat(th.getDebitAcc());
     String body="{\"payments\": [\n" +
             "        {\n" +
@@ -425,13 +528,14 @@ public class TransferService {
         th.setStatus("Error while doin Cash In");
         th.setRemark(resCashInJSON.getString("message"));
         thRepo.saveAndFlush(th);
-        throw new NostraException(resCashInJSON.getString("message"),StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" "+resCashInJSON.getString("message"),StatusCode.ERROR);
       }
     } catch (IOException e) {
       e.printStackTrace();
     } catch (JSONException e) {
       e.printStackTrace();
     }
+    logger.info(vo.getTid()+" Finished doing Cash In");
 
     th.setStatus("Success");
     th.setRemark("Success");
@@ -439,7 +543,7 @@ public class TransferService {
 
     VirtualAccount vaSource=new VirtualAccount();
     vaSource=vaRepo.findByVA(th.getDebitAcc());
-    UsageAccumulator ua = uaRepo.findByOwnerIDAndDest(vaSource.getOwnerID(),"BNI");
+    UsageAccumulator ua = uaRepo.findByOwnerIDAndDest(vaSource.getOwnerID(),"Kaspro");
     Long usage =Long.parseLong(ua.getUsage())+Long.parseLong(th.getAmount());
     ua.setUsage(usage.toString());
     uaRepo.save(ua);

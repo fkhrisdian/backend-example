@@ -97,7 +97,8 @@ public class OGPService {
     OgpInHousePaymentReqVO request = OGPConverter.convertInHousePayment(
         vo, getValueDate(currentTime), referenceNumber, ogpClientId,
         encryptionService.encrypt(
-            ogpClientId + referenceNumber + "0" + vo.getDebitAccountNo() + vo.getCreditAccountNo() + vo.getAmount() + "IDR"));
+            ogpClientId + referenceNumber + vo.getPaymentMethod() + vo.getDebitAccountNo() + vo.getCreditAccountNo() + vo.getAmount() + "IDR"));
+
 
     String responseBody = ogpHttpService.callHttpPost(ogpInHousePaymentUrl, request);
     return gson.fromJson(responseBody, OgpInHousePaymentRespVO.class);

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/Transfer")
+@RequestMapping("/api/v1")
 public class TransferController {
 
   @Autowired
@@ -119,11 +119,13 @@ public class TransferController {
   public ResponseEntity<ResultVO> findPartnerDetail(@RequestParam(value="source", required = true) String source,
                                                     @RequestParam(value="destination", required = true) String destination,
                                                     @RequestParam(value="sku", required = true) String sku,
-                                                    @RequestParam(value="amount", required = true) String amount) {
+                                                    @RequestParam(value="amount", required = true) String amount,
+                                                    @RequestParam(value="paymentMethod", required = true) String paymentMethod,
+                                                    @RequestParam(value="chargingModel", required = true) String chargingModel) {
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
-        return transferService.kasproBankInquiry(source, destination, sku,amount);
+        return transferService.kasproBankInquiry(source, destination, sku,amount, paymentMethod, chargingModel);
       }
     };
     return handler.getResult();
@@ -169,6 +171,20 @@ public class TransferController {
       @Override
       public Object processRequest() {
         return transferService.transferKaspro(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.GET,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/Inquiry/TransactionHistory")
+  @ResponseBody
+  public ResponseEntity<ResultVO> findEntrireTransaction() {
+    AbstractRequestHandler handler = new AbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.findEntireTransaction();
       }
     };
     return handler.getResult();

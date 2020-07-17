@@ -8,10 +8,10 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "TRANSACTION_HISTORY")
+@Table(name = "TRANSACTION_HISTORY_STG")
 @DynamicUpdate
 @Data
-public class TransactionHistory extends Base{
+public class TransactionHistoryStaging extends Base{
     @Column(name = "TID")
     private String tid;
 
