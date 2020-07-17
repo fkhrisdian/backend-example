@@ -108,6 +108,11 @@ public class TransferService {
     return ths;
   }
 
+  public List<TransactionHistory> findFilteredTransaction(String accType, String partnerId, String senderId, String msisdn, String tid){
+    List<TransactionHistory> ths=thRepo.findFilteredTransaction(accType, partnerId, senderId, msisdn, tid);
+    return ths;
+  }
+
   @Transactional
   public InquiryKasproBankResVO kasproBankInquiry(String source, String destination, String sku, String amount, String paymentMethod, String chargingModel){
 
@@ -125,9 +130,6 @@ public class TransferService {
     IndividualVO iVOSource=new IndividualVO();
     IndividualVO iVo= new IndividualVO();
     paymentMethod=paymentMethod.toUpperCase();
-    InitDB x  = InitDB.getInstance();
-    paymentMethod = x.get("Code.PaymentMethod."+paymentMethod);
-    logger.info("Payment methid: "+paymentMethod);
 
     if(source.startsWith("628")||source.startsWith("08")){
       if(source.startsWith("08")){
@@ -140,6 +142,9 @@ public class TransferService {
           throw new NostraException("Source account is not active",StatusCode.ERROR);
         }
         th.setDebitName(iVOSource.getIndividual().getName());
+        th.setAccType("I");
+        th.setSenderId(iVOSource.getIndividual().getId().toString());
+        th.setMsisdn(iVOSource.getIndividual().getMsisdn());
       }
 
     }else {
@@ -151,6 +156,9 @@ public class TransferService {
         }
         pVOSource=pService.findDetail(pmVOSource.getPartnerMember().getPartner().getId());
         th.setDebitName(pmVOSource.getPartnerMember().getName());
+        th.setPartnerId(pVOSource.getPartner().getId().toString());
+        th.setSenderId(pmVOSource.getPartnerMember().getId().toString());
+        th.setAccType("CPM");
       }
     }
 
@@ -306,6 +314,9 @@ public class TransferService {
       thSTGRepo.flush();
       th=ogpConverter.convertTransactionHistory(thSTG);
     }
+    InitDB x  = InitDB.getInstance();
+    String method=x.get("Code.PaymentMethod."+th.getPaymentMethod());
+
     String escrow="0115476151";
     String feeAccount="0115476151";
     try{
@@ -315,7 +326,7 @@ public class TransferService {
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(feeAccount);
       ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(th.getPaymentMethod());
+      ihpVO.setPaymentMethod(method);
       ihpVO.setRemark("Transfer Admin Fee to Fee Account");
       String resIHP=inHousePayment(ihpVO);
       logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
@@ -332,7 +343,7 @@ public class TransferService {
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(escrow);
       ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(th.getPaymentMethod());
+      ihpVO.setPaymentMethod(method);
       ihpVO.setRemark("Transfer from source account to escrow account");
       String resIHP=inHousePayment(ihpVO);
       logger.info(vo.getTid()+" Finished transfer to escrow account with response: "+resIHP);
@@ -349,7 +360,7 @@ public class TransferService {
       ihpVO.setDebitAccountNo(escrow);
       ihpVO.setCreditAccountNo(th.getDebitAcc());
       ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(th.getPaymentMethod());
+      ihpVO.setPaymentMethod(method);
       ihpVO.setRemark("Transfer from escrow account to destination account");
       String resIHP=inHousePayment(ihpVO);
       logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHP);
@@ -394,6 +405,8 @@ public class TransferService {
       thSTGRepo.flush();
       th=ogpConverter.convertTransactionHistory(thSTG);
     }
+    InitDB x  = InitDB.getInstance();
+    String method=x.get("Code.PaymentMethod."+th.getPaymentMethod());
 
     String feeAccount="0115476151";
     try{
@@ -403,7 +416,7 @@ public class TransferService {
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(feeAccount);
       ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(th.getPaymentMethod());
+      ihpVO.setPaymentMethod(method);
       ihpVO.setRemark("Transfer Admin Fee to Fee Account");
       String resIHP=inHousePayment(ihpVO);
       logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
@@ -421,7 +434,7 @@ public class TransferService {
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(th.getCreditAcc());
       ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(th.getPaymentMethod());
+      ihpVO.setPaymentMethod(method);
       ihpVO.setRemark("Transfer from Source account to destination account");
       String resIHP=inHousePayment(ihpVO);
       logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHP);
@@ -466,6 +479,8 @@ public class TransferService {
       thSTGRepo.flush();
       th=ogpConverter.convertTransactionHistory(thSTG);
     }
+    InitDB x  = InitDB.getInstance();
+    String method=x.get("Code.PaymentMethod."+th.getPaymentMethod());
 
     String feeAccount="0115476151";
     String custodian="0115476151";
@@ -494,7 +509,7 @@ public class TransferService {
       ihpVO.setDebitAccountNo(th.getDebitAcc());
       ihpVO.setCreditAccountNo(th.getCreditAcc());
       ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(th.getPaymentMethod());
+      ihpVO.setPaymentMethod(method);
       ihpVO.setRemark("Transfer from Source account to custodian account");
       String resIHP=inHousePayment(ihpVO);
       logger.info(vo.getTid()+" Finished transfer to custodian account with response: "+resIHP);

@@ -112,6 +112,10 @@ public class OGPConverter {
     th.setBankRef(thSTG.getBankRef());
     th.setCustRef(thSTG.getCustRef());
     th.setDestinationBankCode(thSTG.getDestinationBankCode());
+    th.setPartnerId(thSTG.getPartnerId());
+    th.setAccType(thSTG.getAccType());
+    th.setSenderId(thSTG.getSenderId());
+    th.setMsisdn(thSTG.getMsisdn());
 
     return th;
   }

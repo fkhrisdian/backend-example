@@ -189,4 +189,22 @@ public class TransferController {
     };
     return handler.getResult();
   }
+
+  @RequestMapping(method = RequestMethod.GET,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/Inquiry/TransactionHistoryFilter")
+  @ResponseBody
+  public ResponseEntity<ResultVO> findFilteredTransaction(@RequestParam(value="accType", required = false) String accType,
+                                                          @RequestParam(value="partnerId", required = false) String partnerId,
+                                                          @RequestParam(value="senderId", required = false) String senderId,
+                                                          @RequestParam(value="msisdn", required = false) String msisdn,
+                                                          @RequestParam(value="tid", required = false) String tid) {
+    AbstractRequestHandler handler = new AbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.findFilteredTransaction(accType,partnerId,senderId,msisdn,tid);
+      }
+    };
+    return handler.getResult();
+  }
 }

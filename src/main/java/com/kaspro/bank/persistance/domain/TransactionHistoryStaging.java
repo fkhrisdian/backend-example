@@ -15,6 +15,18 @@ public class TransactionHistoryStaging extends Base{
     @Column(name = "TID")
     private String tid;
 
+    @Column(name = "PARTNER_ID")
+    private String partnerId;
+
+    @Column(name = "SENDER_ID")
+    private String senderId;
+
+    @Column(name = "MSISDN")
+    private String msisdn;
+
+    @Column(name = "ACC_TYPE")
+    private String accType;
+
     @Column(name = "DEBIT_ACC")
     private String debitAcc;
 
