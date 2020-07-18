@@ -194,7 +194,7 @@ public class TransferController {
           produces = MediaType.APPLICATION_JSON_VALUE,
           value="/Inquiry/TransactionHistoryFilter")
   @ResponseBody
-  public ResponseEntity<ResultVO> findFilteredTransaction(@RequestParam(value="accType", required = false) String accType,
+  public ResponseEntity<ResultVO> findFilteredTransaction(@RequestParam(value="accType", required = true) String accType,
                                                           @RequestParam(value="partnerId", required = false) String partnerId,
                                                           @RequestParam(value="senderId", required = false) String senderId,
                                                           @RequestParam(value="msisdn", required = false) String msisdn,

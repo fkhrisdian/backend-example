@@ -16,7 +16,16 @@ public class BlacklistMsisdn extends Base{
     @Column(name = "MSISDN",nullable = false)
     private String msisdn;
 
-    @Column(name = "reason",nullable = false)
+    @Column(name = "REASON",nullable = false)
     private String reason;
+
+    @Column(name = "NAME",nullable = false)
+    private String name;
+
+    @Column(name = "EMAIl",nullable = false)
+    private String email;
+
+    @Column(name = "VA",nullable = false)
+    private String va;
 
 }

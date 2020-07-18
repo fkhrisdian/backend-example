@@ -37,6 +37,9 @@ public class BlacklistMsisdnService {
                     final BlacklistMsisdn bm = new BlacklistMsisdn();
                     bm.setMsisdn(data[0]);
                     bm.setReason(data[1]);
+                    bm.setName(data[2]);
+                    bm.setEmail(data[3]);
+                    bm.setVa(data[4]);
                     bms.add(bm);
                 }
                 return bms;
@@ -67,5 +70,10 @@ public class BlacklistMsisdnService {
         logger.info("get list of user by "+Thread.currentThread().getName());
         List<BlacklistMsisdn> bms=bmRepo.findAll();
         return bms;
+    }
+
+    public BlacklistMsisdn findById(String id){
+        BlacklistMsisdn bm = bmRepo.findByBMId(id);
+        return bm;
     }
 }

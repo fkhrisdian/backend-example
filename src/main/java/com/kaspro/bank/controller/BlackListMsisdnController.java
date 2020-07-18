@@ -45,6 +45,20 @@ public class BlackListMsisdnController {
         return handler.getResult();
     }
 
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/GetDetail")
+    @ResponseBody
+    public ResponseEntity<ResultVO> findDetail(@RequestParam(value="id", required = true) String id) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return service.findById(id);
+            }
+        };
+        return handler.getResult();
+    }
+
     @RequestMapping(method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE,
