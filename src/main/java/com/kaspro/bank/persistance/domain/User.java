@@ -3,23 +3,25 @@ package com.kaspro.bank.persistance.domain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
-@Data
 @Entity
-@Table(name = "USER_TBL")
-@AllArgsConstructor
-@NoArgsConstructor
-public class
-User {
-    @Id
-    @GeneratedValue
-    private int id;
-    private String name;
+@Table(name = "USER")
+@DynamicUpdate
+@Data
+public class User extends Base{
+
+    @Column(name = "USERNAME",nullable = false)
+    private String username;
+
+    @Column(name = "PASSWORD",nullable = false)
+    private String password;
+
+    @Column(name = "EMAIL",nullable = false)
     private String email;
-    private String gender;
+
+    @Column(name = "ROLES",nullable = false)
+    private String roles;
 }
