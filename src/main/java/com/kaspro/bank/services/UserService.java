@@ -142,9 +142,9 @@ public class UserService {
     }
 
     public boolean validateUser(LoginReqVO vo){
-        User user=repository.findByUsername(vo.getUsername());
+        User user=repository.findByEmail(vo.getEmail());
         if(user==null){
-            throw new NostraException("Invalid Username",StatusCode.ERROR);
+            throw new NostraException("Invalid Email",StatusCode.ERROR);
         }else{
             byte[] decodedBytes = Base64.getDecoder().decode(user.getPassword());
             String password = new String(decodedBytes);
