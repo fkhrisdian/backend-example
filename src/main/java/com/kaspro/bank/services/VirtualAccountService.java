@@ -7,11 +7,10 @@ import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.PartnerRepository;
+import com.kaspro.bank.persistance.repository.TransactionHistoryRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.util.InitDB;
-import com.kaspro.bank.vo.CreateVAResponseVO;
-import com.kaspro.bank.vo.CreateVAVO;
-import com.kaspro.bank.vo.EncCreateVAVO;
+import com.kaspro.bank.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,6 +42,9 @@ public class VirtualAccountService {
 
     @Autowired
     OGPService ogpService;
+
+    @Autowired
+    TransactionHistoryRepository tRepo;
 
     BniEncryption bniEncryption;
     String cid = "513"; // from BNI, testing purpose
@@ -314,5 +316,45 @@ public class VirtualAccountService {
 
     public List<VirtualAccount> findAll(){
         return vaRepository.findAll();
+    }
+
+    public BNINotifResponseVO bniNotif(BNINotifVO vo){
+        String status ="000";
+        BNINotifResponseVO result=new BNINotifResponseVO(status);
+        Gson g = new Gson();
+        BNINotifPlainVO notif=g.fromJson(bniEncryption.parseData(vo.getData(),cid,key), BNINotifPlainVO.class);
+
+        TransactionHistory th = new TransactionHistory();
+        th.setTid(notif.getTrx_id());
+        th.setCreditAcc(notif.getVirtual_account());
+        th.setCreditName(notif.getCustomer_name());
+        th.setAmount(notif.getTrx_amount());
+        th.setTotalAmount(notif.getCumulative_payment_amount());
+        th.setStatus("Success");
+        th.setRemark(notif.getDatetime_payment_iso8601());
+
+        try {
+            tRepo.save(th);
+        }catch (Exception e){
+            return new BNINotifResponseVO("999");
+        }
+
+        return result;
+    }
+
+    public BNINotifResponseVO encryptBNI(BNINotifPlainVO vo){
+        String data="";
+        ObjectMapper obj = new ObjectMapper();
+        String inputString="";
+        try {
+            inputString=obj.writeValueAsString(vo);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        data=bniEncryption.hashData(inputString, cid, key);
+        BNINotifResponseVO result = new BNINotifResponseVO(data);
+        return result;
     }
 }

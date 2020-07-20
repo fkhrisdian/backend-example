@@ -1,10 +1,11 @@
 package com.kaspro.bank.controller;
 
-import com.kaspro.bank.persistance.domain.Partner;
 import com.kaspro.bank.persistance.domain.VirtualAccount;
 import com.kaspro.bank.services.VirtualAccountService;
+import com.kaspro.bank.vo.BNINotifPlainVO;
+import com.kaspro.bank.vo.BNINotifResponseVO;
+import com.kaspro.bank.vo.BNINotifVO;
 import com.kaspro.bank.vo.ResultVO;
-import com.kaspro.bank.vo.TransferLimitVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,24 @@ public class VirtualAccountController {
             }
         };
         return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/BNINotif")
+    @ResponseBody
+    public BNINotifResponseVO bniNotif(@RequestBody BNINotifVO vo) {
+        return virtualAccountService.bniNotif(vo);
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/BNIEncrypt")
+    @ResponseBody
+    public BNINotifResponseVO bniEncrypt(@RequestBody BNINotifPlainVO vo) {
+        return virtualAccountService.encryptBNI(vo);
     }
 
     @RequestMapping(method = RequestMethod.POST,
