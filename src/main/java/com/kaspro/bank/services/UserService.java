@@ -36,20 +36,20 @@ public class UserService {
     Object target;
     Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    @Autowired
-    private JavaMailSender javaMailSender;
-
-    void sendEmail(String to, String subject, String text) {
-
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo(to);
-
-        msg.setSubject(subject);
-        msg.setText(text);
-
-        javaMailSender.send(msg);
-
-    }
+//    @Autowired
+//    private JavaMailSender javaMailSender;
+//
+//    void sendEmail(String to, String subject, String text) {
+//
+//        SimpleMailMessage msg = new SimpleMailMessage();
+//        msg.setTo(to);
+//
+//        msg.setSubject(subject);
+//        msg.setText(text);
+//
+//        javaMailSender.send(msg);
+//
+//    }
 
     public UserResVO add(UserReqVO vo){
         User existing=repository.findByUsername(vo.getUsername());

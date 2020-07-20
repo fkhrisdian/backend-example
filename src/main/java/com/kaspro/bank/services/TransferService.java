@@ -157,6 +157,7 @@ public class TransferService {
         pVOSource=pService.findDetail(pmVOSource.getPartnerMember().getPartner().getId());
         th.setDebitName(pmVOSource.getPartnerMember().getName());
         th.setPartnerId(pVOSource.getPartner().getId().toString());
+        th.setPartnerName(pVOSource.getPartner().getName());
         th.setSenderId(pmVOSource.getPartnerMember().getId().toString());
         th.setAccType("CPM");
       }

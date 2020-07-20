@@ -18,6 +18,9 @@ public class TransactionHistoryStaging extends Base{
     @Column(name = "PARTNER_ID")
     private String partnerId;
 
+    @Column(name = "PARTNER_NAME")
+    private String partnerName;
+
     @Column(name = "SENDER_ID")
     private String senderId;
 

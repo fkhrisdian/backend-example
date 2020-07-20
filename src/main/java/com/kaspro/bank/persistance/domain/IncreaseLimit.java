@@ -17,8 +17,14 @@ public class IncreaseLimit extends Base {
   @Column(name = "PARTNER_ID")
   private String partnerId;
 
+  @Column(name = "PARTNER_NAME")
+  private String partnerName;
+
   @Column(name = "MEMBER_ID")
   private String memberId;
+
+  @Column(name = "MEMBER_NAME")
+  private String memberName;
 
   @Column(name = "DESTINATION")
   private String destination;

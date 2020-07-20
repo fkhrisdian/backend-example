@@ -66,6 +66,8 @@ public class IncreaseLimitService {
         }
 
         vo.setStatus("PENDING");
+        vo.setPartnerName(partner.getName());
+        vo.setMemberName(partnerMember.getName());
         IncreaseLimit saved=repository.save(vo);
         return saved;
     }
