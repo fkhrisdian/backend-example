@@ -33,7 +33,9 @@ public class UserService {
     @Autowired
     private UserService service;
 
-    Object target;
+    @Autowired
+    EmailUtil emailUtil;
+
     Logger logger = LoggerFactory.getLogger(UserService.class);
 
 //    @Autowired
@@ -75,7 +77,7 @@ public class UserService {
         user.setPassword(encodedString);
         User savedUser=repository.save(user);
 
-//        service.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
+        emailUtil.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
 
         UserResVO result=new UserResVO();
         result.setId(savedUser.getId().toString());
