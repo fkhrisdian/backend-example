@@ -141,7 +141,7 @@ public class UserService {
         return result;
     }
 
-    public boolean validateUser(LoginReqVO vo){
+    public User validateUser(LoginReqVO vo){
         User user=repository.findByEmail(vo.getEmail());
         if(user==null){
             throw new NostraException("Invalid Email",StatusCode.ERROR);
@@ -151,7 +151,7 @@ public class UserService {
             if(!password.equals(vo.getPassword())){
                 throw new NostraException("Invalid Password",StatusCode.ERROR);
             }else {
-                return true;
+                return user;
             }
         }
     }
