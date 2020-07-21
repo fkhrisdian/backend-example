@@ -67,4 +67,7 @@ public class Individual extends Base{
     @Column(name = "STATUS")
     private String status;
 
+    @Column(name = "VIRTUAL_ACCOUNT")
+    private String va;
+
 }

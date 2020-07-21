@@ -76,6 +76,9 @@ public class PartnerService {
         RegisterPartnerVO result = new RegisterPartnerVO();
 
         Partner partner=partnerRepository.findPartner(id);
+        if(partner==null){
+            throw new NostraException("Partnet not found",StatusCode.DATA_NOT_FOUND);
+        }
         DataPIC dataPIC=dataPICRepository.findByPartnerID(id);
         List<Lampiran> listLampiran=lampiranRepository.findByPartnerID(id);
         List<TransferFee> transferFees=tfRepository.findByPartnerID(id);

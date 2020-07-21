@@ -78,6 +78,9 @@ public class PartnerMemberService {
         RegisterPartnerMemberVO result = new RegisterPartnerMemberVO();
 
         PartnerMember partnerMember=pmRepository.findPartnerMember(id);
+        if(partnerMember==null){
+            throw new NostraException("Partnet Member not found",StatusCode.DATA_NOT_FOUND);
+        }
         DataPIC dataPIC=dataPICRepository.findByPartnerID(id);
         List<Lampiran> listLampiran=lampiranRepository.findByPartnerID(id);
         VirtualAccount va=vaRepository.findByPartnerID(id);

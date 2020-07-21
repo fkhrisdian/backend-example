@@ -183,29 +183,29 @@ public class VirtualAccountService {
     @Transactional
     public VirtualAccount addIndividual(Individual individual){
 
-        try {
-            JSONObject resValidate= new JSONObject(httpProcessingService.kasproValidate(individual.getMsisdn()));
-            logger.info(resValidate.toString());
-            if(resValidate.getInt("code")!=0){
-                throw new NostraException(resValidate.getString("message"),StatusCode.ERROR);
-            }else {
-                JSONObject resPayu = new JSONObject(httpProcessingService.kasproPayu(resValidate.getString("account-number")));
-                logger.info(resPayu.toString());
-                if(resPayu.getInt("code")!=0){
-                    throw new NostraException(resPayu.getString("message"), StatusCode.ERROR);
-                }else{
-                    String accountType=resPayu.getJSONObject("account").getString("account-type");
-                    String accountStatus=resPayu.getJSONObject("account").getString("account-status");
-                    if(!(accountStatus.equals("ACTIVE") && accountType.equals("premium"))){
-                        throw new NostraException("Account is not premium or not active", StatusCode.ERROR);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            JSONObject resValidate= new JSONObject(httpProcessingService.kasproValidate(individual.getMsisdn()));
+//            logger.info(resValidate.toString());
+//            if(resValidate.getInt("code")!=0){
+//                throw new NostraException(resValidate.getString("message"),StatusCode.ERROR);
+//            }else {
+//                JSONObject resPayu = new JSONObject(httpProcessingService.kasproPayu(resValidate.getString("account-number")));
+//                logger.info(resPayu.toString());
+//                if(resPayu.getInt("code")!=0){
+//                    throw new NostraException(resPayu.getString("message"), StatusCode.ERROR);
+//                }else{
+//                    String accountType=resPayu.getJSONObject("account").getString("account-type");
+//                    String accountStatus=resPayu.getJSONObject("account").getString("account-status");
+//                    if(!(accountStatus.equals("ACTIVE") && accountType.equals("premium"))){
+//                        throw new NostraException("Account is not premium or not active", StatusCode.ERROR);
+//                    }
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
 
         List<String> listMsisdn=vaRepository.findMsisdn(individual.getMsisdn());
         if(listMsisdn.size()>0){

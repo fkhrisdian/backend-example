@@ -19,7 +19,7 @@ public interface IncreaseLimitRepository extends BaseRepository<IncreaseLimit>{
             nativeQuery = true)
     IncreaseLimit findByReqId(String id);
 
-    @Query(value="SELECT * FROM kasprobank.INCREASE_LIMIT where member_id=?1 and destination=?2",
+    @Query(value="SELECT * FROM kasprobank.INCREASE_LIMIT where member_id=?1 and destination=?2 and status='ACTIVE'",
             nativeQuery = true)
     IncreaseLimit findByDest(String memberId, String dest);
 

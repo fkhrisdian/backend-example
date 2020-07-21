@@ -48,7 +48,9 @@ public class IndividualService {
         VirtualAccount va= new VirtualAccount();
 
         try{
-            vaService.addIndividual(savedIndividual);
+            va=vaService.addIndividual(savedIndividual);
+            savedIndividual.setVa(va.getVa());
+            savedIndividual=iRepo.save(savedIndividual);
         }catch (NostraException ne){
             throw new NostraException(ne.getMessage(),StatusCode.ERROR);
         }
@@ -217,6 +219,7 @@ public class IndividualService {
             ta.setValueAfter(savedVA.getVa());
             vaService.update(oldVA);
             taService.add(ta);
+            savedIndividual.setVa(savedVA.getVa());
         }
 
         iRepo.save(savedIndividual);

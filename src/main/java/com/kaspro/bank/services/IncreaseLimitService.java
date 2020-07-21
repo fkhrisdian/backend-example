@@ -8,6 +8,7 @@ import com.kaspro.bank.persistance.repository.PartnerMemberRepository;
 import com.kaspro.bank.persistance.repository.PartnerRepository;
 import com.kaspro.bank.persistance.repository.TransferLimitRepository;
 import com.kaspro.bank.util.InitDB;
+import com.kaspro.bank.vo.CheckIncreaseLimitResVO;
 import com.kaspro.bank.vo.ConfirmIncreaseLimitVO;
 import com.kaspro.bank.vo.KeyValuePairedVO;
 import com.kaspro.bank.vo.TransferLimitVO;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 @Service
@@ -94,6 +96,21 @@ public class IncreaseLimitService {
         }
         il=repository.save(il);
         return il;
+    }
+
+    public String checkIncreaseLimitResVO(String memberId, String dest){
+        Date currDate=new Date(Calendar.getInstance().getTime().getTime());
+        IncreaseLimit il=repository.findByDest(memberId,dest);
+        if(il==null){
+            return null;
+        }else{
+            if(currDate.after(il.getStartDate())&&currDate.before(il.getEndDate())){
+                logger.info("Additional Daily Limit = "+il.getAmount());
+                return il.getAmount();
+            }else {
+                return null;
+            }
+        }
     }
 
 }

@@ -149,6 +149,21 @@ public class TransferController {
   @RequestMapping(method = RequestMethod.POST,
           consumes = MediaType.APPLICATION_JSON_VALUE,
           produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/Transfer/OtherBank")
+  @ResponseBody
+  public ResponseEntity<ResultVO> transferOtherBank(@RequestBody final TransferKasproBankReqVO vo) {
+    AbstractRequestHandler handler = new AbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.transferOtherBank(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
           value="/Transfer/BNI")
   @ResponseBody
   public ResponseEntity<ResultVO> transferBNI(@RequestBody final TransferKasproBankReqVO vo) {
