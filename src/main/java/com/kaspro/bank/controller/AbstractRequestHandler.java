@@ -38,7 +38,6 @@ public abstract class AbstractRequestHandler {
         return RestUtil.getJsonResponse(result);
     }
 
-
     public abstract Object processRequest();
 
     public static ResponseEntity<ResultPageVO> constructListResult(Map<String, Object> pageMap) {

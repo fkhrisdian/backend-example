@@ -7,6 +7,7 @@ import com.kaspro.bank.persistance.repository.UserRepository;
 import com.kaspro.bank.vo.LoginReqVO;
 import com.kaspro.bank.vo.UserReqVO;
 import com.kaspro.bank.vo.UserResVO;
+import com.kaspro.bank.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,7 +144,7 @@ public class UserService {
         return result;
     }
 
-    public User validateUser(LoginReqVO vo){
+    public UserVO validateUser(LoginReqVO vo){
         User user=repository.findByEmail(vo.getEmail());
         if(user==null){
             throw new NostraException("Invalid Email",StatusCode.ERROR);
@@ -153,8 +154,34 @@ public class UserService {
             if(!password.equals(vo.getPassword())){
                 throw new NostraException("Invalid Password",StatusCode.ERROR);
             }else {
-                return user;
+                UserVO userVO = new UserVO();
+                userVO.setUsername(user.getUsername());
+                userVO.setEmail(user.getEmail());
+                userVO.setRoles(user.getRoles());
+                userVO.setToken(Base64.getEncoder().encodeToString((user.getEmail()+":"+password).getBytes()));
+                return userVO;
             }
+        }
+    }
+
+    public boolean validateToken(String authorization) {
+        try {
+            String decoded = new String(Base64.getDecoder().decode(authorization));
+
+            String[] parts = decoded.split(":");
+            String email = parts[0];
+            String pass = parts[1];
+
+            User user=repository.findByEmail(email);
+            if(user==null){
+                return false;
+            }else {
+                byte[] decodedBytes = Base64.getDecoder().decode(user.getPassword());
+                String password = new String(decodedBytes);
+                return password.equals(pass);
+            }
+        } catch (Exception e) {
+            return false;
         }
     }
 
