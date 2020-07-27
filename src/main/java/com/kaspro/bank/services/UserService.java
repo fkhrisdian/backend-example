@@ -5,10 +5,7 @@ import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.persistance.repository.RoleRepository;
 import com.kaspro.bank.persistance.repository.UserRepository;
-import com.kaspro.bank.vo.LoginReqVO;
-import com.kaspro.bank.vo.UserReqVO;
-import com.kaspro.bank.vo.UserResVO;
-import com.kaspro.bank.vo.UserVO;
+import com.kaspro.bank.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +38,9 @@ public class UserService {
     @Autowired
     private RoleRepository rRepo;
 
+    @Autowired
+    private RoleService rService;
+
     Logger logger = LoggerFactory.getLogger(UserService.class);
 
 //    @Autowired
@@ -59,16 +59,23 @@ public class UserService {
 //    }
 
     public UserResVO add(UserReqVO vo){
-        User existing=repository.findByUsername(vo.getUsername());
+        User existing=repository.findByEmail(vo.getEmail());
         if(existing!=null){
-            throw new NostraException("Username already used. Please user another username",StatusCode.ERROR);
+            throw new NostraException("Email already used. Please user another Email",StatusCode.ERROR);
         }
         User user = new User();
         user.setUsername(vo.getUsername());
         user.setEmail(vo.getEmail());
         String roles="";
+        List<RoleResVO>roleResVOS=new ArrayList<>();
         for(String role:vo.getRoles()){
             roles=roles+role+("|");
+            RoleResVO roleResVO=rService.getDetailRole(role);
+            if(roleResVO==null){
+                throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
+            }else{
+                roleResVOS.add(roleResVO);
+            }
         }
         user.setRoles(roles);
         PasswordGenerator passwordGenerator = new PasswordGenerator.PasswordGeneratorBuilder()
@@ -82,18 +89,18 @@ public class UserService {
         user.setPassword(encodedString);
         User savedUser=repository.save(user);
 
-        emailUtil.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
+//        emailUtil.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
 
         UserResVO result=new UserResVO();
         result.setId(savedUser.getId().toString());
         result.setUsername(savedUser.getUsername());
         result.setEmail(savedUser.getEmail());
-        result.setRoles(vo.getRoles());
+        result.setRoles(roleResVOS);
 
         return result;
     }
 
-    public UserResVO update(UserResVO vo){
+    public UserResVO update(UserRes2VO vo){
         User user = repository.findByUserId(vo.getId());
         if(user==null){
             throw new NostraException("User not found", StatusCode.DATA_NOT_FOUND);
@@ -101,8 +108,15 @@ public class UserService {
         user.setUsername(vo.getUsername());
         user.setEmail(vo.getEmail());
         String roles="";
+        List<RoleResVO>roleResVOS=new ArrayList<>();
         for(String role:vo.getRoles()){
             roles=roles+role+("|");
+            RoleResVO roleResVO=rService.getDetailRole(role);
+            if(roleResVO==null){
+                throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
+            }else{
+                roleResVOS.add(roleResVO);
+            }
         }
         user.setRoles(roles);
         User savedUser=repository.save(user);
@@ -111,7 +125,7 @@ public class UserService {
         result.setId(savedUser.getId().toString());
         result.setUsername(savedUser.getUsername());
         result.setEmail(savedUser.getEmail());
-        result.setRoles(vo.getRoles());
+        result.setRoles(roleResVOS);
 
         return result;
     }
@@ -126,7 +140,16 @@ public class UserService {
             vo.setUsername(user.getUsername());
             vo.setEmail(user.getEmail());
             String[] roles = user.getRoles().split("\\|");
-            vo.setRoles(roles);
+            List<RoleResVO>roleResVOS=new ArrayList<>();
+            for(String role:roles){
+                RoleResVO roleResVO=rService.getDetailRole(role);
+                if(roleResVO==null){
+                    throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
+                }else{
+                    roleResVOS.add(roleResVO);
+                }
+            }
+            vo.setRoles(roleResVOS);
             result.add(vo);
         }
         return result;
@@ -143,7 +166,16 @@ public class UserService {
         result.setUsername(user.getUsername());
         result.setEmail(user.getEmail());
         String[] roles = user.getRoles().split("\\|");
-        result.setRoles(roles);
+        List<RoleResVO>roleResVOS=new ArrayList<>();
+        for(String role:roles){
+            RoleResVO roleResVO=rService.getDetailRole(role);
+            if(roleResVO==null){
+                throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
+            }else{
+                roleResVOS.add(roleResVO);
+            }
+        }
+        result.setRoles(roleResVOS);
 
         return result;
     }

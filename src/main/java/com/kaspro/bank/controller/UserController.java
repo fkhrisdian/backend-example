@@ -83,7 +83,7 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Update")
     @ResponseBody
-    public ResponseEntity<ResultVO> udpate(@RequestBody final UserResVO vo) {
+    public ResponseEntity<ResultVO> udpate(@RequestBody final UserRes2VO vo) {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

@@ -5,9 +5,9 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class UserResVO {
+public class UserRes2VO {
     private String id;
     private String username;
     private String email;
-    private List<RoleResVO> roles;
+    private String[] roles;
 }
