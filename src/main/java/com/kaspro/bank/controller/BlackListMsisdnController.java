@@ -4,6 +4,7 @@ import com.kaspro.bank.persistance.domain.BlacklistMsisdn;
 import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.services.BlacklistMsisdnService;
 import com.kaspro.bank.services.UserService;
+import com.kaspro.bank.vo.BlacklistMsisdn.BlacklistMsisdnVO;
 import com.kaspro.bank.vo.RegisterPartnerMemberVO;
 import com.kaspro.bank.vo.ResultVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,7 @@ public class BlackListMsisdnController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Add")
     @ResponseBody
-    public ResponseEntity<ResultVO> add(@RequestBody final BlacklistMsisdn vo) {
+    public ResponseEntity<ResultVO> add(@RequestBody final BlacklistMsisdnVO vo) {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

@@ -1,4 +1,4 @@
-package com.kaspro.bank.vo;
+package com.kaspro.bank.vo.Individual;
 
 import com.kaspro.bank.persistance.domain.Individual;
 import com.kaspro.bank.persistance.domain.TransferLimit;
@@ -8,7 +8,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class IndividualVO {
+public class IndividualRegistrationVO {
     private Individual individual;
     private VirtualAccount virtualAccount;
     private List<TransferLimit> transferLimits;

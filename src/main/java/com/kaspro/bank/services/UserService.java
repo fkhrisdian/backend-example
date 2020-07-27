@@ -3,6 +3,7 @@ package com.kaspro.bank.services;
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.User;
+import com.kaspro.bank.persistance.repository.RoleRepository;
 import com.kaspro.bank.persistance.repository.UserRepository;
 import com.kaspro.bank.vo.LoginReqVO;
 import com.kaspro.bank.vo.UserReqVO;
@@ -34,7 +35,10 @@ public class UserService {
     private UserService service;
 
     @Autowired
-    EmailUtil emailUtil;
+    private EmailUtil emailUtil;
+
+    @Autowired
+    private RoleRepository rRepo;
 
     Logger logger = LoggerFactory.getLogger(UserService.class);
 

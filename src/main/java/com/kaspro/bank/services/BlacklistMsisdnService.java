@@ -1,8 +1,10 @@
 package com.kaspro.bank.services;
 
+import com.kaspro.bank.converter.BlacklistMsisdnConverter;
 import com.kaspro.bank.persistance.domain.BlacklistMsisdn;
 import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.persistance.repository.BlacklistMsisdnRepository;
+import com.kaspro.bank.vo.BlacklistMsisdn.BlacklistMsisdnVO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,9 @@ public class BlacklistMsisdnService {
 
     @Autowired
     BlacklistMsisdnRepository bmRepo;
+
+    @Autowired
+    BlacklistMsisdnConverter converter;
 
     Logger logger = LoggerFactory.getLogger(BlacklistMsisdn.class);
 
@@ -61,8 +66,8 @@ public class BlacklistMsisdnService {
         return CompletableFuture.completedFuture(bms);
     }
 
-    public BlacklistMsisdn add(BlacklistMsisdn bm){
-        BlacklistMsisdn savedBm=bmRepo.save(bm);
+    public BlacklistMsisdn add(BlacklistMsisdnVO vo){
+        BlacklistMsisdn savedBm=bmRepo.save(converter.voToDomain(vo));
         return savedBm;
     }
 

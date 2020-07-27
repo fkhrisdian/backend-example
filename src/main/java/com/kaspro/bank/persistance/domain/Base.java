@@ -1,5 +1,6 @@
 package com.kaspro.bank.persistance.domain;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.annotation.CreatedBy;
@@ -27,33 +28,40 @@ public abstract class Base implements Serializable {
 
     @Id
     @GeneratedValue
+    @ApiModelProperty(value = "This parameter will be ignored", required = false)
     protected Integer id;
 
     /**
      * Random id for security reason
      */
+    @ApiModelProperty(value = "This parameter will be ignored", required = false)
     @Column(name = "SECURE_ID", unique = true, length = 36, nullable = false)
     private String secureId;
 
     @CreatedDate
+    @ApiModelProperty(value = "This parameter will be ignored", required = false)
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "DATE_CREATED", updatable = false, nullable = false)
     private Date creationDate;
 
     @CreatedBy
+    @ApiModelProperty(value = "This parameter will be ignored", required = false)
     @Column(name = "CREATED_BY", length = 30, updatable = false)
     private String createdBy;
 
     @LastModifiedDate
+    @ApiModelProperty(value = "This parameter will be ignored", required = false)
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "DATE_MODIFIED")
     private Date modificationDate;
 
     @LastModifiedBy
+    @ApiModelProperty(value = "This parameter will be ignored", required = false)
     @Column(name = "MODIFIED_BY", length = 30)
     private String modifiedBy;
 
     @Version
+    @ApiModelProperty(value = "This parameter will be ignored", required = false)
     @Column(name = "VERSION", nullable = false)
     private Integer version = 0;
 

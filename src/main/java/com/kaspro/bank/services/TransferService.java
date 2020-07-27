@@ -1,6 +1,5 @@
 package com.kaspro.bank.services;
 
-import com.google.gson.Gson;
 import com.kaspro.bank.converter.OGPConverter;
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
@@ -8,6 +7,7 @@ import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.*;
 import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.*;
+import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
 import com.kaspro.bank.vo.Inquiry.InquiryKasproBankResVO;
 import com.kaspro.bank.vo.TransferKasproBank.TransferKasproBankReqVO;
 import com.kaspro.bank.vo.TransferKasproBank.TransferKasproBankResVO;
@@ -137,8 +137,8 @@ public class TransferService {
     String bankName="";
     RegisterPartnerMemberVO pmVOSource = new RegisterPartnerMemberVO();
     RegisterPartnerVO pVOSource=new RegisterPartnerVO();
-    IndividualVO iVOSource=new IndividualVO();
-    IndividualVO iVo= new IndividualVO();
+    IndividualRegistrationVO iVOSource=new IndividualRegistrationVO();
+    IndividualRegistrationVO iVo= new IndividualRegistrationVO();
     paymentMethod=paymentMethod.toUpperCase();
     String tmpSKU=sku;
 

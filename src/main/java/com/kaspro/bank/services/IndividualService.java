@@ -7,7 +7,7 @@ import com.kaspro.bank.persistance.repository.IndividualRepository;
 import com.kaspro.bank.persistance.repository.TransferLimitRepository;
 import com.kaspro.bank.persistance.repository.UsageAccumulatorRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
-import com.kaspro.bank.vo.IndividualVO;
+import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class IndividualService {
     UsageAccumulatorRepository uaRepo;
 
     @Transactional
-    public IndividualVO registerIndividual(IndividualVO vo){
+    public IndividualRegistrationVO registerIndividual(IndividualRegistrationVO vo){
         Individual existingIndividual=iRepo.findByMsisdn(vo.getIndividual().getMsisdn());
         if(existingIndividual!=null){
             throw new NostraException("MSISDN is used by other subscriber", StatusCode.DATA_INTEGRITY);
@@ -65,7 +65,7 @@ public class IndividualService {
             uaRepo.save(ua);
         }
 
-        IndividualVO savedVO= new IndividualVO();
+        IndividualRegistrationVO savedVO= new IndividualRegistrationVO();
         savedVO.setIndividual(savedIndividual);
         savedVO.setVirtualAccount(va);
         savedVO.setTransferLimits(tlRepo.findByTier(savedIndividual.getTier()));
@@ -79,7 +79,7 @@ public class IndividualService {
         return list;
     }
 
-    public IndividualVO update(IndividualVO individualVO){
+    public IndividualRegistrationVO update(IndividualRegistrationVO individualVO){
         Individual vo=individualVO.getIndividual();
         Individual savedIndividual=iRepo.findIndividual(vo.getId());
         if(savedIndividual==null){
@@ -224,7 +224,7 @@ public class IndividualService {
 
         iRepo.save(savedIndividual);
 
-        IndividualVO savedVO= new IndividualVO();
+        IndividualRegistrationVO savedVO= new IndividualRegistrationVO();
         savedVO.setVirtualAccount(savedVA);
         savedVO.setIndividual(savedIndividual);
         savedVO.setTransferLimits(tlRepo.findByTier(savedIndividual.getTier()));
@@ -232,7 +232,7 @@ public class IndividualService {
         return savedVO;
     }
 
-    public IndividualVO updateTier(IndividualVO individualVO) {
+    public IndividualRegistrationVO updateTier(IndividualRegistrationVO individualVO) {
         Individual vo = individualVO.getIndividual();
         Individual savedIndividual = iRepo.findIndividual(vo.getId());
         if (savedIndividual == null) {
@@ -253,14 +253,14 @@ public class IndividualService {
         return individualVO;
     }
 
-    public IndividualVO getIndividualDetail(int id){
+    public IndividualRegistrationVO getIndividualDetail(int id){
         Individual individual=iRepo.findIndividual(id);
         if(individual==null){
             throw new NostraException("Subscriber not found",StatusCode.DATA_NOT_FOUND);
         }
         List<TransferLimit> tls=tlRepo.findByTier(individual.getTier());
         VirtualAccount va=vaRepository.findByPartnerID(individual.getId());
-        IndividualVO vo=new IndividualVO();
+        IndividualRegistrationVO vo=new IndividualRegistrationVO();
         vo.setIndividual(individual);
         vo.setTransferLimits(tls);
         vo.setVirtualAccount(va);
