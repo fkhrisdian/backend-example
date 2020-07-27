@@ -1,5 +1,7 @@
 package com.kaspro.bank.controller;
 
+import com.kaspro.bank.enums.StatusCode;
+import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.BlacklistMsisdn;
 import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.services.BlacklistMsisdnService;
@@ -24,6 +26,9 @@ public class BlackListMsisdnController {
     @Autowired
     private BlacklistMsisdnService service;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping(value = "/FileUpload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = "application/json")
     public ResponseEntity saveUsers(@RequestParam(value = "files") MultipartFile[] files) throws Exception {
         for (MultipartFile file : files) {
@@ -36,7 +41,8 @@ public class BlackListMsisdnController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Get")
     @ResponseBody
-    public ResponseEntity<ResultVO> findAll() {
+    public ResponseEntity<ResultVO> findAll(@RequestHeader(value = "Authorization") String authorization) {
+        if (!userService.validateToken(authorization)) throw new NostraException("Unauthorized",StatusCode.UNAUTHORIZED);
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
