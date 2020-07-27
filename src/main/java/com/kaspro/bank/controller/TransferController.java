@@ -213,11 +213,13 @@ public class TransferController {
                                                           @RequestParam(value="partnerId", required = false) String partnerId,
                                                           @RequestParam(value="senderId", required = false) String senderId,
                                                           @RequestParam(value="msisdn", required = false) String msisdn,
-                                                          @RequestParam(value="tid", required = false) String tid) {
+                                                          @RequestParam(value="tid", required = false) String tid,
+                                                          @RequestParam(value="startDate", required = false) String startDate,
+                                                          @RequestParam(value="endDate", required = false) String endDate) {
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
-        return transferService.findFilteredTransaction(accType,partnerId,senderId,msisdn,tid);
+        return transferService.findFilteredTransaction(accType,partnerId,senderId,msisdn,tid,startDate,endDate);
       }
     };
     return handler.getResult();

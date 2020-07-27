@@ -20,14 +20,16 @@ public interface TransactionHistoryRepository extends BaseRepository<Transaction
             nativeQuery = true)
     List<TransactionHistory> findEntireTransaction();
 
-    @Query(value="SELECT * FROM kasprobank.TRANSACTION_HISTORY th WHERE th.acc_type = :accType AND (:partnerId is null or th.partner_id = :partnerId) AND (:senderId is null or th.sender_id = :senderId) AND (:msisdn is null or th.msisdn = :msisdn) AND (:tid is null or th.tid = :tid)\n" +
+    @Query(value="SELECT * FROM kasprobank.TRANSACTION_HISTORY th WHERE th.acc_type = :accType AND (:partnerId is null or th.partner_id = :partnerId) AND (:senderId is null or th.sender_id = :senderId) AND (:msisdn is null or th.msisdn = :msisdn) AND (:tid is null or th.tid = :tid) AND (:startDate is null or th.DATE_CREATED >= :startDate) AND (:endDate is null or th.DATE_CREATED <= :endDate)\n" +
             "union all\n" +
-            "SELECT * FROM kasprobank.TRANSACTION_HISTORY_STG ths WHERE ths.acc_type = :accType AND (:partnerId is null or ths.partner_id = :partnerId) AND (:senderId is null or ths.sender_id = :senderId) AND (:msisdn is null or ths.msisdn = :msisdn) AND (:tid is null or ths.tid = :tid)",
+            "SELECT * FROM kasprobank.TRANSACTION_HISTORY_STG ths WHERE ths.acc_type = :accType AND (:partnerId is null or ths.partner_id = :partnerId) AND (:senderId is null or ths.sender_id = :senderId) AND (:msisdn is null or ths.msisdn = :msisdn) AND (:tid is null or ths.tid = :tid  AND (:startDate is null or ths.DATE_CREATED >= :startDate) AND (:endDate is null or ths.DATE_CREATED <= :endDate))",
             nativeQuery = true)
     List<TransactionHistory> findFilteredTransaction(@Param("accType") String accType,
                                                      @Param("partnerId") String partnerId,
                                                      @Param("senderId") String senderId,
                                                      @Param("msisdn") String msisdn,
-                                                     @Param("tid") String id);
+                                                     @Param("tid") String id,
+                                                     @Param("startDate") String startDate,
+                                                     @Param("endDate") String endDate);
 
 }

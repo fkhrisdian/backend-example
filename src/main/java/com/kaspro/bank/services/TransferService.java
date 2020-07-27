@@ -117,8 +117,39 @@ public class TransferService {
     return ths;
   }
 
-  public List<TransactionHistory> findFilteredTransaction(String accType, String partnerId, String senderId, String msisdn, String tid){
-    List<TransactionHistory> ths=thRepo.findFilteredTransaction(accType, partnerId, senderId, msisdn, tid);
+  public List<TransactionHistory> findFilteredTransaction(String accType, String partnerId, String senderId, String msisdn, String tid, String startDate, String endDate){
+    final String OLD_FORMAT = "dd-MM-yyyy";
+    final String NEW_FORMAT = "yyyy-MM-dd";
+
+// August 12, 2010
+    String newStartDate=null;
+    String newEndDate=null;
+
+    SimpleDateFormat sdf = new SimpleDateFormat(OLD_FORMAT);
+    Date d1 = null;
+    Date d2 = null;
+    try {
+      if(startDate!=null){
+        d1 = sdf.parse(startDate);
+      }
+
+      if(endDate!=null){
+        d2 = sdf.parse(endDate);
+      }
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    sdf.applyPattern(NEW_FORMAT);
+    if(startDate!=null){
+      newStartDate = sdf.format(d1)+" 00:00:00";
+    }
+
+    if(endDate!=null){
+      newEndDate=sdf.format(d2)+" 23:59:59";
+    }
+    logger.info("Filtering Transaction History : "+accType+" "+partnerId+" "+senderId+" "+msisdn+" "+tid+" "+newStartDate+" "+newEndDate);
+
+    List<TransactionHistory> ths=thRepo.findFilteredTransaction(accType, partnerId, senderId, msisdn, tid, newStartDate, newEndDate);
     return ths;
   }
 
