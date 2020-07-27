@@ -8,4 +8,5 @@ public class UserVO {
   private String email;
   private String roles;
   private String token;
+  private String[] pages;
 }

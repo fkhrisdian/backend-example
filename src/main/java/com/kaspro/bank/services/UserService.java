@@ -2,6 +2,7 @@ package com.kaspro.bank.services;
 
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
+import com.kaspro.bank.persistance.domain.Role;
 import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.persistance.repository.RoleRepository;
 import com.kaspro.bank.persistance.repository.UserRepository;
@@ -164,10 +165,12 @@ public class UserService {
             if(!password.equals(vo.getPassword())){
                 throw new NostraException("Invalid Password",StatusCode.ERROR);
             }else {
+                RoleResVO role = rService.getDetailRole(user.getRoles());
                 UserVO userVO = new UserVO();
                 userVO.setUsername(user.getUsername());
                 userVO.setEmail(user.getEmail());
-                userVO.setRoles(user.getRoles());
+                userVO.setRoles(role.getName());
+                userVO.setPages(role.getPages());
                 userVO.setToken(Base64.getEncoder().encodeToString((user.getEmail()+":"+password).getBytes()));
                 return userVO;
             }
