@@ -66,18 +66,11 @@ public class UserService {
         User user = new User();
         user.setUsername(vo.getUsername());
         user.setEmail(vo.getEmail());
-        String roles="";
-        List<RoleResVO>roleResVOS=new ArrayList<>();
-        for(String role:vo.getRoles()){
-            roles=roles+role+("|");
-            RoleResVO roleResVO=rService.getDetailRole(role);
-            if(roleResVO==null){
-                throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
-            }else{
-                roleResVOS.add(roleResVO);
-            }
+        RoleResVO roleResVO=rService.getDetailRole(vo.getRole());
+        if(roleResVO==null){
+            throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
         }
-        user.setRoles(roles);
+        user.setRoles(vo.getRole());
         PasswordGenerator passwordGenerator = new PasswordGenerator.PasswordGeneratorBuilder()
                 .useDigits(true)
                 .useLower(true)
@@ -95,7 +88,7 @@ public class UserService {
         result.setId(savedUser.getId().toString());
         result.setUsername(savedUser.getUsername());
         result.setEmail(savedUser.getEmail());
-        result.setRoles(roleResVOS);
+        result.setRole(roleResVO);
 
         return result;
     }
@@ -107,25 +100,18 @@ public class UserService {
         }
         user.setUsername(vo.getUsername());
         user.setEmail(vo.getEmail());
-        String roles="";
-        List<RoleResVO>roleResVOS=new ArrayList<>();
-        for(String role:vo.getRoles()){
-            roles=roles+role+("|");
-            RoleResVO roleResVO=rService.getDetailRole(role);
-            if(roleResVO==null){
-                throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
-            }else{
-                roleResVOS.add(roleResVO);
-            }
+        RoleResVO roleResVO=rService.getDetailRole(vo.getRole());
+        if(roleResVO==null){
+            throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
         }
-        user.setRoles(roles);
+        user.setRoles(vo.getRole());
         User savedUser=repository.save(user);
 
         UserResVO result=new UserResVO();
         result.setId(savedUser.getId().toString());
         result.setUsername(savedUser.getUsername());
         result.setEmail(savedUser.getEmail());
-        result.setRoles(roleResVOS);
+        result.setRole(roleResVO);
 
         return result;
     }
@@ -139,17 +125,11 @@ public class UserService {
             vo.setId(user.getId().toString());
             vo.setUsername(user.getUsername());
             vo.setEmail(user.getEmail());
-            String[] roles = user.getRoles().split("\\|");
-            List<RoleResVO>roleResVOS=new ArrayList<>();
-            for(String role:roles){
-                RoleResVO roleResVO=rService.getDetailRole(role);
-                if(roleResVO==null){
-                    throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
-                }else{
-                    roleResVOS.add(roleResVO);
-                }
+            RoleResVO roleResVO=rService.getDetailRole(user.getRoles());
+            if(roleResVO==null){
+                throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
             }
-            vo.setRoles(roleResVOS);
+            vo.setRole(roleResVO);
             result.add(vo);
         }
         return result;
@@ -165,17 +145,11 @@ public class UserService {
         result.setId(user.getId().toString());
         result.setUsername(user.getUsername());
         result.setEmail(user.getEmail());
-        String[] roles = user.getRoles().split("\\|");
-        List<RoleResVO>roleResVOS=new ArrayList<>();
-        for(String role:roles){
-            RoleResVO roleResVO=rService.getDetailRole(role);
-            if(roleResVO==null){
-                throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
-            }else{
-                roleResVOS.add(roleResVO);
-            }
+        RoleResVO roleResVO=rService.getDetailRole(user.getRoles());
+        if(roleResVO==null){
+            throw new NostraException("Invalid Role ID",StatusCode.DATA_NOT_FOUND);
         }
-        result.setRoles(roleResVOS);
+        result.setRole(roleResVO);
 
         return result;
     }

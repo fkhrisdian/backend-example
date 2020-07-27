@@ -9,5 +9,5 @@ public class UserResVO {
     private String id;
     private String username;
     private String email;
-    private List<RoleResVO> roles;
+    private RoleResVO role;
 }

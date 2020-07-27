@@ -6,5 +6,5 @@ import lombok.Data;
 public class UserReqVO {
     private String username;
     private String email;
-    private String[] roles;
+    private String role;
 }
