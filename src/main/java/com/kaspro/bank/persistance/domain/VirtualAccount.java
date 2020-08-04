@@ -32,4 +32,7 @@ public class VirtualAccount extends Base{
     @Column(name = "OWNER_ID",nullable = false)
     private int ownerID;
 
+    @Column(name = "TRX_ID",nullable = false)
+    private String trxId;
+
 }

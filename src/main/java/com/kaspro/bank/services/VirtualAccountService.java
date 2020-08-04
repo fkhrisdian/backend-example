@@ -174,10 +174,50 @@ public class VirtualAccountService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        savedVA.setTrxId(referenceNumber);
         savedVA=vaRepository.save(savedVA);
 
         return savedVA;
+    }
+
+    @Transactional
+    public void updateVAInfo(UpdateVAVO vo){
+        ObjectMapper obj = new ObjectMapper();
+        String inputString="";
+        try {
+            inputString=obj.writeValueAsString(vo);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        String data=bniEncryption.hashData(inputString, cid, key);
+        EncCreateVAVO reqPost=new EncCreateVAVO();
+        reqPost.setClient_id(cid);
+        reqPost.setData(data);
+
+        try {
+            inputString=obj.writeValueAsString(reqPost);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            String outputString=httpProcessingService.postUser("https://apibeta.bni-ecollection.com:8067/",inputString);
+            Gson g = new Gson();
+            CreateVAResponseVO resPost=g.fromJson(outputString,CreateVAResponseVO.class);
+            if(resPost.getStatus().equals("000")){
+                data=resPost.getData();
+                resPost=g.fromJson(bniEncryption.parseData(data,cid,key),CreateVAResponseVO.class);
+
+            }else {
+                throw new NostraException(resPost.getMessage(),StatusCode.ERROR);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Transactional
@@ -293,7 +333,7 @@ public class VirtualAccountService {
             e.printStackTrace();
         }
 
-
+        savedVA.setTrxId(referenceNumber);
         savedVA=vaRepository.save(savedVA);
 
         return savedVA;
@@ -357,4 +397,6 @@ public class VirtualAccountService {
         BNINotifResponseVO result = new BNINotifResponseVO(data);
         return result;
     }
+
+
 }

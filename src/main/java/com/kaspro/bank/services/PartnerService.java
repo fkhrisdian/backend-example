@@ -6,7 +6,9 @@ import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.*;
+import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.KeyValuePairedVO;
+import com.kaspro.bank.vo.RegisterPartnerMemberVO;
 import com.kaspro.bank.vo.RegisterPartnerVO;
 import com.kaspro.bank.vo.UpdateStatusVO;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +65,9 @@ public class PartnerService {
     @Autowired
     PartnerMemberTokenRepository pmtRepo;
 
+    @Autowired
+    PartnerMemberService pmService;
+
 
     Logger logger = LoggerFactory.getLogger(PartnerService.class);
 
@@ -110,6 +115,9 @@ public class PartnerService {
         ptp=ptpRepo.save(ptp);
 
         PartnerToken pt =ptRepo.findPT(ptp.getId());
+        if(pt==null){
+            throw new NostraException("Partner Token is empty. Please insert new token");
+        }
         try{
             ptRepo.delete(pt);
         }catch (Exception e){
@@ -118,12 +126,11 @@ public class PartnerService {
             ptRepo.flush();
         }
 
-        for(int i=1;i<100;i++){
+        for(int i=1;i<3;i++){
             PartnerMemberToken pmt=new PartnerMemberToken();
             pmt.setPartnerCode(pt.getPartnerCode());
             pmt.setPartnerMemberCode(new Long(i));
             pmtRepo.saveAndFlush(pmt);
-
         }
 
         List<Partner> partners = partnerRepository.findAlias(vo.getPartner().getAlias());
@@ -179,10 +186,6 @@ public class PartnerService {
 
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        String afterValue="";
-        String beforeValue="";
-
         RegisterPartnerVO savedVO = new RegisterPartnerVO();
         savedVO.setPartner(savedPartner);
         savedVO.setTransferFees(savedTFS);
@@ -190,24 +193,86 @@ public class PartnerService {
         savedVO.setDataPIC(savedPIC);
         savedVO.setListTier(vo.getListTier());
 
-        try {
-            afterValue = mapper.writeValueAsString(savedVO);
-
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        logger.info("afterValue: "+afterValue);
-
-        AuditTrail at = new AuditTrail();
-        at.setStartDtm(currDate);
-        at.setUserApp("System");
-        at.setValueAfter(afterValue);
-        at.setValueBefore(beforeValue);
-        at.setOwnerID(savedPartner.getId());
-        atService.add(at);
+        logger.info("Starting creating Partner Member");
+        RegisterPartnerMemberVO registerPartnerMemberVO=setPartnerMember(savedVO);
+        logger.info("Finished creating Partner Member : "+registerPartnerMemberVO.getPartnerMember().getId());
 
         return savedVO;
+    }
+
+    @Transactional
+    private RegisterPartnerMemberVO setPartnerMember(RegisterPartnerVO vo){
+        RegisterPartnerMemberVO result=new RegisterPartnerMemberVO();
+        InitDB initDB=InitDB.getInstance();
+
+        result.setDataPIC(vo.getDataPIC());
+        result.setListLampiran(vo.getListLampiran());
+
+        PartnerMember pm=new PartnerMember();
+        pm.setPartnerAlias(vo.getPartner().getAlias());
+        pm.setName(vo.getPartner().getName());
+        pm.setAddress(vo.getPartner().getAddress());
+        pm.setNibSipTdp(vo.getPartner().getNibSipTdp());
+        pm.setNoAktaPendirian(vo.getPartner().getNoAktaPendirian());
+        pm.setNpwp(vo.getPartner().getNpwp());
+        pm.setStatus("ACTIVE");
+        result.setPartnerMember(pm);
+
+        String tier=vo.getListTier()[0];
+        logger.info("Info Tier : "+tier);
+        List<TransferInfoMember> transferInfoMemberList=new ArrayList<>();
+
+        TransferInfoMember tim1=new TransferInfoMember();
+        tim1.setFlag("CPM");
+        tim1.setValue(tier);
+        tim1.setName("TierLimit");
+        transferInfoMemberList.add(tim1);
+
+        TransferInfoMember tim2=new TransferInfoMember();
+        tim2.setFlag("CPM");
+        tim2.setValue("true");
+        tim2.setName("AcessKasproBank");
+        transferInfoMemberList.add(tim2);
+
+        TransferInfoMember tim3=new TransferInfoMember();
+        tim3.setFlag("CPM");
+        tim3.setValue("true");
+        tim3.setName("AcessKaspro");
+        transferInfoMemberList.add(tim3);
+
+        TransferInfoMember tim4=new TransferInfoMember();
+        tim4.setFlag("CPM");
+        tim4.setValue("true");
+        tim4.setName("AccessBNI");
+        transferInfoMemberList.add(tim4);
+
+        TransferInfoMember tim5=new TransferInfoMember();
+        tim5.setFlag("CPM");
+        tim5.setValue("true");
+        tim5.setName("AccessOtherBank");;
+        transferInfoMemberList.add(tim5);
+
+        TransferInfoMember tim6=new TransferInfoMember();
+        tim6.setFlag("CPM");
+        tim6.setValue("true");
+        tim6.setName("AccessEmoney");
+        transferInfoMemberList.add(tim6);
+
+        TransferInfoMember tim7=new TransferInfoMember();
+        tim7.setFlag("CPM");
+        tim7.setValue(initDB.get("PaymentFeeMethod.Default"));
+        tim7.setName("PaymentFeeMethod");
+        transferInfoMemberList.add(tim7);
+
+        TransferInfoMember tim8=new TransferInfoMember();
+        tim8.setFlag("CPM");
+        tim8.setValue(initDB.get("ShareableWallet.Default"));
+        tim8.setName("ShareableWallet");
+        transferInfoMemberList.add(tim8);
+
+        result.setListTransferInfoMember(transferInfoMemberList);
+        result=pmService.add(result);
+        return result;
     }
 
     @Transactional

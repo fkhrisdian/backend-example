@@ -6,9 +6,11 @@ import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.*;
 import com.kaspro.bank.persistance.repository.*;
+import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.RegisterPartnerMemberVO;
 import com.kaspro.bank.vo.RegisterPartnerVO;
 import com.kaspro.bank.vo.UpdateStatusVO;
+import com.kaspro.bank.vo.UpdateVAVO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,18 +108,21 @@ public class PartnerMemberService {
         }
 
         PartnerMemberToken pmt=pmtRepo.findMinId(partners.get(0).getPartnerCode());
-
+        Long counter=pmt.getPartnerMemberCode();
         try{
             pmtRepo.delete(pmt);
         }finally {
             pmtRepo.flush();
+            PartnerMemberToken pmtCounter=pmtRepo.findMinId(partners.get(0).getPartnerCode());
+            if(pmtCounter==null){
+                for(Long i=counter+1;i<counter+10;i++){
+                    PartnerMemberToken pmtTemp=new PartnerMemberToken();
+                    pmtTemp.setPartnerCode(pmt.getPartnerCode());
+                    pmtTemp.setPartnerMemberCode(i);
+                    pmtRepo.saveAndFlush(pmtTemp);
+                }
+            }
         }
-
-        List<String> names=pmRepository.findName(vo.getPartnerMember().getName());
-        if(names.size()>0){
-            throw new NostraException("Partner Member with same name already exist", StatusCode.DATA_INTEGRITY);
-        }
-
 
         logger.info("Starting insert Partner Member");
         PartnerMember partnerMember =vo.getPartnerMember();
@@ -189,6 +194,7 @@ public class PartnerMemberService {
     @Transactional
     public RegisterPartnerMemberVO update(RegisterPartnerMemberVO vo){
 
+        InitDB initDB=InitDB.getInstance();
         List<PartnerMember> pms=pmRepository.findListPartnerMember(vo.getPartnerMember().getId());
         if(pms.size()==0){
             throw new NostraException("Partner Member does not exist",StatusCode.DATA_NOT_FOUND);
@@ -228,13 +234,6 @@ public class PartnerMemberService {
             taService.add(ta);
             savedPIC.setAlamat(dataPIC.getAlamat());
         }
-        if(!savedPIC.getEmail().equals(dataPIC.getEmail())){
-            ta.setField("Email");
-            ta.setValueBefore(savedPIC.getEmail());
-            ta.setValueAfter(dataPIC.getEmail());
-            taService.add(ta);
-            savedPIC.setEmail(dataPIC.getEmail());
-        }
         if(!savedPIC.getKtp().equals(dataPIC.getKtp())){
             ta.setField("KTP");
             ta.setValueBefore(savedPIC.getKtp());
@@ -248,6 +247,25 @@ public class PartnerMemberService {
             ta.setValueAfter(dataPIC.getNpwp());
             taService.add(ta);
             savedPIC.setNpwp(dataPIC.getNpwp());
+        }
+
+        if(!savedPIC.getEmail().equals(dataPIC.getEmail())){
+            ta.setField("Email");
+            ta.setValueBefore(savedPIC.getEmail());
+            ta.setValueAfter(dataPIC.getEmail());
+            taService.add(ta);
+            savedPIC.setEmail(dataPIC.getEmail());
+            UpdateVAVO updateVAVO=new UpdateVAVO();
+            updateVAVO.setClient_id(initDB.get("VA.ClientID"));
+            updateVAVO.setCustomer_email(savedPIC.getEmail());
+            updateVAVO.setCustomer_name(savedPIC.getName());
+            updateVAVO.setCustomer_phone(savedPIC.getMsisdn());
+            updateVAVO.setDatetime_expired(initDB.get("VA.EndDate")+"T00:00:00+07:00");
+            updateVAVO.setDescription("Change email to "+savedPIC.getEmail());
+            updateVAVO.setTrx_amount("0");
+            updateVAVO.setTrx_id(vo.getVirtualAccount().getTrxId());
+            updateVAVO.setType("updateBilling");
+            vaService.updateVAInfo(updateVAVO);
         }
         logger.info("Inserting Data PIC: "+dataPIC.getName());
         savedPIC=dataPICRepository.save(savedPIC);

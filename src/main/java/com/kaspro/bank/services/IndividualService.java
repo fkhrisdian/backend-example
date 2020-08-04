@@ -7,7 +7,9 @@ import com.kaspro.bank.persistance.repository.IndividualRepository;
 import com.kaspro.bank.persistance.repository.TransferLimitRepository;
 import com.kaspro.bank.persistance.repository.UsageAccumulatorRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
+import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
+import com.kaspro.bank.vo.UpdateVAVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,6 +82,7 @@ public class IndividualService {
     }
 
     public IndividualRegistrationVO update(IndividualRegistrationVO individualVO){
+        InitDB initDB=InitDB.getInstance();
         Individual vo=individualVO.getIndividual();
         Individual savedIndividual=iRepo.findIndividual(vo.getId());
         if(savedIndividual==null){
@@ -137,6 +140,18 @@ public class IndividualService {
             ta.setValueAfter(vo.getEmail());
             taService.add(ta);
             savedIndividual.setEmail(vo.getEmail());
+
+            UpdateVAVO updateVAVO=new UpdateVAVO();
+            updateVAVO.setClient_id(initDB.get("VA.ClientID"));
+            updateVAVO.setCustomer_email(savedIndividual.getEmail());
+            updateVAVO.setCustomer_name(savedIndividual.getName());
+            updateVAVO.setCustomer_phone(savedIndividual.getMsisdn());
+            updateVAVO.setDatetime_expired(initDB.get("VA.EndDate")+"T00:00:00+07:00");
+            updateVAVO.setDescription("Change email to "+savedIndividual.getEmail());
+            updateVAVO.setTrx_amount("0");
+            updateVAVO.setTrx_id(individualVO.getVirtualAccount().getTrxId());
+            updateVAVO.setType("updateBilling");
+            vaService.updateVAInfo(updateVAVO);
         }
         if(!vo.getGender().equals(savedIndividual.getGender())){
             ta.setField("Gender");

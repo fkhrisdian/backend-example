@@ -96,9 +96,9 @@ public class TransferService {
     return interBankInquiryResponse.getGetInterbankInquiryResponse().getParameters().getDestinationAccountName();
   }
 
-  public String inHousePayment(InHousePaymentVO vo) {
+  public OgpInHousePaymentRespVO inHousePayment(InHousePaymentVO vo) {
     OgpInHousePaymentRespVO paymentRespVO = ogpService.inHousePayment(vo);
-    return paymentRespVO.getDoPaymentResponse().getParameters().getResponseCode();
+    return paymentRespVO;
   }
 
   public String interBankPayment(InterBankPaymentVO vo) {
@@ -154,7 +154,7 @@ public class TransferService {
   }
 
   @Transactional
-  public InquiryKasproBankResVO kasproBankInquiry(String source, String destination, String sku, String amount, String paymentMethod, String chargingModel){
+  public InquiryKasproBankResVO kasproBankInquiry(String source, String destination, String sku, String amount, String paymentMethod, String chargingModel, boolean isAdmin){
 
     VirtualAccount va = new VirtualAccount();
     RegisterPartnerMemberVO pmVO = new RegisterPartnerMemberVO();
@@ -172,7 +172,9 @@ public class TransferService {
     IndividualRegistrationVO iVo= new IndividualRegistrationVO();
     paymentMethod=paymentMethod.toUpperCase();
     String tmpSKU=sku;
-
+    InitDB x=InitDB.getInstance();
+    String tier="";
+    th.setInterBankFee("0");
     if(source.startsWith("628")||source.startsWith("08")){
       if(source.startsWith("08")){
         source="62"+source.substring(1);
@@ -187,8 +189,11 @@ public class TransferService {
         th.setAccType("I");
         th.setSenderId(iVOSource.getIndividual().getId().toString());
         th.setMsisdn(iVOSource.getIndividual().getMsisdn());
+        tier=iVOSource.getTransferLimits().get(0).getTierType();
+        logger.info("Tier type : "+tier);
+      }else{
+        throw new NostraException("Source account not found", StatusCode.DATA_NOT_FOUND);
       }
-
     }else {
       vaSource=vaRepo.findCorporate(source);
       if(vaSource!=null){
@@ -202,11 +207,16 @@ public class TransferService {
         th.setPartnerName(pVOSource.getPartner().getName());
         th.setSenderId(pmVOSource.getPartnerMember().getId().toString());
         th.setAccType("CPM");
+        for(TransferInfoMember tim:pmVOSource.getListTransferInfoMember()){
+          if(tim.getName().equals("TierLimit")){
+            tier=tim.getValue();
+            logger.info("Tier type : "+tier);
+            break;
+          }
+        }
+      }else{
+        throw new NostraException("Source account not found", StatusCode.DATA_NOT_FOUND);
       }
-    }
-
-    if(vaSource==null){
-      throw new NostraException("Source account is not found", StatusCode.DATA_NOT_FOUND);
     }
 
     TransactionHistoryStaging thSTG=thSTGRepo.findBySenderId(Integer.toString(vaSource.getOwnerID()));
@@ -292,36 +302,39 @@ public class TransferService {
       }
     }else{
       Long tmpAmount=Long.parseLong(amount);
+      th.setInterBankFee(x.get("InterBank.Fee"));
       InterBankInquiryVO ibiVO=new InterBankInquiryVO();
       tmpSKU="OtherBank";
       OgpInterBankInquiryRespVO ibiResVO=new OgpInterBankInquiryRespVO();
-      bankCode="014";
-      bankName="BCA";
+      bankCode=x.get("Bank.Code."+sku);
+      bankCodeRTGS=x.get("RTGS.Code."+sku);
+
       ibiVO.setAccountNo(vaSource.getVa());
       ibiVO.setDestinationAccountNo(destination);
       ibiVO.setDestinationBankCode(bankCode);
       ibiResVO=ogpService.interBankInquiry(ibiVO);
+      if(!ibiResVO.getGetInterbankInquiryResponse().getParameters().getResponseCode().equals("0001")){
+        throw new NostraException("Error during Inter Bank Inquiry "+ibiResVO.getGetInterbankInquiryResponse().getParameters().getResponseCode()+". "+ibiResVO.getGetInterbankInquiryResponse().getParameters().getResponseMessage());
+      }
+      bankName=ibiResVO.getGetInterbankInquiryResponse().getParameters().getDestinationBankName();
       th.setCreditAcc(destination);
-      th.setCreditName("Dummy");
+      th.setCreditName(ibiResVO.getGetInterbankInquiryResponse().getParameters().getDestinationAccountName());
       vo.setDestinationAccount(th.getCreditAcc());
       vo.setDestinationName(th.getCreditName());
-      sku="BCA";
+      sku=bankName;
       if(paymentMethod.equalsIgnoreCase("ONLINE")){
         th.setDestinationBankCode(bankCode);
 
       }else if(paymentMethod.equalsIgnoreCase("RTGS")){
-        bankCodeRTGS="CENAIDJAXXX";
-        if(tmpAmount<100000000){
-          throw new NostraException("Minimum RTGS Transfer is 100 Million", StatusCode.ERROR);
+        if(tmpAmount<Long.parseLong(x.get("RTGS.Min.Limit"))){
+          throw new NostraException("Minimum RTGS Transfer is "+x.get("RTGS.Min.Limit"), StatusCode.ERROR);
         }
         th.setDestinationBankCode(bankCodeRTGS);
       }else if(paymentMethod.equalsIgnoreCase("KLIRING")){
-        if(tmpAmount>1000000000){
-          throw new NostraException("Maximum KLIRING Transfer is 1 Billion", StatusCode.ERROR);
+        if(tmpAmount>Long.parseLong(x.get("Kliring.Max.Limit"))){
+          throw new NostraException("Maximum KLIRING Transfer is "+x.get("Kliring.Max.Limit"), StatusCode.ERROR);
         }
-        bankCodeRTGS="CENAIDJAXXX";
         th.setDestinationBankCode(bankCodeRTGS);
-
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         String currentTime = sdf.format(new Date());
         logger.info("Current Time is : "+currentTime);
@@ -333,42 +346,53 @@ public class TransferService {
       }
     }
 
+    logger.info("Setting transfer fee starts");
     String fee="";
-    if(vaSource.getFlag().equals("I")){
-      fee="2000";
-    }
-    for(TransferFee tf:pVOSource.getTransferFees()){
-      if(tf.getDestination().equals(tmpSKU)){
-        fee=tf.getFee().toString().replaceAll("\\.0*$", "");
+    boolean invoice=false;
 
-        break;
+    if(vaSource.getFlag().equals("I")){
+      if(sku.equals("KasproBank")){
+        fee=x.get("Individual.Fee.KasproBank");
+      }else if(sku.equals("Kaspro")){
+        fee=x.get("Individual.Fee.Kaspro");
+      }else if(sku.equals("BNI")){
+        fee=x.get("Individual.Fee.BNI");
+      }else{
+        fee=x.get("Individual.Fee.OtherBank");
       }
+    }
+    else {
+      for(TransferInfoMember tif:pmVOSource.getListTransferInfoMember()){
+        if(tif.getName().equals("PaymentFeeMethod")){
+          if(tif.getValue().equals("Invoice")){
+            fee="0";
+            invoice=true;
+            break;
+          }
+        }
+      }
+      if(!invoice){
+        for (TransferFee tf : pVOSource.getTransferFees()) {
+          if (tf.getDestination().equals(tmpSKU)) {
+            fee = tf.getFee().toString().replaceAll("\\.0*$", "");
+            break;
+          }
+        }
+      }
+    }
+    if(isAdmin){
+      if(Long.parseLong(amount)>Long.parseLong(fee)){
+        throw new NostraException("If isAdmin=true then transfer amount must less than equal transfer fee",StatusCode.ERROR);
+      }
+      fee="0";
     }
     logger.info("Transfer Fee = "+fee);
-
-    String tier="";
-    for(TransferInfoMember tim:pmVOSource.getListTransferInfoMember()){
-      if(tim.getName().equals("TierLimit")){
-        tier=tim.getValue();
-        break;
-      }
-    }
+    logger.info("Setting transfer fee end");
 
     TransferLimit tl = tlRepo.findByTierAndDest(tier,tmpSKU);
     UsageAccumulator ua = uaRepo.findByOwnerIDAndDest(vaSource.getOwnerID(),tmpSKU);
     Long usage=Long.parseLong(ua.getUsage())+Long.parseLong(amount);
-    Long totalAmount=Long.parseLong(amount)+Long.parseLong(fee);
-
-//    BalanceVO balanceVO = new BalanceVO();
-//    balanceVO.setAccountNo(vaSource.getVa());
-//    OgpBalanceRespVO ogpBalanceRespVO= ogpService.balance(balanceVO);
-//
-//    if(!ogpBalanceRespVO.getGetBalanceResponse().getParameters().getResponseCode().equals("0001")){
-//      throw new NostraException("Failed when check balance", StatusCode.ERROR);
-//    }
-//    if(Long.parseLong(ogpBalanceRespVO.getGetBalanceResponse().getParameters().getAccountBalance()) < totalAmount){
-//      throw new NostraException("Insuficient Balance", StatusCode.ERROR);
-//    }
+    Long totalAmount=Long.parseLong(amount)+Long.parseLong(fee)+Long.parseLong(th.getInterBankFee());
 
     if(usage>Long.parseLong(tl.getTransactionLimit())){
       String additionalLimit=ilService.checkIncreaseLimitResVO(pmVOSource.getPartnerMember().getId().toString(), tmpSKU);
@@ -388,7 +412,6 @@ public class TransferService {
     String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime);
     th.setAmount(amount);
     th.setAdminFee(fee);
-    th.setInterBankFee("0");
     th.setTotalAmount(totalAmount.toString());
     th.setCurrency("IDR");
     th.setDebitAcc(vaSource.getVa());
@@ -414,7 +437,8 @@ public class TransferService {
 
   public boolean isCutOff(String currentTime){
     try {
-      String cutoffStart = "15:00:00";
+      InitDB initDB=InitDB.getInstance();
+      String cutoffStart = initDB.get("CutOff.Start");
       Date time1 = new SimpleDateFormat("HH:mm:ss").parse(cutoffStart);
       Calendar calendar1 = Calendar.getInstance();
       calendar1.setTime(time1);
@@ -422,7 +446,7 @@ public class TransferService {
       System.out.println(calendar1.getTime());
 
 
-      String cutoffEnd = "06:30:00";
+      String cutoffEnd = initDB.get("CutOff.End");
       Date time2 = new SimpleDateFormat("HH:mm:ss").parse(cutoffEnd);
       Calendar calendar2 = Calendar.getInstance();
       calendar2.setTime(time2);
@@ -458,62 +482,63 @@ public class TransferService {
       thSTGRepo.flush();
       th=ogpConverter.convertTransactionHistory(thSTG);
     }
+    BalanceVO balanceVO=new BalanceVO();
+    balanceVO.setAccountNo(th.getDebitAcc());
+    if(!isSuficientBalance(balanceVO,th.getTotalAmount())){
+      th.setStatus("Error");
+      th.setRemark("Insuficient Balance");
+      thRepo.save(th);
+      throw new NostraException(vo.getTid()+" Insuficient Balance",StatusCode.ERROR);
+    }
     InitDB x  = InitDB.getInstance();
     String method=x.get("Code.PaymentMethod."+th.getPaymentMethod());
+    String escrow=x.get("Account.Escrow");
+//    String feeAccount="0115476151";
 
-    String escrow="0115476151";
-    String feeAccount="0115476151";
-    try{
-      logger.info(vo.getTid()+" Starting transfer to escrow account: "+feeAccount+" with amount: "+th.getAdminFee());
-      InHousePaymentVO ihpVO=new InHousePaymentVO();
-      ihpVO.setAmount(th.getAdminFee());
-      ihpVO.setDebitAccountNo(th.getDebitAcc());
-      ihpVO.setCreditAccountNo(feeAccount);
-      ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(method);
-      ihpVO.setRemark("Transfer Admin Fee to Fee Account");
-      String resIHP=inHousePayment(ihpVO);
-      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
-    }catch (Exception e){
+    logger.info(vo.getTid()+" Starting transfer to escrow account: "+escrow+" with amount: "+th.getTotalAmount());
+    InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
+    ihpVOEscrow.setAmount(th.getAmount());
+    ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
+    ihpVOEscrow.setCreditAccountNo(escrow);
+    ihpVOEscrow.setChargingModelId(th.getChargingModelId());
+    ihpVOEscrow.setPaymentMethod(method);
+    ihpVOEscrow.setRemark("Transfer from source account to escrow account");
+    OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
+    logger.info(vo.getTid()+" Finished transfer to escrow account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+    if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
       th.setStatus("Error");
-      th.setRemark("Exception during transfer to Fee account");
-      thRepo.saveAndFlush(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
-    }
-    try{
-      logger.info(vo.getTid()+" Starting transfer to escrow account: "+escrow+" with amount: "+th.getAmount());
-      InHousePaymentVO ihpVO=new InHousePaymentVO();
-      ihpVO.setAmount(th.getAmount());
-      ihpVO.setDebitAccountNo(th.getDebitAcc());
-      ihpVO.setCreditAccountNo(escrow);
-      ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(method);
-      ihpVO.setRemark("Transfer from source account to escrow account");
-      String resIHP=inHousePayment(ihpVO);
-      logger.info(vo.getTid()+" Finished transfer to escrow account with response: "+resIHP);
-    }catch (Exception e){
-      th.setStatus("Error");
-      th.setRemark("Exception during transfer to escrow account");
+      th.setRemark("Exception during transfer to escrow account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
       thRepo.saveAndFlush(th);
       throw new NostraException(vo.getTid()+" Exception during transfer to escrow account",StatusCode.ERROR);
     }
-    try{
-      logger.info(vo.getTid()+" Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
-      InHousePaymentVO ihpVO=new InHousePaymentVO();
-      ihpVO.setAmount(th.getAmount());
-      ihpVO.setDebitAccountNo(escrow);
-      ihpVO.setCreditAccountNo(th.getDebitAcc());
-      ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(method);
-      ihpVO.setRemark("Transfer from escrow account to destination account");
-      String resIHP=inHousePayment(ihpVO);
-      logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHP);
-    }catch (Exception e){
+
+    logger.info(vo.getTid()+" Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
+    InHousePaymentVO ihpVODest=new InHousePaymentVO();
+    ihpVODest.setAmount(th.getAmount());
+    ihpVODest.setDebitAccountNo(escrow);
+    ihpVODest.setCreditAccountNo(th.getCreditAcc());
+    ihpVODest.setChargingModelId(th.getChargingModelId());
+    ihpVODest.setPaymentMethod(method);
+    ihpVODest.setRemark("Transfer from escrow account to destination account");
+    OgpInHousePaymentRespVO resIHPDest=inHousePayment(ihpVODest);
+    logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
+    if(!resIHPDest.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
       th.setStatus("Error");
-      th.setRemark("Exception during transfer to destination account");
+      th.setRemark("Exception during transfer to credit account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
       thRepo.saveAndFlush(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
+      logger.info(vo.getTid()+" Rollingback transfer start");
+      InHousePaymentVO ihpVORollback=new InHousePaymentVO();
+      ihpVORollback.setAmount(th.getTotalAmount());
+      ihpVORollback.setDebitAccountNo(escrow);
+      ihpVORollback.setCreditAccountNo(th.getDebitAcc());
+      ihpVORollback.setChargingModelId(th.getChargingModelId());
+      ihpVORollback.setPaymentMethod(method);
+      ihpVORollback.setRemark("Rollback Transfer");
+      OgpInHousePaymentRespVO resIHPRollback=inHousePayment(ihpVORollback);
+      logger.info(vo.getTid()+" Finished Rollingback transfer with response: "+resIHPRollback);
+      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account",StatusCode.ERROR);
     }
+
     th.setStatus("Success");
     th.setRemark("Success");
     thRepo.save(th);
@@ -549,45 +574,53 @@ public class TransferService {
       thSTGRepo.flush();
       th=ogpConverter.convertTransactionHistory(thSTG);
     }
+    BalanceVO balanceVO=new BalanceVO();
+    balanceVO.setAccountNo(th.getDebitAcc());
+    if(!isSuficientBalance(balanceVO,th.getTotalAmount())){
+      th.setStatus("Error");
+      th.setRemark("Insuficient Balance");
+      thRepo.save(th);
+      throw new NostraException(vo.getTid()+" Insuficient Balance",StatusCode.ERROR);
+    }
     InitDB x  = InitDB.getInstance();
     String method=x.get("Code.PaymentMethod."+th.getPaymentMethod());
 
-    String feeAccount="0115476151";
-    try{
-      logger.info(vo.getTid()+" Starting transfer to fee account: "+feeAccount+" with amount: "+th.getAdminFee());
-      InHousePaymentVO ihpVO=new InHousePaymentVO();
-      ihpVO.setAmount(th.getAdminFee());
-      ihpVO.setDebitAccountNo(th.getDebitAcc());
-      ihpVO.setCreditAccountNo(feeAccount);
-      ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(method);
-      ihpVO.setRemark("Transfer Admin Fee to Fee Account");
-      String resIHP=inHousePayment(ihpVO);
-      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
-    }catch (Exception e){
+    String escrow=x.get("Account.Escrow");
+
+    logger.info(vo.getTid()+" Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
+    InHousePaymentVO ihpVODest=new InHousePaymentVO();
+    ihpVODest.setAmount(th.getAmount());
+    ihpVODest.setDebitAccountNo(th.getDebitAcc());
+    ihpVODest.setCreditAccountNo(th.getCreditAcc());
+    ihpVODest.setChargingModelId(th.getChargingModelId());
+    ihpVODest.setPaymentMethod(method);
+    ihpVODest.setRemark("Transfer from Source account to destination account");
+    OgpInHousePaymentRespVO resIHPDest=inHousePayment(ihpVODest);
+    logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
+    if(!resIHPDest.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
       th.setStatus("Error");
-      th.setRemark("Exception during transfer to Fee account");
+      th.setRemark("Exception during transfer to destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
+      thRepo.save(th);
+      throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
+    }
+
+    logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
+    InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
+    ihpVOEscrow.setAmount(th.getAdminFee());
+    ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
+    ihpVOEscrow.setCreditAccountNo(escrow);
+    ihpVOEscrow.setChargingModelId(th.getChargingModelId());
+    ihpVOEscrow.setPaymentMethod(method);
+    ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
+    OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
+    logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+    if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
+      th.setStatus("Error");
+      th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
       thRepo.save(th);
       throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
     }
 
-    try{
-      logger.info(vo.getTid()+" Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
-      InHousePaymentVO ihpVO=new InHousePaymentVO();
-      ihpVO.setAmount(th.getAmount());
-      ihpVO.setDebitAccountNo(th.getDebitAcc());
-      ihpVO.setCreditAccountNo(th.getCreditAcc());
-      ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(method);
-      ihpVO.setRemark("Transfer from Source account to destination account");
-      String resIHP=inHousePayment(ihpVO);
-      logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHP);
-    }catch (Exception e){
-      th.setStatus("Error");
-      th.setRemark("Exception during transfer to destination account");
-      thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
-    }
     th.setStatus("Success");
     th.setRemark("Success");
     thRepo.save(th);
@@ -622,68 +655,74 @@ public class TransferService {
       thSTGRepo.flush();
       th=ogpConverter.convertTransactionHistory(thSTG);
     }
+    BalanceVO balanceVO=new BalanceVO();
+    balanceVO.setAccountNo(th.getDebitAcc());
+    if(!isSuficientBalance(balanceVO,th.getTotalAmount())){
+      th.setStatus("Error");
+      th.setRemark("Insuficient Balance");
+      thRepo.save(th);
+      throw new NostraException(vo.getTid()+" Insuficient Balance",StatusCode.ERROR);
+    }
     InitDB x  = InitDB.getInstance();
     String method=x.get("Code.PaymentMethod."+th.getPaymentMethod());
     logger.info("Payment Method = "+method);
 
-    String feeAccount="0115476151";
-
-    try{
-      logger.info(vo.getTid()+" Starting transfer to fee account: "+feeAccount+" with amount: "+th.getAdminFee());
-      InHousePaymentVO ihpVO=new InHousePaymentVO();
-      ihpVO.setAmount(th.getAdminFee());
-      ihpVO.setDebitAccountNo(th.getDebitAcc());
-      ihpVO.setCreditAccountNo(feeAccount);
-      ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod("0");
-      ihpVO.setRemark("Transfer Admin Fee to Fee Account");
-      String resIHP=inHousePayment(ihpVO);
-      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
-    }catch (Exception e){
-      th.setStatus("Error");
-      th.setRemark("Exception during transfer to Fee account");
-      thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
-    }
+    String escrow=x.get("Account.Escrow");
 
     if(method.equals("1") || method.equals("2")){
-      try{
-        logger.info(vo.getTid()+" Starting transfer to destiantion account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
-        InHousePaymentVO ihpVO=new InHousePaymentVO();
-        ihpVO.setAmount(th.getAmount());
-        ihpVO.setDebitAccountNo(th.getDebitAcc());
-        ihpVO.setCreditAccountNo(th.getCreditAcc());
-        ihpVO.setChargingModelId(th.getChargingModelId());
-        ihpVO.setPaymentMethod(method);
-        ihpVO.setDestinationBankCode(th.getDestinationBankCode());
-        ihpVO.setRemark("Transfer to destination Account");
-        String resIHP=inHousePayment(ihpVO);
-        logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHP);
-      }catch (Exception e){
+
+      logger.info(vo.getTid()+" Starting transfer to destiantion account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
+      InHousePaymentVO ihpVODest=new InHousePaymentVO();
+      ihpVODest.setAmount(th.getAmount());
+      ihpVODest.setDebitAccountNo(th.getDebitAcc());
+      ihpVODest.setCreditAccountNo(th.getCreditAcc());
+      ihpVODest.setChargingModelId(th.getChargingModelId());
+      ihpVODest.setPaymentMethod(method);
+      ihpVODest.setDestinationBankCode(th.getDestinationBankCode());
+      ihpVODest.setRemark("Transfer to destination Account");
+      OgpInHousePaymentRespVO resIHPDest=inHousePayment(ihpVODest);
+      logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
+      if(!resIHPDest.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
         th.setStatus("Error");
-        th.setRemark("Exception during transfer to Destination account");
+        th.setRemark("Exception during transfer to Destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
         thRepo.save(th);
         throw new NostraException(vo.getTid()+" Exception during transfer to Destination account",StatusCode.ERROR);
       }
     }else if(method.equals("0")){
-      try{
-        logger.info(vo.getTid()+" Starting transfer to destiantion account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
-        InterBankPaymentVO ibpVO=new InterBankPaymentVO();
-        ibpVO.setAccountNo(th.getDebitAcc());
-        ibpVO.setAmount(th.getAmount());
-        ibpVO.setDestinationAccountName(th.getCreditName());
-        ibpVO.setDestinationAccountNo(th.getCreditAcc());
-        ibpVO.setDestinationBankCode(th.getDestinationBankCode());
-        ibpVO.setDestinationBankName(th.getSku());
-        ibpVO.setRetrievalReffNo(th.getTid());
-        OgpInterBankPaymentRespVO ibpResVO=ogpService.interBankPayment(ibpVO);
-        logger.info(vo.getTid()+" Finished transfer to destination account with response: "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage());
-      }catch (Exception e){
+      logger.info(vo.getTid()+" Starting transfer to destiantion account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
+      InterBankPaymentVO ibpVO=new InterBankPaymentVO();
+      ibpVO.setAccountNo(th.getDebitAcc());
+      ibpVO.setAmount(th.getAmount());
+      ibpVO.setDestinationAccountName(th.getCreditName());
+      ibpVO.setDestinationAccountNo(th.getCreditAcc());
+      ibpVO.setDestinationBankCode(th.getDestinationBankCode());
+      ibpVO.setDestinationBankName(th.getSku());
+      ibpVO.setRetrievalReffNo(th.getTid());
+      OgpInterBankPaymentRespVO ibpResVO=ogpService.interBankPayment(ibpVO);
+      logger.info(vo.getTid()+" Finished transfer to destination account with response: "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage());
+      if(!ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseCode().equals("0001")){
         th.setStatus("Error");
-        th.setRemark("Exception during transfer to Destination account");
+        th.setRemark("Exception during transfer to Destination account. "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage());
         thRepo.save(th);
         throw new NostraException(vo.getTid()+" Exception during transfer to Destination account",StatusCode.ERROR);
       }
+    }
+
+    logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
+    InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
+    ihpVOEscrow.setAmount(th.getAdminFee());
+    ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
+    ihpVOEscrow.setCreditAccountNo(escrow);
+    ihpVOEscrow.setChargingModelId(th.getChargingModelId());
+    ihpVOEscrow.setPaymentMethod(method);
+    ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
+    OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
+    logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+    if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
+      th.setStatus("Error");
+      th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+      thRepo.save(th);
+      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
     }
 
     th.setStatus("Success");
@@ -721,43 +760,33 @@ public class TransferService {
       thSTGRepo.flush();
       th=ogpConverter.convertTransactionHistory(thSTG);
     }
+    BalanceVO balanceVO=new BalanceVO();
+    balanceVO.setAccountNo(th.getDebitAcc());
+    if(!isSuficientBalance(balanceVO,th.getTotalAmount())){
+      th.setStatus("Error");
+      th.setRemark("Insuficient Balance");
+      thRepo.save(th);
+      throw new NostraException(vo.getTid()+" Insuficient Balance",StatusCode.ERROR);
+    }
     InitDB x  = InitDB.getInstance();
     String method=x.get("Code.PaymentMethod."+th.getPaymentMethod());
 
-    String feeAccount="0115476151";
-    String custodian="0115476151";
-    try{
-      logger.info(vo.getTid()+" Starting transfer to fee account: "+feeAccount+" with amount: "+th.getAdminFee());
-      InHousePaymentVO ihpVO=new InHousePaymentVO();
-      ihpVO.setAmount(th.getAdminFee());
-      ihpVO.setDebitAccountNo(th.getDebitAcc());
-      ihpVO.setCreditAccountNo(feeAccount);
-      ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(method);
-      ihpVO.setRemark("Transfer Admin Fee to Fee Account");
-      String resIHP=inHousePayment(ihpVO);
-      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHP);
-    }catch (Exception e){
-      th.setStatus("Error");
-      th.setRemark("Exception during transfer to Fee account");
-      thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
-    }
+    String escrow=x.get("Account.Escrow");
+    String custodian=x.get("Account.Custodian");
 
-    try{
-      logger.info(vo.getTid()+" Starting transfer to custodian account: "+custodian+" with amount: "+th.getAmount());
-      InHousePaymentVO ihpVO=new InHousePaymentVO();
-      ihpVO.setAmount(th.getAmount());
-      ihpVO.setDebitAccountNo(th.getDebitAcc());
-      ihpVO.setCreditAccountNo(th.getCreditAcc());
-      ihpVO.setChargingModelId(th.getChargingModelId());
-      ihpVO.setPaymentMethod(method);
-      ihpVO.setRemark("Transfer from Source account to custodian account");
-      String resIHP=inHousePayment(ihpVO);
-      logger.info(vo.getTid()+" Finished transfer to custodian account with response: "+resIHP);
-    }catch (Exception e){
+    logger.info(vo.getTid()+" Starting transfer to custodian account: "+custodian+" with amount: "+th.getAmount());
+    InHousePaymentVO ihpVOCustodian=new InHousePaymentVO();
+    ihpVOCustodian.setAmount(th.getAmount());
+    ihpVOCustodian.setDebitAccountNo(th.getDebitAcc());
+    ihpVOCustodian.setCreditAccountNo(custodian);
+    ihpVOCustodian.setChargingModelId(th.getChargingModelId());
+    ihpVOCustodian.setPaymentMethod(method);
+    ihpVOCustodian.setRemark("Transfer from Source account to custodian account");
+    OgpInHousePaymentRespVO resIHPCustodian=inHousePayment(ihpVOCustodian);
+    logger.info(vo.getTid()+" Finished transfer to custodian account with response: "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage());
+    if(!resIHPCustodian.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
       th.setStatus("Error");
-      th.setRemark("Exception during transfer to destination account");
+      th.setRemark("Exception during transfer to destination account. "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage());
       thRepo.save(th);
       throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
     }
@@ -794,6 +823,23 @@ public class TransferService {
     }
     logger.info(vo.getTid()+" Finished doing Cash In");
 
+    logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
+    InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
+    ihpVOEscrow.setAmount(th.getAdminFee());
+    ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
+    ihpVOEscrow.setCreditAccountNo(escrow);
+    ihpVOEscrow.setChargingModelId(th.getChargingModelId());
+    ihpVOEscrow.setPaymentMethod(method);
+    ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
+    OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
+    logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+    if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
+      th.setStatus("Error");
+      th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+      thRepo.save(th);
+      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+    }
+
     th.setStatus("Success");
     th.setRemark("Success");
     thRepo.save(th);
@@ -818,4 +864,15 @@ public class TransferService {
     return resVO;
   }
 
+  public boolean isSuficientBalance(BalanceVO vo, String amount){
+    OgpBalanceRespVO ogpBalanceRespVO= ogpService.balance(vo);
+
+    if(!ogpBalanceRespVO.getGetBalanceResponse().getParameters().getResponseCode().equals("0001")){
+      throw new NostraException("Failed when check balance", StatusCode.ERROR);
+    }
+    else if(Long.parseLong(ogpBalanceRespVO.getGetBalanceResponse().getParameters().getAccountBalance()) < Long.parseLong(amount)){
+      return false;
+    }
+    return true;
+  }
 }
