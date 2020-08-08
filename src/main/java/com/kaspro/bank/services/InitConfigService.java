@@ -42,7 +42,7 @@ public class InitConfigService {
         Optional<KasprobankConfig> saved = kasproBankConfigRepository.findById(kasprobankConfig.getId());
         KasprobankConfig config = saved.get();
         config.setParam_value(kasprobankConfig.getParam_value());
-        config.setParam_name(kasprobankConfig.getParam_name());
+        config.setParam_name(config.getParam_name());
         kasproBankConfigRepository.save(config);
         return config;
     }
