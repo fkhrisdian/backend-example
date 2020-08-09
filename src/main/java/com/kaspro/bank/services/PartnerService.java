@@ -194,19 +194,19 @@ public class PartnerService {
         savedVO.setListTier(vo.getListTier());
 
         logger.info("Starting creating Partner Member");
-        RegisterPartnerMemberVO registerPartnerMemberVO=setPartnerMember(savedVO);
+        RegisterPartnerMemberVO registerPartnerMemberVO=setPartnerMember(savedVO, vo.getDataPIC(), vo.getListLampiran());
         logger.info("Finished creating Partner Member : "+registerPartnerMemberVO.getPartnerMember().getId());
 
         return savedVO;
     }
 
     @Transactional
-    private RegisterPartnerMemberVO setPartnerMember(RegisterPartnerVO vo){
+    private RegisterPartnerMemberVO setPartnerMember(RegisterPartnerVO vo, DataPIC dataPIC, List<Lampiran> lampirans){
         RegisterPartnerMemberVO result=new RegisterPartnerMemberVO();
         InitDB initDB=InitDB.getInstance();
 
-        result.setDataPIC(vo.getDataPIC());
-        result.setListLampiran(vo.getListLampiran());
+        result.setDataPIC(dataPIC);
+        result.setListLampiran(lampirans);
 
         PartnerMember pm=new PartnerMember();
         pm.setPartnerAlias(vo.getPartner().getAlias());
@@ -457,4 +457,5 @@ public class PartnerService {
         }
         return "Partner Status Has Been Updated";
     }
+
 }

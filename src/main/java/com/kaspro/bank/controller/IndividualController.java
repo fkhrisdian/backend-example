@@ -1,7 +1,10 @@
 package com.kaspro.bank.controller;
 
+import com.kaspro.bank.persistance.domain.Individual;
 import com.kaspro.bank.services.IndividualService;
 import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
+import com.kaspro.bank.vo.Individual.IndividualReqVO;
+import com.kaspro.bank.vo.Individual.IndividualResVO;
 import com.kaspro.bank.vo.ResultVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -57,6 +60,15 @@ public class IndividualController {
             }
         };
         return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Add2")
+    @ResponseBody
+    public IndividualResVO add2(@RequestBody IndividualReqVO vo) {
+        return iService.add2(vo);
     }
 
     @RequestMapping(method = RequestMethod.POST,

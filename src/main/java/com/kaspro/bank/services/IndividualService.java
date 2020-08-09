@@ -8,13 +8,19 @@ import com.kaspro.bank.persistance.repository.TransferLimitRepository;
 import com.kaspro.bank.persistance.repository.UsageAccumulatorRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.util.InitDB;
+import com.kaspro.bank.vo.DataVO;
+import com.kaspro.bank.vo.GeneralResponse;
 import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
+import com.kaspro.bank.vo.Individual.IndividualReqVO;
+import com.kaspro.bank.vo.Individual.IndividualResVO;
 import com.kaspro.bank.vo.UpdateVAVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -45,8 +51,9 @@ public class IndividualService {
         if(existingIndividual!=null){
             throw new NostraException("MSISDN is used by other subscriber", StatusCode.DATA_INTEGRITY);
         }
-
-        Individual savedIndividual=iRepo.save(vo.getIndividual());
+        Individual individual=vo.getIndividual();
+        individual.setStatus("ACTIVE");
+        Individual savedIndividual=iRepo.save(individual);
         VirtualAccount va= new VirtualAccount();
 
         try{
@@ -280,5 +287,66 @@ public class IndividualService {
         vo.setTransferLimits(tls);
         vo.setVirtualAccount(va);
         return vo;
+    }
+
+    private IndividualRegistrationVO setIndividualRegistrationVO(IndividualReqVO vo){
+        InitDB initDB=InitDB.getInstance();
+        IndividualRegistrationVO result = new IndividualRegistrationVO();
+        Individual individual=new Individual();
+        individual.setTier(initDB.get("Individual.Tier.Default"));
+        individual.setZip_code(vo.getZip_code());
+        individual.setProvince(vo.getProvince());
+        individual.setPhoto(vo.getPhoto());
+        individual.setMsisdn(vo.getMsisdn());
+        individual.setId_type(vo.getId_type());
+        individual.setId_photo(vo.getId_photo());
+        individual.setId_no(vo.getId_no());
+        individual.setGender(vo.getGender());
+        individual.setEmail(vo.getEmail());
+        individual.setCountry_code(vo.getCountry_code());
+        individual.setCity(vo.getCity());
+        individual.setBirth_date(vo.getBirth_date());
+        individual.setBirth_place(vo.getBirth_place());
+        individual.setAddress(vo.getAddress());
+        individual.setAdditional_info(vo.getAdditional_info());
+        individual.setName(vo.getName());
+        result.setIndividual(individual);
+        return result;
+    }
+
+    public IndividualResVO add2(IndividualReqVO vo){
+
+        IndividualRegistrationVO iVO=this.setIndividualRegistrationVO(vo);
+        IndividualRegistrationVO savedIVO=new IndividualRegistrationVO();
+
+        try{
+            savedIVO=this.registerIndividual(iVO);
+        }catch (Exception e){
+            IndividualResVO result=new IndividualResVO();
+            GeneralResponse generalResponse=new GeneralResponse();
+            generalResponse.setResponse_code("9999");
+            generalResponse.setResponse_message("Failed");
+            generalResponse.setResponse_status(false);
+            generalResponse.setResponse_timestamp(new Timestamp(System.currentTimeMillis()).toString());
+
+            result.setData(null);
+            result.setGeneral_response(generalResponse);
+            return result;
+        }
+
+        IndividualResVO result=new IndividualResVO();
+        GeneralResponse generalResponse=new GeneralResponse();
+        generalResponse.setResponse_code("000");
+        generalResponse.setResponse_message("Success");
+        generalResponse.setResponse_status(true);
+        generalResponse.setResponse_timestamp(new Timestamp(System.currentTimeMillis()).toString());
+
+        DataVO data = new DataVO();
+        data.setTrx_id(savedIVO.getVirtualAccount().getTrxId());
+        data.setVirtual_account(savedIVO.getVirtualAccount().getVa());
+
+        result.setData(data);
+        result.setGeneral_response(generalResponse);
+        return result;
     }
 }

@@ -16,19 +16,19 @@ import java.util.Properties;
 
 @Service
 public class EmailUtil {
-    @Autowired
-    private JavaMailSender javaMailSender;
-
-    void sendEmail(String to, String subject, String text) {
-
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo(to);
-        msg.setFrom("test_KasproBank@kaspro.id");
-        msg.setSubject(subject);
-        msg.setText(text);
-
-        javaMailSender.send(msg);
-
-    }
+//    @Autowired
+//    private JavaMailSender javaMailSender;
+//
+//    void sendEmail(String to, String subject, String text) {
+//
+//        SimpleMailMessage msg = new SimpleMailMessage();
+//        msg.setTo(to);
+////        msg.setFrom("test_KasproBank@kaspro.id");
+//        msg.setSubject(subject);
+//        msg.setText(text);
+//
+//        javaMailSender.send(msg);
+//
+//    }
     
 }

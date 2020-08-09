@@ -868,7 +868,7 @@ public class TransferService {
     OgpBalanceRespVO ogpBalanceRespVO= ogpService.balance(vo);
 
     if(!ogpBalanceRespVO.getGetBalanceResponse().getParameters().getResponseCode().equals("0001")){
-      throw new NostraException("Failed when check balance", StatusCode.ERROR);
+      return false;
     }
     else if(Long.parseLong(ogpBalanceRespVO.getGetBalanceResponse().getParameters().getAccountBalance()) < Long.parseLong(amount)){
       return false;
