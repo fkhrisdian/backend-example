@@ -271,6 +271,13 @@ public class IndividualService {
             taService.add(ta);
             savedIndividual.setTier(vo.getTier());
         }
+        if(!vo.getEmail().equals(savedIndividual.getEmail())){
+            ta.setField("Email");
+            ta.setValueBefore(savedIndividual.getEmail());
+            ta.setValueAfter(vo.getEmail());
+            taService.add(ta);
+            savedIndividual.setEmail(vo.getEmail());
+        }
         iRepo.save(savedIndividual);
         return individualVO;
     }

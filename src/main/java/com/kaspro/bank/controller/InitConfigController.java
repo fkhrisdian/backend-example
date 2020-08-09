@@ -51,6 +51,12 @@ public class InitConfigController {
         return result;
     }
 
+    @GetMapping(value = "/api/v1/KasprobankConfig", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<KasprobankConfig> findAllConfig(){
+
+        return initConfigService.findAll();
+    }
+
     @GetMapping(value = "/api/v1/KasprobankConfigGet",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResultVO> getDetail(@RequestParam (value="id", required = true) int id) {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
