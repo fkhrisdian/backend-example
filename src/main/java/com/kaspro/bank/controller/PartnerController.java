@@ -1,9 +1,8 @@
 package com.kaspro.bank.controller;
 
 import com.kaspro.bank.services.PartnerService;
-import com.kaspro.bank.vo.RegisterPartnerVO;
-import com.kaspro.bank.vo.ResultVO;
-import com.kaspro.bank.vo.UpdateStatusVO;
+import com.kaspro.bank.services.VirtualAccountService;
+import com.kaspro.bank.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +15,9 @@ public class PartnerController {
 
     @Autowired
     PartnerService partnerService;
+
+    @Autowired
+    VirtualAccountService virtualAccountService;
 
     @RequestMapping(method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE,
@@ -88,5 +90,14 @@ public class PartnerController {
             }
         };
         return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/notification")
+    @ResponseBody
+    public BNINotifResponseVO bniNotif(@RequestBody BNINotifVO vo) {
+        return virtualAccountService.bniNotif(vo);
     }
 }

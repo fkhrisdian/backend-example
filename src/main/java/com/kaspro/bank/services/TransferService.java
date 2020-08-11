@@ -236,7 +236,7 @@ public class TransferService {
         if(va!=null){
           iVo=iService.getIndividualDetail(va.getOwnerID());
           if(!iVo.getIndividual().getStatus().equals("ACTIVE")){
-            throw new NostraException("Source account is not active",StatusCode.ERROR);
+            throw new NostraException("Destination account is not active",StatusCode.ERROR);
           }
           th.setDebitName(iVo.getIndividual().getName());
         }
@@ -245,7 +245,7 @@ public class TransferService {
         if(va!=null){
           pmVO = pmService.findDetail(va.getOwnerID());
           if(!pmVO.getPartnerMember().getStatus().equals("ACTIVE")){
-            throw new NostraException("Source account is not active",StatusCode.ERROR);
+            throw new NostraException("Destination account is not active",StatusCode.ERROR);
           }
           th.setDebitName(pmVOSource.getPartnerMember().getName());
         }

@@ -11,6 +11,7 @@ import com.kaspro.bank.persistance.repository.TransactionHistoryRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.*;
+import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,6 +46,15 @@ public class VirtualAccountService {
 
     @Autowired
     TransactionHistoryRepository tRepo;
+
+    @Autowired
+    IndividualService iService;
+
+    @Autowired
+    PartnerMemberService pmService;
+
+    @Autowired
+    PartnerService pService;
 
     BniEncryption bniEncryption;
     String cid = "513"; // from BNI, testing purpose
@@ -365,12 +375,40 @@ public class VirtualAccountService {
         BNINotifPlainVO notif=g.fromJson(bniEncryption.parseData(vo.getData(),cid,key), BNINotifPlainVO.class);
 
         TransactionHistory th = new TransactionHistory();
+
+        if(notif.getVirtual_account()!=null){
+            VirtualAccount va=vaRepository.findByVA(notif.getVirtual_account());
+            if(va!=null){
+                if(va.getFlag().equals("I")){
+                    IndividualRegistrationVO iVO=iService.getIndividualDetail(va.getOwnerID());
+                    if(iVO!=null){
+                        th.setAccType("I");
+                        th.setMsisdn(iVO.getIndividual().getMsisdn());
+                    }else {
+                        throw new NostraException("Subscriber Not Found",StatusCode.DATA_NOT_FOUND);
+                    }
+                }else if(va.getFlag().equals("CPM")){
+                    RegisterPartnerMemberVO pmVO=pmService.findDetail(va.getOwnerID());
+                    if(pmVO!=null){
+                        th.setAccType("CPM");
+                        th.setPartnerName(pmVO.getPartnerMember().getPartner().getName());
+                        th.setPartnerId(pmVO.getPartnerMember().getPartner().getId().toString());
+                    }else{
+                        throw new NostraException("Partner Member Not Found", StatusCode.DATA_NOT_FOUND);
+                    }
+                }
+            }else {
+                throw new NostraException("Virtual Account Not Found", StatusCode.DATA_NOT_FOUND);
+            }
+        }
+
         th.setTid(notif.getTrx_id());
         th.setCreditAcc(notif.getVirtual_account());
         th.setCreditName(notif.getCustomer_name());
         th.setAmount(notif.getTrx_amount());
         th.setTotalAmount(notif.getCumulative_payment_amount());
         th.setStatus("Success");
+        th.setSku("BNINOTIFICATION");
         th.setRemark(notif.getDatetime_payment_iso8601());
 
         try {

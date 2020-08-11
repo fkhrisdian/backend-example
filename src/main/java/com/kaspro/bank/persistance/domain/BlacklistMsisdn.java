@@ -34,4 +34,8 @@ public class BlacklistMsisdn extends Base{
     @Column(name = "VA",nullable = false)
     private String va;
 
+    @ApiModelProperty(value = "Optional",required = false)
+    @Column(name = "STATUS",nullable = false)
+    private String status;
+
 }

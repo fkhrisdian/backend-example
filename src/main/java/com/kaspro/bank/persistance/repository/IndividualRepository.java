@@ -14,4 +14,8 @@ public interface IndividualRepository extends BaseRepository<Individual>{
     @Query(value="SELECT * FROM kasprobank.INDIVIDUAL where MSISDN=?1 and STATUS='ACTIVE'",
             nativeQuery = true)
     Individual findByMsisdn(String msisdn);
+
+    @Query(value="SELECT * FROM kasprobank.INDIVIDUAL where MSISDN=?1",
+            nativeQuery = true)
+    Individual findByMsisdn2(String msisdn);
 }

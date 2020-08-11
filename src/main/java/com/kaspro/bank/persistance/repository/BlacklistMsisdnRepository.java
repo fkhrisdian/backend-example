@@ -8,4 +8,8 @@ public interface BlacklistMsisdnRepository extends BaseRepository<BlacklistMsisd
     @Query(value="SELECT * FROM kasprobank.BLACKLIST_MSISDN where id=?1",
             nativeQuery = true)
     BlacklistMsisdn findByBMId(String id);
+
+    @Query(value="SELECT * FROM kasprobank.BLACKLIST_MSISDN where msisdn=?1",
+            nativeQuery = true)
+    BlacklistMsisdn findByMSISDN(String msisdn);
 }

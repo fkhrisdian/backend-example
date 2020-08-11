@@ -21,4 +21,5 @@ public class BlacklistMsisdnVO {
 
     @ApiModelProperty(value = "Mandatory",required = true)
     private String va;
+
 }

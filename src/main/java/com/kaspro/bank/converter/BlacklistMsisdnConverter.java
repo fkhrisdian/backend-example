@@ -7,13 +7,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class BlacklistMsisdnConverter {
 
-    public BlacklistMsisdn voToDomain(BlacklistMsisdnVO vo){
+    public BlacklistMsisdn voToDomain(BlacklistMsisdnVO vo, String status){
         BlacklistMsisdn result=new BlacklistMsisdn();
         result.setVa(vo.getVa());
         result.setEmail(vo.getEmail());
         result.setName(vo.getName());
         result.setReason(vo.getReason());
         result.setMsisdn(vo.getMsisdn());
+        result.setStatus(status);
         return result;
     }
 }
