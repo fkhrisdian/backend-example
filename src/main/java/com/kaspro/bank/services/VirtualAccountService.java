@@ -138,7 +138,7 @@ public class VirtualAccountService {
         CreateVAVO createVAVO = new CreateVAVO();
         createVAVO.setClient_id("513");
         createVAVO.setCustomer_email(pic.getEmail());
-        createVAVO.setCustomer_name(pic.getName());
+        createVAVO.setCustomer_name(pm.getName());
         createVAVO.setCustomer_phone(pic.getMsisdn());
         createVAVO.setDatetime_expired(endDate+"T00:00:00+07:00");
         createVAVO.setTrx_amount("0");

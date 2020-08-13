@@ -604,21 +604,23 @@ public class TransferService {
       throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
     }
 
-    logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
-    InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
-    ihpVOEscrow.setAmount(th.getAdminFee());
-    ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
-    ihpVOEscrow.setCreditAccountNo(escrow);
-    ihpVOEscrow.setChargingModelId(th.getChargingModelId());
-    ihpVOEscrow.setPaymentMethod(method);
-    ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
-    OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
-    logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
-    if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
-      th.setStatus("Error");
-      th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
-      thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+    if(!th.getAdminFee().equals("0")){
+      logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
+      InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
+      ihpVOEscrow.setAmount(th.getAdminFee());
+      ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
+      ihpVOEscrow.setCreditAccountNo(escrow);
+      ihpVOEscrow.setChargingModelId(th.getChargingModelId());
+      ihpVOEscrow.setPaymentMethod(method);
+      ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
+      OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
+      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+      if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
+        th.setStatus("Error");
+        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+        thRepo.save(th);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+      }
     }
 
     th.setStatus("Success");
@@ -708,21 +710,23 @@ public class TransferService {
       }
     }
 
-    logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
-    InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
-    ihpVOEscrow.setAmount(th.getAdminFee());
-    ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
-    ihpVOEscrow.setCreditAccountNo(escrow);
-    ihpVOEscrow.setChargingModelId(th.getChargingModelId());
-    ihpVOEscrow.setPaymentMethod(method);
-    ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
-    OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
-    logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
-    if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
-      th.setStatus("Error");
-      th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
-      thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+    if(!th.getAdminFee().equals("0")){
+      logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
+      InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
+      ihpVOEscrow.setAmount(th.getAdminFee());
+      ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
+      ihpVOEscrow.setCreditAccountNo(escrow);
+      ihpVOEscrow.setChargingModelId(th.getChargingModelId());
+      ihpVOEscrow.setPaymentMethod(method);
+      ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
+      OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
+      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+      if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
+        th.setStatus("Error");
+        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+        thRepo.save(th);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+      }
     }
 
     th.setStatus("Success");
@@ -810,6 +814,7 @@ public class TransferService {
     try {
       resCashIn=httpProcessingService.kasproCashIn(body);
       JSONObject resCashInJSON=new JSONObject(resCashIn);
+      logger.info(vo.getTid()+" Cash In Response : "+resCashInJSON.toString());
       if(resCashInJSON.getInt("code")!=0){
         th.setStatus("Error while doin Cash In");
         th.setRemark(resCashInJSON.getString("message"));
@@ -823,21 +828,23 @@ public class TransferService {
     }
     logger.info(vo.getTid()+" Finished doing Cash In");
 
-    logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
-    InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
-    ihpVOEscrow.setAmount(th.getAdminFee());
-    ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
-    ihpVOEscrow.setCreditAccountNo(escrow);
-    ihpVOEscrow.setChargingModelId(th.getChargingModelId());
-    ihpVOEscrow.setPaymentMethod(method);
-    ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
-    OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
-    logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
-    if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
-      th.setStatus("Error");
-      th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
-      thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+    if(!th.getAdminFee().equals("0")){
+      logger.info(vo.getTid()+" Starting transfer to fee account: "+escrow+" with amount: "+th.getAdminFee());
+      InHousePaymentVO ihpVOEscrow=new InHousePaymentVO();
+      ihpVOEscrow.setAmount(th.getAdminFee());
+      ihpVOEscrow.setDebitAccountNo(th.getDebitAcc());
+      ihpVOEscrow.setCreditAccountNo(escrow);
+      ihpVOEscrow.setChargingModelId(th.getChargingModelId());
+      ihpVOEscrow.setPaymentMethod(method);
+      ihpVOEscrow.setRemark("Transfer Admin Fee to Fee Account");
+      OgpInHousePaymentRespVO resIHPEscrow=inHousePayment(ihpVOEscrow);
+      logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+      if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
+        th.setStatus("Error");
+        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+        thRepo.save(th);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+      }
     }
 
     th.setStatus("Success");

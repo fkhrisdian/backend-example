@@ -83,7 +83,7 @@ public class UserService {
         user.setPassword(encodedString);
         User savedUser=repository.save(user);
 
-//        emailUtil.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
+        emailUtil.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
 
         UserResVO result=new UserResVO();
         result.setId(savedUser.getId().toString());
