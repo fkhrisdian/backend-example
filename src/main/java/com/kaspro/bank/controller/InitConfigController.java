@@ -33,7 +33,7 @@ public class InitConfigController {
         return initConfigService.findAll();
     }
 
-    @GetMapping(value = "/KasprobankConfigReload", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/v1/KasprobankConfigReload", produces = MediaType.APPLICATION_JSON_VALUE)
     public String reLoad(){
         List<KasprobankConfig> listX = initConfigService.findAll();
         InitDB x  = InitDB.getInstance();
