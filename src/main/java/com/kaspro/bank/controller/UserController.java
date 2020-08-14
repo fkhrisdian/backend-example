@@ -66,6 +66,51 @@ public class UserController {
     @RequestMapping(method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/RequestResetPassword")
+    @ResponseBody
+    public ResponseEntity<ResultVO> requestResetPassword(@RequestBody final RequestResetPasswordVO vo) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return service.resetRequest(vo);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/ResetPassword")
+    @ResponseBody
+    public ResponseEntity<ResultVO> resetPassword(@RequestBody final ResetPasswordVO vo) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return service.resetPassword(vo);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/ResetPassword/{token}")
+    @ResponseBody
+    public ResponseEntity<ResultVO> findResetPassword(@PathVariable("token") String token) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return service.findResetRequest(token);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Validate")
     @ResponseBody
     public ResponseEntity<ResultVO> validate(@RequestBody final LoginReqVO vo) {

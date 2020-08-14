@@ -16,4 +16,8 @@ public interface UserRepository extends BaseRepository<User> {
     @Query(value="SELECT * FROM kasprobank.USER where email=?1",
             nativeQuery = true)
     User findByEmail(String email);
+
+    @Query(value="SELECT * FROM kasprobank.USER where RESET_TOKEN=?1",
+            nativeQuery = true)
+    User findByToken(String token);
 }

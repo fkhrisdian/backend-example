@@ -68,6 +68,9 @@ public class PartnerService {
     @Autowired
     PartnerMemberService pmService;
 
+    @Autowired
+    EmailUtil emailUtil;
+
 
     Logger logger = LoggerFactory.getLogger(PartnerService.class);
 
@@ -133,8 +136,8 @@ public class PartnerService {
             pmtRepo.saveAndFlush(pmt);
         }
 
-        List<Partner> partners = partnerRepository.findAlias(vo.getPartner().getAlias());
-        if(partners.size()>0){
+        Partner existingPartner = partnerRepository.findAlias(vo.getPartner().getAlias());
+        if(existingPartner!=null){
             throw new NostraException("Alias already exist", StatusCode.DATA_INTEGRITY);
         }
 
@@ -196,6 +199,16 @@ public class PartnerService {
         logger.info("Starting creating Partner Member");
         RegisterPartnerMemberVO registerPartnerMemberVO=setPartnerMember(savedVO, vo.getDataPIC(), vo.getListLampiran());
         logger.info("Finished creating Partner Member : "+registerPartnerMemberVO.getPartnerMember().getId());
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("partnerName",savedPartner.getName());
+        model.put("partnerID",savedPartner.getId().toString());
+        model.put("partnerName",savedPartner.getName());
+        model.put("address",savedPartner.getAddress());
+        model.put("picName",savedPIC.getName());
+        model.put("picMSISDN",savedPIC.getMsisdn());
+        model.put("email",savedPIC.getEmail());
+        emailUtil.sendEmail2(dataPIC.getEmail(),"KasproBank Partner Registration", "PartnerRegistration.ftl",model);
 
         return savedVO;
     }

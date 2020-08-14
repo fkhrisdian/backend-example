@@ -20,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -67,6 +69,9 @@ public class PartnerMemberService {
     @Autowired
     UsageAccumulatorRepository uaRepo;
 
+    @Autowired
+    EmailUtil emailUtil;
+
 
     Logger logger = LoggerFactory.getLogger(PartnerMemberService.class);
 
@@ -102,18 +107,18 @@ public class PartnerMemberService {
     public RegisterPartnerMemberVO add(RegisterPartnerMemberVO vo){
 
 
-        List<Partner> partners=partnerRepository.findAlias(vo.getPartnerMember().getPartnerAlias());
-        if(partners.size()==0){
+        Partner partner=partnerRepository.findAlias(vo.getPartnerMember().getPartnerAlias());
+        if(partner==null){
             throw new NostraException("Partner Alias Does Not Exist",StatusCode.DATA_NOT_FOUND);
         }
 
-        PartnerMemberToken pmt=pmtRepo.findMinId(partners.get(0).getPartnerCode());
+        PartnerMemberToken pmt=pmtRepo.findMinId(partner.getPartnerCode());
         Long counter=pmt.getPartnerMemberCode();
         try{
             pmtRepo.delete(pmt);
         }finally {
             pmtRepo.flush();
-            PartnerMemberToken pmtCounter=pmtRepo.findMinId(partners.get(0).getPartnerCode());
+            PartnerMemberToken pmtCounter=pmtRepo.findMinId(partner.getPartnerCode());
             if(pmtCounter==null){
                 for(Long i=counter+1;i<counter+10;i++){
                     PartnerMemberToken pmtTemp=new PartnerMemberToken();
@@ -127,7 +132,7 @@ public class PartnerMemberService {
         logger.info("Starting insert Partner Member");
         PartnerMember partnerMember =vo.getPartnerMember();
         logger.info("Inserting partner: "+partnerMember.getName());
-        partnerMember.setPartner(partners.get(0));
+        partnerMember.setPartner(partner);
         partnerMember.setPartnerMemberCode(pmt.getPartnerMemberCode().toString());
         PartnerMember savedPartnerMember=pmRepository.save(partnerMember);
         logger.info("Finished insert Partner");
@@ -187,6 +192,18 @@ public class PartnerMemberService {
         savedVO.setListLampiran(savedLampirans);
         savedVO.setDataPIC(savedPIC);
         savedVO.setListTransferInfoMember(savedTIS);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("partnerMemberName",savedPartnerMember.getName());
+        model.put("partnerName",partner.getName());
+        model.put("partnerMemberID",savedPartnerMember.getId().toString());
+        model.put("va",savedVA.getVa());
+        model.put("address",savedPartnerMember.getAddress());
+        model.put("picName",savedPIC.getName());
+        model.put("picMSISDN",savedPIC.getMsisdn());
+        model.put("email",savedPIC.getEmail());
+        emailUtil.sendEmail2(dataPIC.getEmail(),"KasproBank Partner Member Registration", "PartnerMemberRegistration.ftl",model);
+
 
         return savedVO;
     }

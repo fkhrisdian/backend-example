@@ -6,6 +6,7 @@ import com.kaspro.bank.persistance.domain.Role;
 import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.persistance.repository.RoleRepository;
 import com.kaspro.bank.persistance.repository.UserRepository;
+import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.sql.Timestamp;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -60,6 +60,8 @@ public class UserService {
 //    }
 
     public UserResVO add(UserReqVO vo){
+        InitDB x=InitDB.getInstance();
+        String link = x.get("URL.KasproBank");
         User existing=repository.findByEmail(vo.getEmail());
         if(existing!=null){
             throw new NostraException("Email already used. Please user another Email",StatusCode.ERROR);
@@ -83,8 +85,13 @@ public class UserService {
         user.setPassword(encodedString);
         User savedUser=repository.save(user);
 
-        emailUtil.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
-
+        Map<String, Object> model = new HashMap<>();
+        model.put("name",vo.getUsername());
+        model.put("username",vo.getEmail());
+        model.put("password",password);
+        model.put("link",link);
+//        emailUtil.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
+        emailUtil.sendEmail2(savedUser.getEmail(),"KasproBank User Registration","UserRegistration.ftl", model);
         UserResVO result=new UserResVO();
         result.setId(savedUser.getId().toString());
         result.setUsername(savedUser.getUsername());
@@ -195,6 +202,79 @@ public class UserService {
             }
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    public boolean resetRequest(RequestResetPasswordVO vo){
+        InitDB x=InitDB.getInstance();
+        String link = x.get("URL.ResetPassword");
+        int diff=Integer.parseInt(x.get("Timeout.ResetPassword"));
+        User savedUser = repository.findByEmail(vo.getEmail());
+        if(savedUser==null){
+            return false;
+        }else{
+            PasswordGenerator passwordGenerator = new PasswordGenerator.PasswordGeneratorBuilder()
+                    .useDigits(true)
+                    .useLower(true)
+                    .useUpper(true)
+                    .build();
+
+            String token = passwordGenerator.generate(32);
+            savedUser.setIsReseted("N");
+            savedUser.setResetToken(token);
+            savedUser.setResetReqTime(new Timestamp(System.currentTimeMillis()));
+            repository.save(savedUser);
+            Map<String, Object> model = new HashMap<>();
+            model.put("name",savedUser.getUsername());
+            model.put("diff",diff);
+            model.put("link",link+""+token);
+//        emailUtil.sendEmail(savedUser.getEmail(),"KasproBank Generated Password","Your generated password is "+password);
+            emailUtil.sendEmail2(savedUser.getEmail(),"KasproBank User Reset Password","ResetPassword.ftl", model);
+            return true;
+        }
+    }
+
+    public User findResetRequest (String token){
+        Timestamp currTime = new Timestamp(System.currentTimeMillis());
+        InitDB x = InitDB.getInstance();
+        int diff=Integer.parseInt(x.get("Timeout.ResetPassword"));
+        User savedUser = repository.findByToken(token);
+        long milliseconds1 = savedUser.getResetReqTime().getTime();
+        long milliseconds2 = currTime.getTime();
+        long diffMinute=(milliseconds2-milliseconds1)/60000;
+
+        if(savedUser==null){
+            throw new NostraException("Request not found",StatusCode.DATA_NOT_FOUND);
+        }else if(diffMinute>diff){
+            throw new NostraException("Request already expired", StatusCode.ERROR);
+        }else if(!savedUser.getIsReseted().equals("N")){
+            throw new NostraException("Request already done", StatusCode.ERROR);
+        }else {
+            return savedUser;
+        }
+    }
+
+    public User resetPassword(ResetPasswordVO vo){
+        Timestamp currTime = new Timestamp(System.currentTimeMillis());
+        InitDB x = InitDB.getInstance();
+        int diff=Integer.parseInt(x.get("Timeout.ResetPassword"));
+        User savedUser = repository.findByToken(vo.getToken());
+        long milliseconds1 = savedUser.getResetReqTime().getTime();
+        long milliseconds2 = currTime.getTime();
+        long diffMinute=(milliseconds2-milliseconds1)/60000;
+
+        if(savedUser==null){
+            throw new NostraException("Request not found",StatusCode.DATA_NOT_FOUND);
+        }else if(diffMinute>diff){
+            throw new NostraException("Request already expired", StatusCode.ERROR);
+        }else if(!savedUser.getIsReseted().equals("N")){
+            throw new NostraException("Request already done", StatusCode.ERROR);
+        }else{
+            String encodedString = Base64.getEncoder().encodeToString(vo.getNewPassword().getBytes());
+            savedUser.setPassword(encodedString);
+            savedUser.setIsReseted("Y");
+            savedUser=repository.save(savedUser);
+            return savedUser;
         }
     }
 

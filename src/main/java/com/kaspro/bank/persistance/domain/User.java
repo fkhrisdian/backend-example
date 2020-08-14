@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "USER")
@@ -24,4 +25,13 @@ public class User extends Base{
 
     @Column(name = "ROLES",nullable = false)
     private String roles;
+
+    @Column(name = "RESET_TOKEN",nullable = true)
+    private String resetToken;
+
+    @Column(name = "RESET_REQ_TIME",nullable = true)
+    private Timestamp resetReqTime;
+
+    @Column(name = "IS_RESET",nullable = true)
+    private String isReseted;
 }

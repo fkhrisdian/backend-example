@@ -22,7 +22,7 @@ public class IncreaseLimitController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Add")
     @ResponseBody
-    public ResponseEntity<ResultVO> add(@RequestBody final IncreaseLimit vo) {
+    public ResponseEntity<ResultVO> add(@RequestBody final IncreaseLimitVO vo) {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
