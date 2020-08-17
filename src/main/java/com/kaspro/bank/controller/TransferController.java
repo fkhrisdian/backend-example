@@ -156,7 +156,7 @@ public class TransferController {
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
-        return transferService.transferOtherBank(vo);
+        return transferService.transferInterBank(vo);
       }
     };
     return handler.getResult();
@@ -171,7 +171,7 @@ public class TransferController {
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
-        return transferService.transferBNI(vo);
+        return transferService.transferInHouse(vo);
       }
     };
     return handler.getResult();
@@ -221,6 +221,111 @@ public class TransferController {
       @Override
       public Object processRequest() {
         return transferService.findFilteredTransaction(accType,partnerId,senderId,msisdn,tid,startDate,endDate);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/K2KB/InquiryInHouse")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> k2kbInquiryInhouse(@RequestBody final K2KBInquiryInhouseReqVO vo) {
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.k2kbInquiryInhouse(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/K2KB/InquiryInterBank")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> k2kbInquiryInterBank(@RequestBody final K2KBInquiryInterBankReqVO vo) {
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.k2kbInquireInterBank(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/K2KB/PaymentInhouse")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> k2kbTransferInhouse(@RequestBody final K2KBPaymentInhouseReqVO vo) {
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.k2kbPaymentInhouse(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/K2KB/PaymentInterBank")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> k2kbTransferInterBank(@RequestBody final K2KBPaymentInterBankReqVO vo) {
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.k2kbPaymentInterBank(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/K2KB/GetBalance")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> k2kbGetBalance(@RequestBody final K2KBGetBalanceReqVO vo) {
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.getBalance(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/K2KB/GetPaymentStatus")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> k2kbGetPaymentStatus(@RequestBody final K2KBGetPaymentStatusReqVO vo) {
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.getPaymentStatus(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/Transfer/Wrapper")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> wrapperTransfer(@RequestBody final WrapperTransferReqVO vo) {
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.wrapperTransfer(vo);
       }
     };
     return handler.getResult();

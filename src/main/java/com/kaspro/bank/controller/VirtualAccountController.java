@@ -2,10 +2,8 @@ package com.kaspro.bank.controller;
 
 import com.kaspro.bank.persistance.domain.VirtualAccount;
 import com.kaspro.bank.services.VirtualAccountService;
-import com.kaspro.bank.vo.BNINotifPlainVO;
-import com.kaspro.bank.vo.BNINotifResponseVO;
-import com.kaspro.bank.vo.BNINotifVO;
-import com.kaspro.bank.vo.ResultVO;
+import com.kaspro.bank.vo.*;
+import com.kaspro.bank.vo.Individual.IndividualUpdateVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +16,21 @@ public class VirtualAccountController {
 
     @Autowired
     VirtualAccountService virtualAccountService;
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/InquiryBilling")
+    @ResponseBody
+    public ResponseEntity<K2KBResultVO> inquiryBilling(@RequestBody final K2KBInquiryVAVO vo) {
+        K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return virtualAccountService.InquiryVAInfo(vo);
+            }
+        };
+        return handler.getResult();
+    }
 
     @RequestMapping(method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE,

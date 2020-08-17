@@ -83,7 +83,7 @@ public class OGPService {
 
   public OgpInterBankInquiryRespVO interBankInquiry(InterBankInquiryVO vo) {
     OgpInterBankInquiryReqVO request = OGPConverter.convertInterBankInquiry(
-        vo, getCustomerReferenceNumber(new Date()), ogpClientId,
+        vo, getCustomerReferenceNumber(new Date(), vo.getAccountNo()), ogpClientId,
         encryptionService.encrypt(
             ogpClientId + vo.getDestinationBankCode() + vo.getDestinationAccountNo() + vo.getAccountNo()));
 
@@ -93,7 +93,7 @@ public class OGPService {
 
   public OgpInHousePaymentRespVO inHousePayment(InHousePaymentVO vo) {
     Date currentTime = new Date();
-    String referenceNumber = getCustomerReferenceNumber(currentTime);
+    String referenceNumber = getCustomerReferenceNumber(currentTime, vo.getDebitAccountNo());
     OgpInHousePaymentReqVO request = OGPConverter.convertInHousePayment(
         vo, getValueDate(currentTime), referenceNumber, ogpClientId,
         encryptionService.encrypt(
@@ -106,7 +106,7 @@ public class OGPService {
 
   public OgpInterBankPaymentRespVO interBankPayment(InterBankPaymentVO vo) {
     Date currentTime = new Date();
-    String referenceNumber = getCustomerReferenceNumber(currentTime);
+    String referenceNumber = getCustomerReferenceNumber(currentTime, vo.getAccountNo());
     OgpInterBankPaymentReqVO request = OGPConverter.convertInterBankPayment(
         vo, referenceNumber, ogpClientId,
         encryptionService.encrypt(
@@ -130,8 +130,8 @@ public class OGPService {
     return formatter.format(date);
   }
 
-  public String getCustomerReferenceNumber(Date date) {
+  public String getCustomerReferenceNumber(Date date, String account) {
     Random random = new Random();
-    return getValueDate(date).concat(String.valueOf(random.nextInt(900) + 100));
+    return getValueDate(date).concat(account);
   }
 }

@@ -5,6 +5,9 @@ import com.kaspro.bank.services.IndividualService;
 import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
 import com.kaspro.bank.vo.Individual.IndividualReqVO;
 import com.kaspro.bank.vo.Individual.IndividualResVO;
+import com.kaspro.bank.vo.Individual.IndividualUpdateVO;
+import com.kaspro.bank.vo.K2KBInquiryVAVO;
+import com.kaspro.bank.vo.K2KBResultVO;
 import com.kaspro.bank.vo.ResultVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -50,6 +53,21 @@ public class IndividualController {
     @RequestMapping(method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/GetDetail2")
+    @ResponseBody
+    public ResponseEntity<K2KBResultVO> findPartnerDetail(@RequestBody final K2KBInquiryVAVO vo) {
+        K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return iService.k2kbGetDetail(vo);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody final IndividualRegistrationVO vo) {
@@ -67,8 +85,29 @@ public class IndividualController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Add2")
     @ResponseBody
-    public IndividualResVO add2(@RequestBody IndividualReqVO vo) {
-        return iService.add2(vo);
+    public ResponseEntity<K2KBResultVO> add2(@RequestBody final IndividualReqVO vo) {
+        K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return iService.add2(vo);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Update2")
+    @ResponseBody
+    public ResponseEntity<K2KBResultVO> udpate2(@RequestBody final IndividualUpdateVO vo) {
+        K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return iService.k2kbUpdate(vo);
+            }
+        };
+        return handler.getResult();
     }
 
     @RequestMapping(method = RequestMethod.POST,

@@ -56,6 +56,9 @@ public class VirtualAccountService {
     @Autowired
     PartnerService pService;
 
+    @Autowired
+    RequestCardService rcService;
+
     BniEncryption bniEncryption;
     String cid = "513"; // from BNI, testing purpose
     String key = "ffcff955e7a53ebf76cda9cd16232ac4";
@@ -134,7 +137,7 @@ public class VirtualAccountService {
             throw new NostraException("Virtual Account already exist",StatusCode.DATA_INTEGRITY);
         }
         java.util.Date currentTime = new java.util.Date();
-        String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime);
+        String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime,pm.getId().toString());
         CreateVAVO createVAVO = new CreateVAVO();
         createVAVO.setClient_id("513");
         createVAVO.setCustomer_email(pic.getEmail());
@@ -231,6 +234,69 @@ public class VirtualAccountService {
     }
 
     @Transactional
+    public K2KBInquiryBillingResVO InquiryVAInfo(K2KBInquiryVAVO vo){
+        InitDB initDB = InitDB.getInstance();
+        K2KBInquiryBillingResVO result = new K2KBInquiryBillingResVO();
+
+        ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(vo.getMsisdn());
+        VirtualAccount va = new VirtualAccount();
+        if(msisdnSource.getIsMsisdn().equalsIgnoreCase("0")){
+            va=vaRepository.findIndividual(msisdnSource.getValue());
+        }else {
+            va=vaRepository.findCorporate(msisdnSource.getValue());
+        }
+
+        if(va==null){
+            throw new NostraException("Account not found", StatusCode.ERROR);
+        }
+
+        InquiryVAVO inquiryVAVO = new InquiryVAVO();
+        inquiryVAVO.setClient_id(initDB.get("VA.ClientID"));
+        inquiryVAVO.setTrx_id(va.getTrxId());
+        inquiryVAVO.setType("inquirybilling");
+
+        ObjectMapper obj = new ObjectMapper();
+        String inputString="";
+        try {
+            inputString=obj.writeValueAsString(inquiryVAVO);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        String data=bniEncryption.hashData(inputString, cid, key);
+        EncCreateVAVO reqPost=new EncCreateVAVO();
+        reqPost.setClient_id(cid);
+        reqPost.setData(data);
+
+        try {
+            inputString=obj.writeValueAsString(reqPost);
+            System.out.println(inputString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            String outputString=httpProcessingService.postUser("https://apibeta.bni-ecollection.com:8067/",inputString);
+            Gson g = new Gson();
+            CreateVAResponseVO resPost=g.fromJson(outputString,CreateVAResponseVO.class);
+            logger.info(resPost.toString());
+            if(resPost.getStatus().equals("000")){
+                data=resPost.getData();
+                result=g.fromJson(bniEncryption.parseData(data,cid,key),K2KBInquiryBillingResVO.class);
+                logger.info(result.toString());
+                return result;
+            }else {
+                throw new NostraException(resPost.getMessage(),StatusCode.ERROR);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @Transactional
     public VirtualAccount addIndividual(Individual individual){
 
 //        try {
@@ -292,7 +358,7 @@ public class VirtualAccountService {
         savedVA.setMsisdn(individual.getMsisdn());
 
         java.util.Date currentTime = new java.util.Date();
-        String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime);
+        String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime,individual.getId().toString());
         CreateVAVO createVAVO = new CreateVAVO();
         createVAVO.setClient_id("513");
         createVAVO.setCustomer_email(individual.getEmail());

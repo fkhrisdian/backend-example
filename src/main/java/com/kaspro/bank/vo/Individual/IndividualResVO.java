@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class IndividualResVO {
 
-    private DataVO data;
-    private GeneralResponse general_response;
+    private String virtual_account;
+    private String trx_id;
 
 }

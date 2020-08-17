@@ -3,10 +3,15 @@ package com.kaspro.bank.services;
 import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.Individual;
+import com.kaspro.bank.persistance.domain.PartnerMember;
 import com.kaspro.bank.persistance.domain.RequestCard;
+import com.kaspro.bank.persistance.domain.VirtualAccount;
 import com.kaspro.bank.persistance.repository.IndividualRepository;
+import com.kaspro.bank.persistance.repository.PartnerMemberRepository;
 import com.kaspro.bank.persistance.repository.RequestCardRepository;
+import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.vo.RequestCardReqVO;
+import com.kaspro.bank.vo.ValidateMSISDNVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,16 +28,40 @@ public class RequestCardService {
     @Autowired
     IndividualRepository iRepo;
 
+    @Autowired
+    VirtualAccountRepository vaRepo;
+
+    @Autowired
+    PartnerMemberRepository pmRepo;
+
     Logger logger = LoggerFactory.getLogger(RequestCard.class);
 
     @Transactional
     public RequestCard add(RequestCardReqVO vo){
-        String msisdn=this.validateMsisdn(vo.getMsisdn());
+        ValidateMSISDNVO msisdn=this.validateMsisdn(vo.getMsisdn());
         logger.info("Msisdn : "+msisdn);
-        Individual individual= iRepo.findByMsisdn(msisdn);
-        if(individual==null){
-            throw new NostraException("Active Individual Account Not Found",StatusCode.DATA_NOT_FOUND);
+
+        if(msisdn.getIsMsisdn().equals("0")){
+            Individual individual= iRepo.findByMsisdn(msisdn.getValue());
+            if(individual==null){
+                throw new NostraException("Active Individual Account Not Found",StatusCode.DATA_NOT_FOUND);
+            }
+        }else{
+            VirtualAccount va = vaRepo.findCorporate(msisdn.getValue());
+            if(va!=null){
+                PartnerMember pm=pmRepo.findPartnerMember(va.getOwnerID());
+                if(pm!=null){
+                    if(!pm.getStatus().equals("ACTIVE")){
+                        throw new NostraException("Active Partner Member Account Not Found", StatusCode.DATA_NOT_FOUND);
+                    }
+                }else {
+                    throw new NostraException("Active Partner Member Account Not Found", StatusCode.DATA_NOT_FOUND);
+                }
+            }else {
+                throw new NostraException("Active Partner Member Account Not Found", StatusCode.DATA_NOT_FOUND);
+            }
         }
+
         RequestCard requestCard = this.convertVO(vo);
         try{
             RequestCard savedRC=repository.save(requestCard);
@@ -68,16 +97,25 @@ public class RequestCardService {
         return result;
     }
 
-    public String validateMsisdn(String msisdn){
+    public ValidateMSISDNVO validateMsisdn(String msisdn){
+        ValidateMSISDNVO result=new ValidateMSISDNVO();
         if(msisdn.startsWith("+62")){
-            return msisdn.replace("+","");
+            result.setValue(msisdn.replace("+",""));
+            result.setIsMsisdn("0");
+            return result;
 
         }else if(msisdn.startsWith("08")){
-            return "62"+msisdn.substring(1);
+            result.setValue("62"+msisdn.substring(1));
+            result.setIsMsisdn("0");
+            return result;
         }else if(msisdn.startsWith("62")){
-            return msisdn;
+            result.setValue(msisdn);
+            result.setIsMsisdn("0");
+            return result;
         }else {
-            throw new NostraException("Invalid MSISDN value",StatusCode.ERROR);
+            result.setValue(msisdn);
+            result.setIsMsisdn("1");
+            return result;
         }
     }
 }

@@ -8,13 +8,14 @@ import com.kaspro.bank.persistance.repository.TransferLimitRepository;
 import com.kaspro.bank.persistance.repository.UsageAccumulatorRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.util.InitDB;
-import com.kaspro.bank.vo.DataVO;
-import com.kaspro.bank.vo.GeneralResponse;
+import com.kaspro.bank.vo.*;
 import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
 import com.kaspro.bank.vo.Individual.IndividualReqVO;
 import com.kaspro.bank.vo.Individual.IndividualResVO;
-import com.kaspro.bank.vo.UpdateVAVO;
+import com.kaspro.bank.vo.Individual.IndividualUpdateVO;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +45,11 @@ public class IndividualService {
 
     @Autowired
     UsageAccumulatorRepository uaRepo;
+
+    @Autowired
+    RequestCardService rcService;
+
+    Logger logger = LoggerFactory.getLogger(IndividualService.class);
 
     @Transactional
     public IndividualRegistrationVO registerIndividual(IndividualRegistrationVO vo){
@@ -91,7 +97,8 @@ public class IndividualService {
     public IndividualRegistrationVO update(IndividualRegistrationVO individualVO){
         InitDB initDB=InitDB.getInstance();
         Individual vo=individualVO.getIndividual();
-        Individual savedIndividual=iRepo.findIndividual(vo.getId());
+        Individual savedIndividual=iRepo.findIndividual(individualVO.getIndividual().getId());
+        logger.info("Old Individual value : "+savedIndividual.toString());
         if(savedIndividual==null){
             throw new NostraException("Subscriber not found",StatusCode.DATA_NOT_FOUND);
         }
@@ -231,8 +238,10 @@ public class IndividualService {
             savedIndividual.setTier(vo.getTier());
         }
 
+        IndividualRegistrationVO savedVO= new IndividualRegistrationVO();
         VirtualAccount savedVA=new VirtualAccount();
         VirtualAccount oldVA = vaRepository.findByPartnerID(savedIndividual.getId());
+        savedVO.setVirtualAccount(oldVA);
         if(oldVA != null && !oldVA.getMsisdn().equals(savedIndividual.getMsisdn())){
             savedVA=vaService.addIndividual(savedIndividual);
             oldVA.setStatus("INACTIVE");
@@ -242,17 +251,176 @@ public class IndividualService {
             vaService.update(oldVA);
             taService.add(ta);
             savedIndividual.setVa(savedVA.getVa());
+            savedVO.setVirtualAccount(savedVA);
         }
 
         iRepo.save(savedIndividual);
 
-        IndividualRegistrationVO savedVO= new IndividualRegistrationVO();
-        savedVO.setVirtualAccount(savedVA);
         savedVO.setIndividual(savedIndividual);
         savedVO.setTransferLimits(tlRepo.findByTier(savedIndividual.getTier()));
 
         return savedVO;
     }
+
+    public IndividualRegistrationVO update2(IndividualUpdateVO vo){
+        InitDB initDB=InitDB.getInstance();
+        Individual savedIndividual=iRepo.findByMsisdn(vo.getMsisdn());
+        if(savedIndividual==null){
+            throw new NostraException("Account not found", StatusCode.ERROR);
+        }
+        logger.info(savedIndividual.toString());
+        TrailAudit ta=new TrailAudit();
+        ta.setOwnerID(savedIndividual.getId().toString());
+        ta.setUser("System");
+        if(!vo.getAdditional_info().equals(savedIndividual.getAdditional_info())){
+            ta.setField("Additional Info");
+            ta.setValueBefore(savedIndividual.getAdditional_info());
+            ta.setValueAfter(vo.getAdditional_info());
+            taService.add(ta);
+            savedIndividual.setAdditional_info(vo.getAdditional_info());
+        }
+        if(!vo.getAddress().equals(savedIndividual.getAddress())){
+            ta.setField("Address");
+            ta.setValueBefore(savedIndividual.getAddress());
+            ta.setValueAfter(vo.getAddress());
+            taService.add(ta);
+            savedIndividual.setAddress(vo.getAddress());
+        }
+        if(!vo.getBirth_place().equals(savedIndividual.getBirth_place())){
+            ta.setField("Birth Place");
+            ta.setValueBefore(savedIndividual.getBirth_place());
+            ta.setValueAfter(vo.getBirth_place());
+            taService.add(ta);
+            savedIndividual.setBirth_place(vo.getBirth_place());
+        }
+        if(!vo.getBirth_date().equals(savedIndividual.getBirth_date())){
+            ta.setField("Birth Date");
+            ta.setValueBefore(savedIndividual.getBirth_date());
+            ta.setValueAfter(vo.getBirth_date());
+            taService.add(ta);
+            savedIndividual.setBirth_date(vo.getBirth_date());
+        }
+        if(!vo.getCity().equals(savedIndividual.getCity())){
+            ta.setField("City");
+            ta.setValueBefore(savedIndividual.getCity());
+            ta.setValueAfter(vo.getCity());
+            taService.add(ta);
+            savedIndividual.setCity(vo.getCity());
+        }
+        if(!vo.getCountry_code().equals(savedIndividual.getCountry_code())){
+            ta.setField("Country Code");
+            ta.setValueBefore(savedIndividual.getCountry_code());
+            ta.setValueAfter(vo.getCountry_code());
+            taService.add(ta);
+            savedIndividual.setCountry_code(vo.getCountry_code());
+        }
+        if(!vo.getEmail().equals(savedIndividual.getEmail())){
+            ta.setField("Email");
+            ta.setValueBefore(savedIndividual.getEmail());
+            ta.setValueAfter(vo.getEmail());
+            taService.add(ta);
+            savedIndividual.setEmail(vo.getEmail());
+
+            UpdateVAVO updateVAVO=new UpdateVAVO();
+            updateVAVO.setClient_id(initDB.get("VA.ClientID"));
+            updateVAVO.setCustomer_email(savedIndividual.getEmail());
+            updateVAVO.setCustomer_name(savedIndividual.getName());
+            updateVAVO.setCustomer_phone(savedIndividual.getMsisdn());
+            updateVAVO.setDatetime_expired(initDB.get("VA.EndDate")+"T00:00:00+07:00");
+            updateVAVO.setDescription("Change email to "+savedIndividual.getEmail());
+            updateVAVO.setTrx_amount("0");
+            updateVAVO.setTrx_id(vo.getTrx_id());
+            updateVAVO.setType("updateBilling");
+            vaService.updateVAInfo(updateVAVO);
+        }
+        if(!vo.getGender().equals(savedIndividual.getGender())){
+            ta.setField("Gender");
+            ta.setValueBefore(savedIndividual.getGender());
+            ta.setValueAfter(vo.getGender());
+            taService.add(ta);
+            savedIndividual.setGender(vo.getGender());
+        }
+        if(!vo.getId_no().equals(savedIndividual.getId_no())){
+            ta.setField("ID No");
+            ta.setValueBefore(savedIndividual.getId_no());
+            ta.setValueAfter(vo.getId_no());
+            taService.add(ta);
+            savedIndividual.setId_no(vo.getId_no());
+        }
+        if(!vo.getId_photo().equals(savedIndividual.getId_photo())){
+            ta.setField("ID Photo");
+            ta.setValueBefore(savedIndividual.getId_photo());
+            ta.setValueAfter(vo.getId_photo());
+            taService.add(ta);
+            savedIndividual.setId_photo(vo.getId_photo());
+        }
+        if(!vo.getId_type().equals(savedIndividual.getId_type())){
+            ta.setField("ID Type");
+            ta.setValueBefore(savedIndividual.getId_type());
+            ta.setValueAfter(vo.getId_type());
+            taService.add(ta);
+            savedIndividual.setId_type(vo.getId_type());
+        }
+        if(!vo.getMsisdn().equals(savedIndividual.getMsisdn())){
+            ta.setField("MSISDN");
+            ta.setValueBefore(savedIndividual.getMsisdn());
+            ta.setValueAfter(vo.getMsisdn());
+            taService.add(ta);
+            savedIndividual.setMsisdn(vo.getMsisdn());
+        }
+        if(!vo.getName().equals(savedIndividual.getName())){
+            ta.setField("Name");
+            ta.setValueBefore(savedIndividual.getName());
+            ta.setValueAfter(vo.getName());
+            taService.add(ta);
+            savedIndividual.setName(vo.getName());
+        }
+        if(!vo.getPhoto().equals(savedIndividual.getPhoto())){
+            ta.setField("Photo");
+            ta.setValueBefore(savedIndividual.getPhoto());
+            ta.setValueAfter(vo.getPhoto());
+            taService.add(ta);
+            savedIndividual.setPhoto(vo.getPhoto());
+        }
+        if(!vo.getProvince().equals(savedIndividual.getProvince())){
+            ta.setField("Province");
+            ta.setValueBefore(savedIndividual.getProvince());
+            ta.setValueAfter(vo.getProvince());
+            taService.add(ta);
+            savedIndividual.setProvince(vo.getProvince());
+        }
+        if(!vo.getZip_code().equals(savedIndividual.getZip_code())){
+            ta.setField("ZIP Code");
+            ta.setValueBefore(savedIndividual.getZip_code());
+            ta.setValueAfter(vo.getZip_code());
+            taService.add(ta);
+            savedIndividual.setZip_code(vo.getZip_code());
+        }
+
+        IndividualRegistrationVO savedVO= new IndividualRegistrationVO();
+        VirtualAccount savedVA=new VirtualAccount();
+        VirtualAccount oldVA = vaRepository.findByPartnerID(savedIndividual.getId());
+        savedVO.setVirtualAccount(oldVA);
+        if(oldVA != null && !oldVA.getMsisdn().equals(savedIndividual.getMsisdn())){
+            savedVA=vaService.addIndividual(savedIndividual);
+            oldVA.setStatus("INACTIVE");
+            ta.setField("Virtual Account");
+            ta.setValueBefore(oldVA.getVa());
+            ta.setValueAfter(savedVA.getVa());
+            vaService.update(oldVA);
+            taService.add(ta);
+            savedIndividual.setVa(savedVA.getVa());
+            savedVO.setVirtualAccount(savedVA);
+        }
+
+        iRepo.save(savedIndividual);
+
+        savedVO.setIndividual(savedIndividual);
+        savedVO.setTransferLimits(tlRepo.findByTier(savedIndividual.getTier()));
+
+        return savedVO;
+    }
+
 
     public IndividualRegistrationVO updateTier(IndividualRegistrationVO individualVO) {
         Individual vo = individualVO.getIndividual();
@@ -321,6 +489,30 @@ public class IndividualService {
         return result;
     }
 
+    private IndividualRegistrationVO convertUpdate(IndividualUpdateVO vo, IndividualRegistrationVO iVo){
+        Individual individual=iVo.getIndividual();
+
+        individual.setZip_code(vo.getZip_code());
+        individual.setProvince(vo.getProvince());
+        individual.setPhoto(vo.getPhoto());
+        individual.setMsisdn(vo.getMsisdn());
+        individual.setId_type(vo.getId_type());
+        individual.setId_photo(vo.getId_photo());
+        individual.setId_no(vo.getId_no());
+        individual.setGender(vo.getGender());
+        individual.setEmail(vo.getEmail());
+        individual.setCountry_code(vo.getCountry_code());
+        individual.setCity(vo.getCity());
+        individual.setBirth_date(vo.getBirth_date());
+        individual.setBirth_place(vo.getBirth_place());
+        individual.setAddress(vo.getAddress());
+        individual.setAdditional_info(vo.getAdditional_info());
+        individual.setName(vo.getName());
+
+        iVo.setIndividual(individual);
+        return iVo;
+    }
+
     public IndividualResVO add2(IndividualReqVO vo){
 
         IndividualRegistrationVO iVO=this.setIndividualRegistrationVO(vo);
@@ -329,31 +521,55 @@ public class IndividualService {
         try{
             savedIVO=this.registerIndividual(iVO);
         }catch (Exception e){
-            IndividualResVO result=new IndividualResVO();
-            GeneralResponse generalResponse=new GeneralResponse();
-            generalResponse.setResponse_code("9999");
-            generalResponse.setResponse_message("Failed");
-            generalResponse.setResponse_status(false);
-            generalResponse.setResponse_timestamp(new Timestamp(System.currentTimeMillis()).toString());
-
-            result.setData(null);
-            result.setGeneral_response(generalResponse);
-            return result;
+            throw new NostraException("Error during register Virtual account", StatusCode.ERROR);
         }
 
         IndividualResVO result=new IndividualResVO();
-        GeneralResponse generalResponse=new GeneralResponse();
-        generalResponse.setResponse_code("000");
-        generalResponse.setResponse_message("Success");
-        generalResponse.setResponse_status(true);
-        generalResponse.setResponse_timestamp(new Timestamp(System.currentTimeMillis()).toString());
 
-        DataVO data = new DataVO();
-        data.setTrx_id(savedIVO.getVirtualAccount().getTrxId());
-        data.setVirtual_account(savedIVO.getVirtualAccount().getVa());
-
-        result.setData(data);
-        result.setGeneral_response(generalResponse);
+        result.setTrx_id(savedIVO.getVirtualAccount().getTrxId());
+        result.setVirtual_account(savedIVO.getVirtualAccount().getVa());
         return result;
+    }
+
+    public IndividualResVO k2kbUpdate(IndividualUpdateVO vo){
+        IndividualRegistrationVO savedIVO=update2(vo);
+        logger.info(savedIVO.toString());
+
+        IndividualResVO result=new IndividualResVO();
+
+        result.setTrx_id(savedIVO.getVirtualAccount().getTrxId());
+        result.setVirtual_account(savedIVO.getVirtualAccount().getVa());
+        return result;
+    }
+
+    public IndividualReqVO k2kbGetDetail(K2KBInquiryVAVO vo){
+        IndividualReqVO result=new IndividualReqVO();
+        ValidateMSISDNVO msisdnSource=rcService.validateMsisdn(vo.getMsisdn());
+        if(msisdnSource.getIsMsisdn().equalsIgnoreCase("0")){
+            Individual individual=iRepo.findByMsisdn(msisdnSource.getValue());
+            if(individual==null){
+                throw new NostraException("Active Account Not Found", StatusCode.ERROR);
+            }else {
+                result.setMsisdn("+"+individual.getMsisdn());
+                result.setAdditional_info(individual.getAdditional_info());
+                result.setAddress(individual.getAddress());
+                result.setBirth_date(individual.getBirth_date());
+                result.setBirth_place(individual.getBirth_place());
+                result.setCity(individual.getCity());
+                result.setCountry_code(individual.getCountry_code());
+                result.setEmail(individual.getEmail());
+                result.setGender(individual.getGender());
+                result.setId_no(individual.getId_no());
+                result.setId_photo(individual.getId_photo());
+                result.setId_type(individual.getId_type());
+                result.setName(individual.getName());
+                result.setPhoto(individual.getPhoto());
+                result.setProvince(individual.getProvince());
+                result.setZip_code(individual.getZip_code());
+                return result;
+            }
+        }else {
+            throw new NostraException("Invalid MSISDN Format", StatusCode.ERROR);
+        }
     }
 }
