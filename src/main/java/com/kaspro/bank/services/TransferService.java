@@ -1088,4 +1088,22 @@ public class TransferService {
     return result;
   }
 
+  public String cancelTID(String username, String tid){
+    String result ="";
+
+    TransactionHistoryStaging thStg = thSTGRepo.findByTID2(tid);
+    if(thStg==null){
+      throw new NostraException("TID Not Found", StatusCode.DATA_NOT_FOUND);
+    }else {
+      thSTGRepo.delete(thStg);
+      thSTGRepo.flush();
+      TransactionHistory th=ogpConverter.convertTransactionHistory(thStg);
+      th.setStatus("Cancelled");
+      th.setRemark("Cancelled by "+username);
+      thRepo.saveAndFlush(th);
+      result="Transaction ID "+th.getTid()+" is cancelled by "+username;
+    }
+    return result;
+  }
+
 }

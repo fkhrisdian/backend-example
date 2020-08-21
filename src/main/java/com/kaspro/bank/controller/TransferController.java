@@ -1,6 +1,10 @@
 package com.kaspro.bank.controller;
 
+import com.kaspro.bank.enums.StatusCode;
+import com.kaspro.bank.exception.NostraException;
+import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.services.TransferService;
+import com.kaspro.bank.services.UserService;
 import com.kaspro.bank.vo.*;
 import com.kaspro.bank.vo.TransferKasproBank.TransferKasproBankReqVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +19,9 @@ public class TransferController {
 
   @Autowired
   TransferService transferService;
+
+  @Autowired
+  UserService userService;
 
   @RequestMapping(method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -326,6 +333,25 @@ public class TransferController {
       @Override
       public Object processRequest() {
         return transferService.wrapperTransfer(vo);
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.DELETE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/Transfer/Cancel")
+  @ResponseBody
+  public ResponseEntity<ResultVO> findDetail(@RequestHeader(value = "Authorization") String authorization,
+                                             @RequestParam(value="tid", required = true) String tid) {
+    User user = userService.validateToken(authorization);
+    if(user==null){
+      throw new NostraException("Unauthorized", StatusCode.UNAUTHORIZED);
+    }
+    AbstractRequestHandler handler = new AbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.cancelTID(user.getUsername(), tid);
       }
     };
     return handler.getResult();

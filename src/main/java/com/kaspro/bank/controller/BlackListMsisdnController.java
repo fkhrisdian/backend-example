@@ -42,7 +42,12 @@ public class BlackListMsisdnController {
             value="/Get")
     @ResponseBody
     public ResponseEntity<ResultVO> findAll(@RequestHeader(value = "Authorization") String authorization) {
-        if (!userService.validateToken(authorization)) throw new NostraException("Unauthorized",StatusCode.UNAUTHORIZED);
+        User user = userService.validateToken(authorization);
+        if(user==null){
+            throw new NostraException("Unauthorized",StatusCode.UNAUTHORIZED);
+        }
+//        if (!userService.validateToken(authorization)) throw new NostraException("Unauthorized",StatusCode.UNAUTHORIZED);
+        System.out.println(user.getUsername());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

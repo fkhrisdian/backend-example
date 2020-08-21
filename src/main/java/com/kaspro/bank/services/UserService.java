@@ -184,7 +184,7 @@ public class UserService {
         }
     }
 
-    public boolean validateToken(String authorization) {
+    public User validateToken(String authorization) {
         try {
             String decoded = new String(Base64.getDecoder().decode(authorization));
 
@@ -194,14 +194,18 @@ public class UserService {
 
             User user=repository.findByEmail(email);
             if(user==null){
-                return false;
+                return null;
             }else {
                 byte[] decodedBytes = Base64.getDecoder().decode(user.getPassword());
                 String password = new String(decodedBytes);
-                return password.equals(pass);
+                if(password.equals(pass)){
+                    return user;
+                }else {
+                    return null;
+                }
             }
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
 

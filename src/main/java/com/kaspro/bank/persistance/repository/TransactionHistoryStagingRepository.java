@@ -12,6 +12,10 @@ public interface TransactionHistoryStagingRepository extends BaseRepository<Tran
             nativeQuery = true)
     TransactionHistoryStaging findByTID(String tid, String sku);
 
+    @Query(value="SELECT * FROM kasprobank.TRANSACTION_HISTORY_STG where TID=?1 and STATUS='Pending'",
+            nativeQuery = true)
+    TransactionHistoryStaging findByTID2(String tid);
+
     @Query(value="SELECT * FROM kasprobank.TRANSACTION_HISTORY_STG where TID=?1 and STATUS='Pending' and SKU not in('KasproBank','Kaspro','Emoney')",
             nativeQuery = true)
     TransactionHistoryStaging findOtherBank(String tid);
