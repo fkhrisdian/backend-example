@@ -7,10 +7,12 @@ import com.kaspro.bank.util.InitDBHandler;
 import com.kaspro.bank.vo.ResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,11 +29,44 @@ public class InitConfigController {
 
         return initConfigService.add(input);
     }
+
+    @PostMapping(value = "/api/v1/KasprobankConfig/FileUpload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = "application/json")
+    public ResponseEntity saveUsers(@RequestParam(value = "files") MultipartFile[] files,
+                                    @RequestParam(value = "prefix") String prefix) throws Exception {
+        for (MultipartFile file : files) {
+            initConfigService.saveBms(file, prefix);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping(value = "/api/v1/KasprobankConfig/FindName/{prefix}", produces = "application/json")
+    public ResponseEntity<ResultVO> findNameByPrefix(@PathVariable(value = "prefix") String prefix) throws Exception {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return initConfigService.findNameByPrefix(prefix);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @GetMapping(value = "/api/v1/KasprobankConfig/FindConfig/{prefix}", produces = "application/json")
+    public ResponseEntity<ResultVO> findConfigByPrefix(@PathVariable(value = "prefix") String prefix) throws Exception {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return initConfigService.findConfigByPrefix(prefix);
+            }
+        };
+        return handler.getResult();
+    }
+
     @GetMapping(value = "/KasprobankConfig", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<KasprobankConfig> findAll(){
 
         return initConfigService.findAll();
     }
+
 
     @GetMapping(value = "/api/v1/KasprobankConfigReload", produces = MediaType.APPLICATION_JSON_VALUE)
     public String reLoad(){
