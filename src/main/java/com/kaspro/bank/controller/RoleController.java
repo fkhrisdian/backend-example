@@ -42,6 +42,20 @@ public class RoleController {
         return handler.getResult();
     }
 
+    @RequestMapping(method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Delete")
+    @ResponseBody
+    public ResponseEntity<ResultVO> delete(@RequestParam(value="id", required = true) String id) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return service.deleteRole(id);
+            }
+        };
+        return handler.getResult();
+    }
+
     @RequestMapping(method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/GetDetail")

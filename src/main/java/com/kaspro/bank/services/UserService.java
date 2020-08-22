@@ -162,6 +162,16 @@ public class UserService {
         return result;
     }
 
+    public String deleteUser(String id){
+        User user=repository.findByUserId(id);
+        if(user==null){
+            throw new NostraException("User not found", StatusCode.DATA_NOT_FOUND);
+        }else{
+            repository.delete(user);
+            return "User "+user.getUsername()+" is deleted.";
+        }
+    }
+
     public UserVO validateUser(LoginReqVO vo){
         User user=repository.findByEmail(vo.getEmail());
         if(user==null){

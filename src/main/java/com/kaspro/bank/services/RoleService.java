@@ -4,8 +4,10 @@ import com.kaspro.bank.enums.StatusCode;
 import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.BlacklistMsisdn;
 import com.kaspro.bank.persistance.domain.Role;
+import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.persistance.repository.BlacklistMsisdnRepository;
 import com.kaspro.bank.persistance.repository.RoleRepository;
+import com.kaspro.bank.persistance.repository.UserRepository;
 import com.kaspro.bank.vo.RoleReqVO;
 import com.kaspro.bank.vo.RoleResVO;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,9 @@ public class RoleService {
 
     @Autowired
     RoleRepository rRepo;
+
+    @Autowired
+    UserRepository uRepo;
 
     Logger logger = LoggerFactory.getLogger(Role.class);
 
@@ -84,6 +89,21 @@ public class RoleService {
         vo.setName(role.getName());
         vo.setPages(pages);
         return vo;
+    }
+
+    public String deleteRole(String id){
+        List<User> users= uRepo.findByRoleId(id);
+        if(users.size()>0){
+            throw new NostraException("Role is used by User(s). Please make sure role is not used by any User", StatusCode.ERROR);
+        }else {
+            Role role = rRepo.findByRoleId(id);
+            if(role==null){
+                throw new NostraException("Role Not Found",StatusCode.DATA_NOT_FOUND);
+            }else {
+                rRepo.delete(role);
+                return "Role "+role.getName()+" is deleted.";
+            }
+        }
     }
 
 
