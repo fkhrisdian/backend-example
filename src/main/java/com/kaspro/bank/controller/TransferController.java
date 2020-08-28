@@ -326,6 +326,22 @@ public class TransferController {
   @RequestMapping(method = RequestMethod.POST,
           consumes = MediaType.APPLICATION_JSON_VALUE,
           produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/K2KB/GetToken")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> k2kbGetPaymentStatus(@RequestBody final GetTokenReqVO vo) {
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        GetTokenResVO result = new GetTokenResVO("yJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MzU3MDM0ODIsImlhdCI6MTUzNTY5OTg4Mn0");
+        return result;
+      }
+    };
+    return handler.getResult();
+  }
+
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
           value="/Transfer/Wrapper")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> wrapperTransfer(@RequestBody final WrapperTransferReqVO vo) {
