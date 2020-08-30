@@ -15,6 +15,10 @@ public interface PartnerMemberRepository extends BaseRepository<PartnerMember>{
             nativeQuery = true)
     PartnerMember findPartnerMember(int id);
 
+    @Query(value="SELECT count(id) FROM kasprobank.PARTNER_MEMBER where DATE_CREATED>=DATE(NOW()) - INTERVAL :days DAY;",
+            nativeQuery = true)
+    String findByLastDays(String days);
+
     @Query(value="SELECT * FROM kasprobank.PARTNER_MEMBER where id=?1",
           nativeQuery = true)
     List<PartnerMember> findListPartnerMember(int id);

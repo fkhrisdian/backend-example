@@ -8,4 +8,8 @@ public interface RequestCardRepository extends BaseRepository<RequestCard>{
     @Query(value="SELECT * FROM kasprobank.REQUEST_CARD where id=?1",
             nativeQuery = true)
     RequestCard findByRequestID(String id);
+
+    @Query(value="SELECT count(id) FROM kasprobank.REQUEST_CARD where DATE_CREATED>=DATE(NOW()) - INTERVAL :days DAY;",
+            nativeQuery = true)
+    String findByLastDays(String days);
 }

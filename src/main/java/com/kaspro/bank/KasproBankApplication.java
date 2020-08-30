@@ -5,10 +5,12 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.kaspro.bank.services.AuditTrailService;
 import com.kaspro.bank.services.BniEncryption;
+import com.kaspro.bank.services.GlobalHashmapService;
 import com.kaspro.bank.util.InitDB;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import lombok.extern.slf4j.Slf4j;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -30,6 +32,11 @@ public class KasproBankApplication {
 		//log.info(a.toString());
 
 
+	}
+
+	@Bean
+	public GlobalHashmapService getGlobalHashmap(){
+		return new GlobalHashmapService();
 	}
 }
 

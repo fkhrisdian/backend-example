@@ -14,6 +14,10 @@ public interface TransactionHistoryRepository extends BaseRepository<Transaction
             nativeQuery = true)
     TransactionHistory findByTID(String tid, String sku);
 
+    @Query(value="SELECT count(id) FROM kasprobank.TRANSACTION_HISTORY where DATE_CREATED>=DATE(NOW()) - INTERVAL :days DAY;",
+            nativeQuery = true)
+    String findByLastDays(String days);
+
     @Query(value="SELECT * FROM kasprobank.TRANSACTION_HISTORY\n" +
             "union all\n" +
             "SELECT * FROM kasprobank.TRANSACTION_HISTORY_STG",
