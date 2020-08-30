@@ -109,7 +109,6 @@ public class TransferService {
     return paymentStatusRespVO.getGetPaymentStatusResponse().getParameters().getPreviousResponse().getValueAmount();
   }
 
-
   public List<TransactionHistory> findEntireTransaction(){
     List<TransactionHistory> ths=thRepo.findEntireTransaction();
     return ths;
@@ -252,10 +251,19 @@ public class TransferService {
         throw new NostraException("Destination account is not found", StatusCode.DATA_NOT_FOUND);
       }
 
-      vo.setDestinationAccount(va.getVa());
-      vo.setDestinationName(pmVO.getPartnerMember().getName());
-      th.setCreditName(pmVO.getPartnerMember().getName());
-      th.setCreditAcc(va.getVa());
+      String type = "KasproBank";
+      if(isNotLimit(type, amount)){
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        String currentTime = sdf.format(new Date());
+        logger.info("Current Time is : "+currentTime);
+        if(!tService.isCutOff(currentTime,type)){
+          throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
+        }
+        vo.setDestinationAccount(va.getVa());
+        vo.setDestinationName(pmVO.getPartnerMember().getName());
+        th.setCreditName(pmVO.getPartnerMember().getName());
+        th.setCreditAcc(va.getVa());
+      }
     }
 //    else if(sku.equals("BNI")){
 //      if(!paymentMethod.equalsIgnoreCase("ONLINE")){
@@ -287,12 +295,21 @@ public class TransferService {
           if(resPayu.getInt("code")!=0){
             throw new NostraException(resPayu.getString("message"), StatusCode.ERROR);
           }else{
-            String accountName=resPayu.getJSONObject("account").getString("account-name");
-            vo.setDestinationName(accountName);
-            vo.setDestinationAccount(resValidate.getString("account-number"));
-            th.setCreditName(vo.getDestinationName());
-            logger.info("Account number: "+resValidate.getString("account-number"));
-            th.setCreditAcc(resValidate.getString("account-number"));
+            String type="Kaspro";
+            if(isNotLimit(type, amount)){
+              SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+              String currentTime = sdf.format(new Date());
+              logger.info("Current Time is : "+currentTime);
+              if(!tService.isCutOff(currentTime,type)){
+                throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
+              }
+              String accountName=resPayu.getJSONObject("account").getString("account-name");
+              vo.setDestinationName(accountName);
+              vo.setDestinationAccount(resValidate.getString("account-number"));
+              th.setCreditName(vo.getDestinationName());
+              logger.info("Account number: "+resValidate.getString("account-number"));
+              th.setCreditAcc(resValidate.getString("account-number"));
+            }
           }
         }
       } catch (IOException e) {
@@ -310,13 +327,21 @@ public class TransferService {
         if(!ihiResp.getGetInHouseInquiryResponse().getParameters().getResponseCode().equals("0001")){
           throw new NostraException("Destination account is not found", StatusCode.DATA_NOT_FOUND);
         }else{
-          vo.setDestinationAccount(ihiResp.getGetInHouseInquiryResponse().getParameters().getAccountNumber());
-          vo.setDestinationName(ihiResp.getGetInHouseInquiryResponse().getParameters().getCustomerName());
-          th.setCreditName(vo.getDestinationName());
-          th.setCreditAcc(ihiResp.getGetInHouseInquiryResponse().getParameters().getAccountNumber());
+          String type="BNI";
+          if(isNotLimit(type, amount)){
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+            String currentTime = sdf.format(new Date());
+            logger.info("Current Time is : "+currentTime);
+            if(!tService.isCutOff(currentTime,type)){
+              throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
+            }
+            vo.setDestinationAccount(ihiResp.getGetInHouseInquiryResponse().getParameters().getAccountNumber());
+            vo.setDestinationName(ihiResp.getGetInHouseInquiryResponse().getParameters().getCustomerName());
+            th.setCreditName(vo.getDestinationName());
+            th.setCreditAcc(ihiResp.getGetInHouseInquiryResponse().getParameters().getAccountNumber());
+          }
         }
       }else{
-        Long tmpAmount=Long.parseLong(amount);
         th.setInterBankFee(x.get("InterBank.Fee"));
         InterBankInquiryVO ibiVO=new InterBankInquiryVO();
         tmpSKU="OtherBank";
@@ -338,23 +363,37 @@ public class TransferService {
         vo.setDestinationName(th.getCreditName());
         sku=bankName;
         if(paymentMethod.equalsIgnoreCase("ONLINE")){
-          th.setDestinationBankCode(bankCode);
-
+          String type="OtherBank";
+          if(isNotLimit(type, amount)){
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+            String currentTime = sdf.format(new Date());
+            logger.info("Current Time is : "+currentTime);
+            if(!tService.isCutOff(currentTime,type)){
+              throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
+            }
+            th.setDestinationBankCode(bankCode);
+          }
         }else if(paymentMethod.equalsIgnoreCase("RTGS")){
-          if(tmpAmount<Long.parseLong(x.get("RTGS.Min.Limit"))){
-            throw new NostraException("Minimum RTGS Transfer is "+x.get("RTGS.Min.Limit"), StatusCode.ERROR);
+          String type="RTGS";
+          if(isNotLimit(type,amount)){
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+            String currentTime = sdf.format(new Date());
+            logger.info("Current Time is : "+currentTime);
+            if(!tService.isCutOff(currentTime,type)){
+              throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
+            }
+            th.setDestinationBankCode(bankCodeRTGS);
           }
-          th.setDestinationBankCode(bankCodeRTGS);
         }else if(paymentMethod.equalsIgnoreCase("KLIRING")){
-          if(tmpAmount>Long.parseLong(x.get("Kliring.Max.Limit"))){
-            throw new NostraException("Maximum KLIRING Transfer is "+x.get("Kliring.Max.Limit"), StatusCode.ERROR);
-          }
-          th.setDestinationBankCode(bankCodeRTGS);
-          SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-          String currentTime = sdf.format(new Date());
-          logger.info("Current Time is : "+currentTime);
-          if(!tService.isCutOff(currentTime)){
-            throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
+          String type="Kliring";
+          if(isNotLimit(type,amount)){
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+            String currentTime = sdf.format(new Date());
+            logger.info("Current Time is : "+currentTime);
+            if(!tService.isCutOff(currentTime,type)){
+              throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
+            }
+            th.setDestinationBankCode(bankCodeRTGS);
           }
         }else{
           throw new NostraException("Invalid payment method",StatusCode.ERROR);
@@ -451,35 +490,38 @@ public class TransferService {
 
   }
 
-  public boolean isCutOff(String currentTime){
+  public boolean isCutOff(String currentTime, String type){
     try {
       InitDB initDB=InitDB.getInstance();
-      String cutoffStart = initDB.get("CutOff.Start");
-      Date time1 = new SimpleDateFormat("HH:mm:ss").parse(cutoffStart);
-      Calendar calendar1 = Calendar.getInstance();
-      calendar1.setTime(time1);
-      calendar1.add(Calendar.DATE, 1);
-      System.out.println(calendar1.getTime());
-
-
-      String cutoffEnd = initDB.get("CutOff.End");
-      Date time2 = new SimpleDateFormat("HH:mm:ss").parse(cutoffEnd);
-      Calendar calendar2 = Calendar.getInstance();
-      calendar2.setTime(time2);
-      calendar2.add(Calendar.DATE, 1);
-      System.out.println(calendar2.getTime());
-
-      Date d = new SimpleDateFormat("HH:mm:ss").parse(currentTime);
-      Calendar calendar3 = Calendar.getInstance();
-      calendar3.setTime(d);
-      calendar3.add(Calendar.DATE, 1);
-      System.out.println(calendar3.getTime());
-
-      Date x = calendar3.getTime();
-      if (x.before(calendar1.getTime()) && x.after(calendar2.getTime())) {
-        return true;
-      }else{
+      String cutoffStart = initDB.get("CutOff."+type+".Start");
+      String cutoffEnd = initDB.get("CutOff."+type+"End");
+      if(cutoffStart.equalsIgnoreCase("NA")||cutoffEnd.equalsIgnoreCase("NA")){
         return false;
+      }else {
+        Date time1 = new SimpleDateFormat("HH:mm:ss").parse(cutoffStart);
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTime(time1);
+        calendar1.add(Calendar.DATE, 1);
+        System.out.println(calendar1.getTime());
+
+        Date time2 = new SimpleDateFormat("HH:mm:ss").parse(cutoffEnd);
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.setTime(time2);
+        calendar2.add(Calendar.DATE, 1);
+        System.out.println(calendar2.getTime());
+
+        Date d = new SimpleDateFormat("HH:mm:ss").parse(currentTime);
+        Calendar calendar3 = Calendar.getInstance();
+        calendar3.setTime(d);
+        calendar3.add(Calendar.DATE, 1);
+        System.out.println(calendar3.getTime());
+
+        Date x = calendar3.getTime();
+        if (x.before(calendar1.getTime()) && x.after(calendar2.getTime())) {
+          return true;
+        }else{
+          return false;
+        }
       }
     } catch (ParseException e) {
       e.printStackTrace();
@@ -487,6 +529,31 @@ public class TransferService {
     }
   }
 
+  public boolean isNotLimit(String sku, String amount){
+    InitDB initDB=InitDB.getInstance();
+    String limitMin=initDB.get(sku+".Min.Limit");
+    String limitMax=initDB.get(sku+".Max.Limit");
+
+    if (!limitMin.equalsIgnoreCase("")&&!limitMin.equalsIgnoreCase("NA")){
+      Long min=Long.parseLong(limitMin);
+      Long amt=Long.parseLong(amount);
+      if(amt>=min){
+        return true;
+      }else {
+        throw new NostraException("Minimum amount for SKU "+sku+" is "+limitMin);
+      }
+    }
+    if (!limitMax.equalsIgnoreCase("")&&!limitMax.equalsIgnoreCase("NA")) {
+      Long max = Long.parseLong(limitMax);
+      Long amt = Long.parseLong(amount);
+      if (amt <= max) {
+        return true;
+      } else {
+        throw new NostraException("Maximum amount for SKU "+sku+" is "+limitMax);
+      }
+    }
+    return true;
+  }
 
   public OgpInHousePaymentRespVO transferKasproBank(TransferKasproBankReqVO vo){
     TransactionHistoryStaging thSTG=thSTGRepo.findByTID(vo.getTid(),"KasproBank");
@@ -578,7 +645,6 @@ public class TransferService {
     resVO.setTotalAmount(th.getTotalAmount());
     return resIHPDest;
   }
-
 
   public OgpInHousePaymentRespVO transferInHouse(TransferKasproBankReqVO vo){
     TransactionHistoryStaging thSTG=thSTGRepo.findByTID(vo.getTid(),"BNI");
@@ -890,7 +956,7 @@ public class TransferService {
     OgpBalanceRespVO ogpBalanceRespVO= ogpService.balance(vo);
 
     if(!ogpBalanceRespVO.getGetBalanceResponse().getParameters().getResponseCode().equals("0001")){
-      return false;
+      throw new NostraException("Error "+ogpBalanceRespVO.getGetBalanceResponse().getParameters().getResponseCode()+" with message : "+ogpBalanceRespVO.getGetBalanceResponse().getParameters().getResponseMessage());
     }
     else if(Long.parseLong(ogpBalanceRespVO.getGetBalanceResponse().getParameters().getAccountBalance()) < Long.parseLong(amount)){
       return false;
@@ -938,7 +1004,7 @@ public class TransferService {
     ValidateMSISDNVO msisdnSource=rcService.validateMsisdn(vo.getMsisdn());
     ValidateMSISDNVO msisdnDest=rcService.validateMsisdn(vo.getDestAcc());
     if (vo.getBankCode()==null||vo.getBankCode().equals("009")){
-      if(vo.getDestAcc().startsWith("8945")){
+      if(vo.getDestAcc().startsWith("8945")||vo.getDestAcc().startsWith("8513")){
         sku="KasproBank";
       }else if(vo.getDestAcc().startsWith("8693")){
         sku="Kaspro";

@@ -1,6 +1,8 @@
 package com.kaspro.bank.services;
 
+import com.kaspro.bank.util.InitDB;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import sun.misc.BASE64Encoder;
@@ -14,17 +16,13 @@ import java.security.Signature;
 @Service
 public class OGPEncryptionService {
 
-  @Value("${ogp.certification.path}")
-  private String ogpCertPath;
-
-  @Value("${ogp.signature.alias}")
-  private String ogpSignAlias = "";
-
-  @Value("${ogp.signature.password}")
-  private String ogpSignPassword;
-
   String encrypt(String data) {
     try {
+      InitDB initDB=InitDB.getInstance();
+      String ogpCertPath=initDB.get("ogp.certification.path");
+      String ogpSignAlias = initDB.get("ogp.signature.alias");
+      String ogpSignPassword=initDB.get("ogp.signature.password");
+
       KeyStore keyStore = KeyStore.getInstance("PKCS12");
       keyStore.load(new FileInputStream(ogpCertPath), ogpSignPassword.toCharArray());
       PrivateKey privateKey = (PrivateKey) keyStore.getKey(ogpSignAlias, ogpSignPassword.toCharArray());

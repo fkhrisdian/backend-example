@@ -2,6 +2,7 @@ package com.kaspro.bank.services;
 
 import com.google.gson.Gson;
 import com.kaspro.bank.converter.OGPConverter;
+import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.BalanceVO;
 import com.kaspro.bank.vo.InHouseInquiryVO;
 import com.kaspro.bank.vo.InHousePaymentVO;
@@ -33,27 +34,6 @@ import java.util.Random;
 @Service
 public class OGPService {
 
-  @Value("${ogp.url.balance}")
-  private String ogpBalanceUrl;
-
-  @Value("${ogp.url.inhouse.inquiry}")
-  private String ogpInHouseInquiryUrl;
-
-  @Value("${ogp.url.interbank.inquiry}")
-  private String ogpInterBankInquiryUrl;
-
-  @Value("${ogp.url.inhouse.payment}")
-  private String ogpInHousePaymentUrl;
-
-  @Value("${ogp.url.interbank.payment}")
-  private String ogpInterBankPaymentUrl;
-
-  @Value("${ogp.url.payment.status}")
-  private String ogpPaymentStatusUrl;
-
-  @Value("${ogp.client.id}")
-  private String ogpClientId;
-
   @Autowired
   OGPEncryptionService encryptionService;
 
@@ -66,6 +46,9 @@ public class OGPService {
   private Gson gson = new Gson();
 
   public OgpBalanceRespVO balance(BalanceVO vo) {
+    InitDB initDB=InitDB.getInstance();
+    String ogpBalanceUrl=initDB.get("ogp.url.balance");
+    String ogpClientId=initDB.get("ogp.client.id");
     OgpBalanceReqVO request = OGPConverter.convertBalance(
         vo, ogpClientId, encryptionService.encrypt(ogpClientId + vo.getAccountNo()));
 
@@ -74,6 +57,9 @@ public class OGPService {
   }
 
   public OgpInHouseInquiryRespVO inHouseInquiry(InHouseInquiryVO vo) {
+    InitDB initDB=InitDB.getInstance();
+    String ogpInHouseInquiryUrl=initDB.get("ogp.url.inhouse.inquiry");
+    String ogpClientId=initDB.get("ogp.client.id");
     OgpInHouseInquiryReqVO request = OGPConverter.convertInHouseInquiry(
         vo, ogpClientId, encryptionService.encrypt(ogpClientId + vo.getAccountNo()));
 
@@ -82,6 +68,9 @@ public class OGPService {
   }
 
   public OgpInterBankInquiryRespVO interBankInquiry(InterBankInquiryVO vo) {
+    InitDB initDB=InitDB.getInstance();
+    String ogpInterBankInquiryUrl=initDB.get("ogp.url.interbank.inquiry");
+    String ogpClientId=initDB.get("ogp.client.id");
     OgpInterBankInquiryReqVO request = OGPConverter.convertInterBankInquiry(
         vo, getCustomerReferenceNumber(new Date(), vo.getAccountNo()), ogpClientId,
         encryptionService.encrypt(
@@ -92,6 +81,9 @@ public class OGPService {
   }
 
   public OgpInHousePaymentRespVO inHousePayment(InHousePaymentVO vo) {
+    InitDB initDB=InitDB.getInstance();
+    String ogpInHousePaymentUrl=initDB.get("ogp.url.inhouse.payment");
+    String ogpClientId=initDB.get("ogp.client.id");
     Date currentTime = new Date();
     String referenceNumber = getCustomerReferenceNumber(currentTime, vo.getDebitAccountNo());
     OgpInHousePaymentReqVO request = OGPConverter.convertInHousePayment(
@@ -105,6 +97,9 @@ public class OGPService {
   }
 
   public OgpInterBankPaymentRespVO interBankPayment(InterBankPaymentVO vo) {
+    InitDB initDB=InitDB.getInstance();
+    String ogpInterBankPaymentUrl=initDB.get("ogp.url.interbank.payment");
+    String ogpClientId=initDB.get("ogp.client.id");
     Date currentTime = new Date();
     String referenceNumber = getCustomerReferenceNumber(currentTime, vo.getAccountNo());
     OgpInterBankPaymentReqVO request = OGPConverter.convertInterBankPayment(
@@ -118,6 +113,9 @@ public class OGPService {
   }
 
   public OgpPaymentStatusRespVO paymentStatus(PaymentStatusVO vo) {
+    InitDB initDB=InitDB.getInstance();
+    String ogpPaymentStatusUrl=initDB.get("ogp.url.payment.status");
+    String ogpClientId=initDB.get("ogp.client.id");
     OgpPaymentStatusReqVO request = OGPConverter.convertPaymentStatus(
         vo, ogpClientId, encryptionService.encrypt(ogpClientId + vo.getCustomerReferenceNumber()));
 

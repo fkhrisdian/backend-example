@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.ogp.OgpOauthTokenRespVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
@@ -17,6 +18,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.ILoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -30,18 +32,6 @@ import java.util.List;
 @Slf4j
 @Service
 public class OGPHttpService {
-
-  @Value("${ogp.url.host}")
-  private String ogpHostUrl;
-
-  @Value("${ogp.username}")
-  private String ogpUsername;
-
-  @Value("${ogp.password}")
-  private String ogpPassword;
-
-  @Value("${ogp.url.oauth.token}")
-  private String ogpTokenUrl;
 
   public String callHttpPost(String url, Object object) {
     try {
@@ -59,6 +49,11 @@ public class OGPHttpService {
   }
 
   private String callHttpPost(String url, String mediaType, HttpEntity entity) {
+    InitDB initDB=InitDB.getInstance();
+    String ogpHostUrl=initDB.get("ogp.url.host");
+    String ogpUsername=initDB.get("ogp.username");
+    String ogpPassword=initDB.get("ogp.password");
+
     String completeUrl = ogpHostUrl +  url +
         (mediaType.equals(MediaType.APPLICATION_JSON_VALUE) ? "?access_token=" + getToken() : "");
     HttpPost httpPost = new HttpPost(completeUrl);
@@ -85,6 +80,8 @@ public class OGPHttpService {
   }
 
   private String getToken() {
+    InitDB initDB=InitDB.getInstance();
+    String ogpTokenUrl=initDB.get("ogp.url.oauth.token");
     String responseBody = callHttpPost(ogpTokenUrl,
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
         constructTokenFormEntity());
