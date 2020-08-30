@@ -3,12 +3,14 @@ package com.kaspro.bank.controller;
 import com.kaspro.bank.services.PartnerService;
 import com.kaspro.bank.services.VirtualAccountService;
 import com.kaspro.bank.vo.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/partner")
 public class PartnerController {
@@ -53,6 +55,7 @@ public class PartnerController {
             value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody final RegisterPartnerVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -68,6 +71,7 @@ public class PartnerController {
             value="/Update")
     @ResponseBody
     public ResponseEntity<ResultVO> update(@RequestBody final RegisterPartnerVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -83,6 +87,7 @@ public class PartnerController {
             value="/UpdateStatus")
     @ResponseBody
     public ResponseEntity<ResultVO> updateStatus(@RequestBody UpdateStatusVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -98,6 +103,7 @@ public class PartnerController {
             value="/notification")
     @ResponseBody
     public BNINotifResponseVO bniNotif(@RequestBody BNINotifVO vo) {
+        log.info(vo.toString());
         return virtualAccountService.bniNotif(vo);
     }
 }

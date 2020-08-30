@@ -4,12 +4,14 @@ import com.kaspro.bank.services.TrailAuditService;
 import com.kaspro.bank.services.TransferLimitService;
 import com.kaspro.bank.vo.ResultVO;
 import com.kaspro.bank.vo.TransferLimitVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/AuditTrail")
 public class TrailAuditController {

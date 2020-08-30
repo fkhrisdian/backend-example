@@ -9,12 +9,14 @@ import com.kaspro.bank.vo.Individual.IndividualUpdateVO;
 import com.kaspro.bank.vo.K2KBInquiryVAVO;
 import com.kaspro.bank.vo.K2KBResultVO;
 import com.kaspro.bank.vo.ResultVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/Individual")
 public class IndividualController {
@@ -56,6 +58,7 @@ public class IndividualController {
             value="/GetDetail2")
     @ResponseBody
     public ResponseEntity<K2KBResultVO> findPartnerDetail(@RequestBody final K2KBInquiryVAVO vo) {
+        log.info(vo.toString());
         K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -71,6 +74,7 @@ public class IndividualController {
             value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody final IndividualRegistrationVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -86,6 +90,7 @@ public class IndividualController {
             value="/Add2")
     @ResponseBody
     public ResponseEntity<K2KBResultVO> add2(@RequestBody final IndividualReqVO vo) {
+        log.info(vo.toString());
         K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -101,6 +106,7 @@ public class IndividualController {
             value="/Update2")
     @ResponseBody
     public ResponseEntity<K2KBResultVO> udpate2(@RequestBody final IndividualUpdateVO vo) {
+        log.info(vo.toString());
         K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -116,6 +122,7 @@ public class IndividualController {
             value="/Update")
     @ResponseBody
     public ResponseEntity<ResultVO> update(@RequestBody final IndividualRegistrationVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -131,6 +138,7 @@ public class IndividualController {
         value="/UpdateTier")
     @ResponseBody
     public ResponseEntity<ResultVO> updateTier(@RequestBody final IndividualRegistrationVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

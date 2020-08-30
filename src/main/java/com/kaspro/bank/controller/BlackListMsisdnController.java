@@ -9,6 +9,7 @@ import com.kaspro.bank.services.UserService;
 import com.kaspro.bank.vo.BlacklistMsisdn.BlacklistMsisdnVO;
 import com.kaspro.bank.vo.RegisterPartnerMemberVO;
 import com.kaspro.bank.vo.ResultVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/BlacklistMsisdn")
 public class BlackListMsisdnController {
@@ -41,13 +43,7 @@ public class BlackListMsisdnController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Get")
     @ResponseBody
-    public ResponseEntity<ResultVO> findAll(@RequestHeader(value = "Authorization") String authorization) {
-        User user = userService.validateToken(authorization);
-        if(user==null){
-            throw new NostraException("Unauthorized",StatusCode.UNAUTHORIZED);
-        }
-//        if (!userService.validateToken(authorization)) throw new NostraException("Unauthorized",StatusCode.UNAUTHORIZED);
-        System.out.println(user.getUsername());
+    public ResponseEntity<ResultVO> findAll() {
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -62,6 +58,7 @@ public class BlackListMsisdnController {
             value="/GetDetail")
     @ResponseBody
     public ResponseEntity<ResultVO> findDetail(@RequestParam(value="id", required = true) String id) {
+        log.info(id);
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -76,6 +73,7 @@ public class BlackListMsisdnController {
             value="/Delete")
     @ResponseBody
     public ResponseEntity<ResultVO> delete(@RequestParam(value="msisdn", required = true) String msisdn) {
+        log.info(msisdn);
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -91,6 +89,7 @@ public class BlackListMsisdnController {
             value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody final BlacklistMsisdnVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

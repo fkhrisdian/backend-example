@@ -4,12 +4,14 @@ import com.kaspro.bank.persistance.domain.VirtualAccount;
 import com.kaspro.bank.services.VirtualAccountService;
 import com.kaspro.bank.vo.*;
 import com.kaspro.bank.vo.Individual.IndividualUpdateVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/VA")
 public class VirtualAccountController {
@@ -23,6 +25,7 @@ public class VirtualAccountController {
             value="/InquiryBilling")
     @ResponseBody
     public ResponseEntity<K2KBResultVO> inquiryBilling(@RequestBody final K2KBInquiryVAVO vo) {
+        log.info(vo.toString());
         K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -38,6 +41,7 @@ public class VirtualAccountController {
             value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody VirtualAccount va) {
+        log.info(va.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -53,6 +57,7 @@ public class VirtualAccountController {
             value="/BNINotif")
     @ResponseBody
     public BNINotifResponseVO bniNotif(@RequestBody BNINotifVO vo) {
+        log.info(vo.toString());
         return virtualAccountService.bniNotif(vo);
     }
 
@@ -62,6 +67,7 @@ public class VirtualAccountController {
             value="/BNIEncrypt")
     @ResponseBody
     public BNINotifResponseVO bniEncrypt(@RequestBody BNINotifPlainVO vo) {
+        log.info(vo.toString());
         return virtualAccountService.encryptBNI(vo);
     }
 
@@ -71,6 +77,7 @@ public class VirtualAccountController {
             value="/Update")
     @ResponseBody
     public ResponseEntity<ResultVO> update(@RequestBody VirtualAccount vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

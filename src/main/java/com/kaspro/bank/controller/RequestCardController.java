@@ -5,12 +5,14 @@ import com.kaspro.bank.vo.K2KBResultVO;
 import com.kaspro.bank.vo.RequestCardReqVO;
 import com.kaspro.bank.vo.ResultVO;
 import com.kaspro.bank.vo.UserReqVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/RequestCard")
 public class RequestCardController {
@@ -24,6 +26,7 @@ public class RequestCardController {
             value="/Add")
     @ResponseBody
     public ResponseEntity<K2KBResultVO> add(@RequestBody final RequestCardReqVO vo) {
+        log.info(vo.toString());
         K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
             @Override
             public Object processRequest() {

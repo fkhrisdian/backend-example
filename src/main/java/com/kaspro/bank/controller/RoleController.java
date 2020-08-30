@@ -6,6 +6,7 @@ import com.kaspro.bank.services.RoleService;
 import com.kaspro.bank.vo.ResultVO;
 import com.kaspro.bank.vo.RoleReqVO;
 import com.kaspro.bank.vo.RoleResVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/Role")
 public class RoleController {
@@ -76,6 +78,7 @@ public class RoleController {
             value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody final RoleReqVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -91,6 +94,7 @@ public class RoleController {
             value="/Update")
     @ResponseBody
     public ResponseEntity<ResultVO> udpate(@RequestBody final RoleResVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

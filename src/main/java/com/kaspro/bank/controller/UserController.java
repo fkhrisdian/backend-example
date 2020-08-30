@@ -3,6 +3,7 @@ package com.kaspro.bank.controller;
 import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.services.UserService;
 import com.kaspro.bank.vo.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/User")
 public class UserController {
@@ -68,6 +70,7 @@ public class UserController {
             value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody final UserReqVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -83,6 +86,7 @@ public class UserController {
             value="/RequestResetPassword")
     @ResponseBody
     public ResponseEntity<ResultVO> requestResetPassword(@RequestBody final RequestResetPasswordVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -98,6 +102,7 @@ public class UserController {
             value="/ResetPassword")
     @ResponseBody
     public ResponseEntity<ResultVO> resetPassword(@RequestBody final ResetPasswordVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -128,6 +133,7 @@ public class UserController {
             value="/Validate")
     @ResponseBody
     public ResponseEntity<ResultVO> validate(@RequestBody final LoginReqVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -143,6 +149,7 @@ public class UserController {
             value="/Update")
     @ResponseBody
     public ResponseEntity<ResultVO> udpate(@RequestBody final UserRes2VO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

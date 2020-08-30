@@ -4,12 +4,14 @@ import com.kaspro.bank.persistance.domain.IncreaseLimit;
 import com.kaspro.bank.services.IncreaseLimitService;
 import com.kaspro.bank.services.TransferLimitService;
 import com.kaspro.bank.vo.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/IncreaseLimit")
 public class IncreaseLimitController {
@@ -23,6 +25,7 @@ public class IncreaseLimitController {
             value="/Add")
     @ResponseBody
     public ResponseEntity<ResultVO> add(@RequestBody final IncreaseLimitVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
@@ -66,6 +69,7 @@ public class IncreaseLimitController {
             value="/UpdateStatus")
     @ResponseBody
     public ResponseEntity<ResultVO> udpate(@RequestBody final ConfirmIncreaseLimitVO vo) {
+        log.info(vo.toString());
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {

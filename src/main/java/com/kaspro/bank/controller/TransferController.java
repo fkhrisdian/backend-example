@@ -7,12 +7,14 @@ import com.kaspro.bank.services.TransferService;
 import com.kaspro.bank.services.UserService;
 import com.kaspro.bank.vo.*;
 import com.kaspro.bank.vo.TransferKasproBank.TransferKasproBankReqVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1")
 public class TransferController {
@@ -30,6 +32,7 @@ public class TransferController {
   )
   @ResponseBody
   public ResponseEntity<ResultVO> balance(@RequestBody final BalanceVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -46,6 +49,7 @@ public class TransferController {
   )
   @ResponseBody
   public ResponseEntity<ResultVO> inquiryInHouse(@RequestBody final InHouseInquiryVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -62,6 +66,7 @@ public class TransferController {
   )
   @ResponseBody
   public ResponseEntity<ResultVO> inquiryInterBank(@RequestBody final InterBankInquiryVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -78,6 +83,7 @@ public class TransferController {
   )
   @ResponseBody
   public ResponseEntity<ResultVO> paymentInHouse(@RequestBody final InHousePaymentVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -94,6 +100,7 @@ public class TransferController {
   )
   @ResponseBody
   public ResponseEntity<ResultVO> paymentInterBank(@RequestBody final InterBankPaymentVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -110,6 +117,7 @@ public class TransferController {
   )
   @ResponseBody
   public ResponseEntity<ResultVO> paymentStatus(@RequestBody final PaymentStatusVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -145,6 +153,7 @@ public class TransferController {
           value="/Transfer/KasproBank")
   @ResponseBody
   public ResponseEntity<ResultVO> transferKasproBank(@RequestBody final TransferKasproBankReqVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -160,6 +169,7 @@ public class TransferController {
           value="/Transfer/OtherBank")
   @ResponseBody
   public ResponseEntity<ResultVO> transferOtherBank(@RequestBody final TransferKasproBankReqVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -175,6 +185,7 @@ public class TransferController {
           value="/Transfer/BNI")
   @ResponseBody
   public ResponseEntity<ResultVO> transferBNI(@RequestBody final TransferKasproBankReqVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -190,6 +201,7 @@ public class TransferController {
           value="/Transfer/Kaspro")
   @ResponseBody
   public ResponseEntity<ResultVO> transferKaspro(@RequestBody final TransferKasproBankReqVO vo) {
+    log.info(vo.toString());
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -239,6 +251,7 @@ public class TransferController {
           value="/K2KB/InquiryInHouse")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> k2kbInquiryInhouse(@RequestBody final K2KBInquiryInhouseReqVO vo) {
+    log.info(vo.toString());
     K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -254,6 +267,7 @@ public class TransferController {
           value="/K2KB/InquiryInterBank")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> k2kbInquiryInterBank(@RequestBody final K2KBInquiryInterBankReqVO vo) {
+    log.info(vo.toString());
     K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -269,6 +283,7 @@ public class TransferController {
           value="/K2KB/PaymentInhouse")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> k2kbTransferInhouse(@RequestBody final K2KBPaymentInhouseReqVO vo) {
+    log.info(vo.toString());
     K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -284,6 +299,7 @@ public class TransferController {
           value="/K2KB/PaymentInterBank")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> k2kbTransferInterBank(@RequestBody final K2KBPaymentInterBankReqVO vo) {
+    log.info(vo.toString());
     K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -299,6 +315,7 @@ public class TransferController {
           value="/K2KB/GetBalance")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> k2kbGetBalance(@RequestBody final K2KBGetBalanceReqVO vo) {
+    log.info(vo.toString());
     K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -314,6 +331,7 @@ public class TransferController {
           value="/K2KB/GetPaymentStatus")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> k2kbGetPaymentStatus(@RequestBody final K2KBGetPaymentStatusReqVO vo) {
+    log.info(vo.toString());
     K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -329,6 +347,7 @@ public class TransferController {
           value="/K2KB/GetToken")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> k2kbGetPaymentStatus(@RequestBody final GetTokenReqVO vo) {
+    log.info(vo.toString());
     K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
       @Override
       public Object processRequest() {
@@ -345,6 +364,7 @@ public class TransferController {
           value="/Transfer/Wrapper")
   @ResponseBody
   public ResponseEntity<K2KBResultVO> wrapperTransfer(@RequestBody final WrapperTransferReqVO vo) {
+    log.info(vo.toString());
     K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
       @Override
       public Object processRequest() {
