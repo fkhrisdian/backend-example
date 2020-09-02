@@ -64,6 +64,7 @@ public class OGPService {
         vo, ogpClientId, encryptionService.encrypt(ogpClientId + vo.getAccountNo()));
 
     String responseBody = ogpHttpService.callHttpPost(ogpInHouseInquiryUrl, request);
+    log.info("Response Inquiry : "+responseBody);
     return gson.fromJson(responseBody, OgpInHouseInquiryRespVO.class);
   }
 

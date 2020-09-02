@@ -30,7 +30,7 @@ public abstract class K2KBAbstractRequestHandler {
                 response.setResponse_status(true);
                 response.setResponse_timestamp(new Timestamp(System.currentTimeMillis()).toString());
                 response.setResponse_message("Success");
-                response.setResponse_code("000");
+                response.setResponse_code("200");
                 result.setGeneral_response(response);
                 result.setData(obj);
             }else {

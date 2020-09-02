@@ -53,11 +53,14 @@ public class IndividualService {
 
     @Transactional
     public IndividualRegistrationVO registerIndividual(IndividualRegistrationVO vo){
-        Individual existingIndividual=iRepo.findByMsisdn(vo.getIndividual().getMsisdn());
+        ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(vo.getIndividual().getMsisdn());
+        String msisdn=msisdnSource.getValue();
+        Individual existingIndividual=iRepo.findByMsisdn(msisdn);
         if(existingIndividual!=null){
             throw new NostraException("MSISDN is used by other subscriber", StatusCode.DATA_INTEGRITY);
         }
         Individual individual=vo.getIndividual();
+        individual.setMsisdn(msisdn);
         individual.setStatus("ACTIVE");
         Individual savedIndividual=iRepo.save(individual);
         VirtualAccount va= new VirtualAccount();
@@ -94,9 +97,13 @@ public class IndividualService {
         return list;
     }
 
+    @Transactional
     public IndividualRegistrationVO update(IndividualRegistrationVO individualVO){
         InitDB initDB=InitDB.getInstance();
+        ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(individualVO.getIndividual().getMsisdn());
+        String msisdn=msisdnSource.getValue();
         Individual vo=individualVO.getIndividual();
+        vo.setMsisdn(msisdn);
         Individual savedIndividual=iRepo.findIndividual(individualVO.getIndividual().getId());
         logger.info("Old Individual value : "+savedIndividual.toString());
         if(savedIndividual==null){
@@ -262,8 +269,12 @@ public class IndividualService {
         return savedVO;
     }
 
+    @Transactional
     public IndividualRegistrationVO update2(IndividualUpdateVO vo){
         InitDB initDB=InitDB.getInstance();
+        ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(vo.getMsisdn());
+        String msisdn=msisdnSource.getValue();
+        vo.setMsisdn(msisdn);
         Individual savedIndividual=iRepo.findByMsisdn(vo.getMsisdn());
         if(savedIndividual==null){
             throw new NostraException("Account not found", StatusCode.ERROR);
@@ -422,6 +433,7 @@ public class IndividualService {
     }
 
 
+    @Transactional
     public IndividualRegistrationVO updateTier(IndividualRegistrationVO individualVO) {
         Individual vo = individualVO.getIndividual();
         Individual savedIndividual = iRepo.findIndividual(vo.getId());
@@ -464,6 +476,7 @@ public class IndividualService {
         return vo;
     }
 
+    @Transactional
     private IndividualRegistrationVO setIndividualRegistrationVO(IndividualReqVO vo){
         InitDB initDB=InitDB.getInstance();
         IndividualRegistrationVO result = new IndividualRegistrationVO();
@@ -489,6 +502,7 @@ public class IndividualService {
         return result;
     }
 
+    @Transactional
     private IndividualRegistrationVO convertUpdate(IndividualUpdateVO vo, IndividualRegistrationVO iVo){
         Individual individual=iVo.getIndividual();
 
@@ -513,6 +527,7 @@ public class IndividualService {
         return iVo;
     }
 
+    @Transactional
     public IndividualResVO add2(IndividualReqVO vo){
 
         IndividualRegistrationVO iVO=this.setIndividualRegistrationVO(vo);
@@ -531,6 +546,7 @@ public class IndividualService {
         return result;
     }
 
+    @Transactional
     public IndividualResVO k2kbUpdate(IndividualUpdateVO vo){
         IndividualRegistrationVO savedIVO=update2(vo);
         logger.info(savedIVO.toString());
@@ -542,6 +558,7 @@ public class IndividualService {
         return result;
     }
 
+    @Transactional
     public IndividualReqVO k2kbGetDetail(K2KBInquiryVAVO vo){
         IndividualReqVO result=new IndividualReqVO();
         ValidateMSISDNVO msisdnSource=rcService.validateMsisdn(vo.getMsisdn());

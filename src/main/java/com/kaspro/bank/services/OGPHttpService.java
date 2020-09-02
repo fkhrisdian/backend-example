@@ -54,6 +54,9 @@ public class OGPHttpService {
     String ogpUsername=initDB.get("ogp.username");
     String ogpPassword=initDB.get("ogp.password");
 
+    String header = "Basic " +
+            Base64.getEncoder().encodeToString((ogpUsername + ":" + ogpPassword).getBytes());
+
     String completeUrl = ogpHostUrl +  url +
         (mediaType.equals(MediaType.APPLICATION_JSON_VALUE) ? "?access_token=" + getToken() : "");
     HttpPost httpPost = new HttpPost(completeUrl);
@@ -65,7 +68,7 @@ public class OGPHttpService {
     }
     httpPost.setEntity(entity);
 
-    log.info("Calling {} with body {}", url, entity);
+    log.info("Calling {} with header{} and body {}", url, header, entity);
     CloseableHttpClient httpclient = HttpClients.createDefault();
     try {
       HttpEntity responseEntity = httpclient.execute(httpPost).getEntity();
@@ -85,9 +88,11 @@ public class OGPHttpService {
     String responseBody = callHttpPost(ogpTokenUrl,
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
         constructTokenFormEntity());
+    log.info("Response : "+responseBody);
 
     Gson gsonSnakeCase = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     OgpOauthTokenRespVO oauthTokenRespVO = gsonSnakeCase.fromJson(responseBody, OgpOauthTokenRespVO.class);
+
     return oauthTokenRespVO.getAccessToken();
   }
 

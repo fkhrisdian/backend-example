@@ -60,15 +60,13 @@ public class VirtualAccountService {
     RequestCardService rcService;
 
     BniEncryption bniEncryption;
-    String cid = "513"; // from BNI, testing purpose
-    String key = "ffcff955e7a53ebf76cda9cd16232ac4";
-
-
 
     Logger logger = LoggerFactory.getLogger(VirtualAccount.class);
 
+    @Transactional
     public VirtualAccount add(VirtualAccount va){
-
+        ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(va.getMsisdn());
+        va.setMsisdn(msisdnSource.getValue());
         List<String> listMsisdn=vaRepository.findMsisdn(va.getMsisdn());
         if(listMsisdn.size()>0){
             throw new NostraException("MSISDN already used by other Virtual Account", StatusCode.DATA_INTEGRITY);
@@ -107,6 +105,7 @@ public class VirtualAccountService {
         return savedVA;
     }
 
+    @Transactional
     public VirtualAccount addPartnerMember(PartnerMember pm, String msisdn, DataPIC pic){
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -115,6 +114,7 @@ public class VirtualAccountService {
         String result = x.get("VA.Prefix");
         String endDate = x.get("VA.EndDate");
         String vaNumber ="";
+        String url = x.get("URL.Ecollection");
 
         String partnerCode = ("000"+pm.getPartner().getPartnerCode()).substring(pm.getPartner().getPartnerCode().length());
         String partnerMemberCode = ("000000000"+pm.getPartnerMemberCode()).substring(pm.getPartnerMemberCode().length());
@@ -139,7 +139,8 @@ public class VirtualAccountService {
         java.util.Date currentTime = new java.util.Date();
         String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime,pm.getId().toString());
         CreateVAVO createVAVO = new CreateVAVO();
-        createVAVO.setClient_id("513");
+        String cid = x.get("VA.ClientID");
+        createVAVO.setClient_id(cid);
         createVAVO.setCustomer_email(pic.getEmail());
         createVAVO.setCustomer_name(pm.getName());
         createVAVO.setCustomer_phone(pic.getMsisdn());
@@ -160,6 +161,8 @@ public class VirtualAccountService {
             e.printStackTrace();
         }
 
+        String key = x.get("Key");
+
         String data=bniEncryption.hashData(inputString, cid, key);
         EncCreateVAVO reqPost=new EncCreateVAVO();
         reqPost.setClient_id(cid);
@@ -173,7 +176,7 @@ public class VirtualAccountService {
         }
 
         try {
-            String outputString=httpProcessingService.postUser("https://apibeta.bni-ecollection.com:8067/",inputString);
+            String outputString=httpProcessingService.postUser(url,inputString);
             Gson g = new Gson();
             CreateVAResponseVO resPost=g.fromJson(outputString,CreateVAResponseVO.class);
             if(resPost.getStatus().equals("000")){
@@ -195,6 +198,8 @@ public class VirtualAccountService {
 
     @Transactional
     public void updateVAInfo(UpdateVAVO vo){
+        InitDB x = InitDB.getInstance();
+        String url = x.get("URL.Ecollection");
         ObjectMapper obj = new ObjectMapper();
         String inputString="";
         try {
@@ -204,6 +209,8 @@ public class VirtualAccountService {
             e.printStackTrace();
         }
 
+        String cid = x.get("VA.ClientID");
+        String key = x.get("Key");
         String data=bniEncryption.hashData(inputString, cid, key);
         EncCreateVAVO reqPost=new EncCreateVAVO();
         reqPost.setClient_id(cid);
@@ -217,7 +224,7 @@ public class VirtualAccountService {
         }
 
         try {
-            String outputString=httpProcessingService.postUser("https://apibeta.bni-ecollection.com:8067/",inputString);
+            String outputString=httpProcessingService.postUser(url,inputString);
             Gson g = new Gson();
             CreateVAResponseVO resPost=g.fromJson(outputString,CreateVAResponseVO.class);
             if(resPost.getStatus().equals("000")){
@@ -236,6 +243,7 @@ public class VirtualAccountService {
     @Transactional
     public K2KBInquiryBillingResVO InquiryVAInfo(K2KBInquiryVAVO vo){
         InitDB initDB = InitDB.getInstance();
+        String url = initDB.get("URL.Ecollection");
         K2KBInquiryBillingResVO result = new K2KBInquiryBillingResVO();
 
         ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(vo.getMsisdn());
@@ -264,6 +272,8 @@ public class VirtualAccountService {
             e.printStackTrace();
         }
 
+        String cid = initDB.get("VA.ClientID");
+        String key = initDB.get("Key");
         String data=bniEncryption.hashData(inputString, cid, key);
         EncCreateVAVO reqPost=new EncCreateVAVO();
         reqPost.setClient_id(cid);
@@ -277,14 +287,14 @@ public class VirtualAccountService {
         }
 
         try {
-            String outputString=httpProcessingService.postUser("https://apibeta.bni-ecollection.com:8067/",inputString);
+            String outputString=httpProcessingService.postUser(url,inputString);
             Gson g = new Gson();
             CreateVAResponseVO resPost=g.fromJson(outputString,CreateVAResponseVO.class);
             logger.info(resPost.toString());
             if(resPost.getStatus().equals("000")){
                 data=resPost.getData();
                 result=g.fromJson(bniEncryption.parseData(data,cid,key),K2KBInquiryBillingResVO.class);
-                logger.info(result.toString());
+                logger.info("Response : "+result.toString());
                 return result;
             }else {
                 throw new NostraException(resPost.getMessage(),StatusCode.ERROR);
@@ -322,6 +332,8 @@ public class VirtualAccountService {
 //        } catch (JSONException e) {
 //            e.printStackTrace();
 //        }
+        InitDB x = InitDB.getInstance();
+        String url = x.get("URL.Ecollection");
 
         List<String> listMsisdn=vaRepository.findMsisdn(individual.getMsisdn());
         if(listMsisdn.size()>0){
@@ -330,7 +342,6 @@ public class VirtualAccountService {
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         VirtualAccount savedVA = new VirtualAccount();
-        InitDB x  = InitDB.getInstance();
         String result = x.get("VA.Prefix");
         String endDate = x.get("VA.EndDate");
         String vaNumber ="";
@@ -360,7 +371,8 @@ public class VirtualAccountService {
         java.util.Date currentTime = new java.util.Date();
         String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime,individual.getId().toString());
         CreateVAVO createVAVO = new CreateVAVO();
-        createVAVO.setClient_id("513");
+        String cid = x.get("VA.ClientID");
+        createVAVO.setClient_id(cid);
         createVAVO.setCustomer_email(individual.getEmail());
         createVAVO.setCustomer_name(individual.getName());
         createVAVO.setCustomer_phone(individual.getMsisdn());
@@ -381,6 +393,7 @@ public class VirtualAccountService {
             e.printStackTrace();
         }
 
+        String key = x.get("Key");
         String data=bniEncryption.hashData(inputString, cid, key);
         EncCreateVAVO reqPost=new EncCreateVAVO();
         reqPost.setClient_id(cid);
@@ -394,7 +407,7 @@ public class VirtualAccountService {
         }
 
         try {
-            String outputString=httpProcessingService.postUser("https://apibeta.bni-ecollection.com:8067/",inputString);
+            String outputString=httpProcessingService.postUser(url,inputString);
             Gson g = new Gson();
             CreateVAResponseVO resPost=g.fromJson(outputString,CreateVAResponseVO.class);
             if(resPost.getStatus().equals("000")){
@@ -415,6 +428,7 @@ public class VirtualAccountService {
         return savedVA;
     }
 
+    @Transactional
     public VirtualAccount update(VirtualAccount va){
         List<VirtualAccount> listVA=vaRepository.findVA(va.getId());
         if(listVA.size()==0){
@@ -434,10 +448,14 @@ public class VirtualAccountService {
         return vaRepository.findAll();
     }
 
+    @Transactional
     public BNINotifResponseVO bniNotif(BNINotifVO vo){
         String status ="000";
         BNINotifResponseVO result=new BNINotifResponseVO(status);
         Gson g = new Gson();
+        InitDB x=InitDB.getInstance();
+        String cid = x.get("VA.ClientID");
+        String key = x.get("Key");
         BNINotifPlainVO notif=g.fromJson(bniEncryption.parseData(vo.getData(),cid,key), BNINotifPlainVO.class);
 
         TransactionHistory th = new TransactionHistory();
@@ -486,6 +504,7 @@ public class VirtualAccountService {
         return result;
     }
 
+    @Transactional
     public BNINotifResponseVO encryptBNI(BNINotifPlainVO vo){
         String data="";
         ObjectMapper obj = new ObjectMapper();
@@ -496,6 +515,10 @@ public class VirtualAccountService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
+
+        InitDB x=InitDB.getInstance();
+        String cid = x.get("VA.ClientID");
+        String key = x.get("Key");
 
         data=bniEncryption.hashData(inputString, cid, key);
         BNINotifResponseVO result = new BNINotifResponseVO(data);
