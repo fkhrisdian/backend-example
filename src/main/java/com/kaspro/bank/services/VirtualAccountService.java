@@ -345,13 +345,14 @@ public class VirtualAccountService {
         String result = x.get("VA.Prefix");
         String endDate = x.get("VA.EndDate");
         String vaNumber ="";
+        String tmpMsisdn=individual.getMsisdn().substring(2);
 
-        if(individual.getMsisdn().length()>12){
-            int start = individual.getMsisdn().length()-12;
-            vaNumber=individual.getMsisdn().substring(start, individual.getMsisdn().length());
+        if(tmpMsisdn.length()>12){
+            int start = tmpMsisdn.length()-12;
+            vaNumber=tmpMsisdn.substring(start, tmpMsisdn.length());
             vaNumber=("000000000000"+vaNumber).substring(vaNumber.length());
         }else{
-            vaNumber=individual.getMsisdn();
+            vaNumber=tmpMsisdn;
             vaNumber=("000000000000"+vaNumber).substring(vaNumber.length());
         }
 
