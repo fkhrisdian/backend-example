@@ -81,4 +81,10 @@ public class TransactionHistory extends Base{
     @Column(name = "REMARK")
     private String remark;
 
+    @Column(name = "SENDER")
+    private String sender;
+
+    @Column(name = "DESTINATION")
+    private String dest;
+
 }

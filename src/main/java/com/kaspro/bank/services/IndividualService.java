@@ -9,10 +9,8 @@ import com.kaspro.bank.persistance.repository.UsageAccumulatorRepository;
 import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.vo.*;
-import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
-import com.kaspro.bank.vo.Individual.IndividualReqVO;
-import com.kaspro.bank.vo.Individual.IndividualResVO;
-import com.kaspro.bank.vo.Individual.IndividualUpdateVO;
+import com.kaspro.bank.vo.Individual.*;
+import com.kaspro.bank.vo.ogp.OgpBalanceRespVO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +46,9 @@ public class IndividualService {
 
     @Autowired
     RequestCardService rcService;
+
+    @Autowired
+    TransferService tService;
 
     Logger logger = LoggerFactory.getLogger(IndividualService.class);
 
@@ -559,8 +560,8 @@ public class IndividualService {
     }
 
     @Transactional
-    public IndividualReqVO k2kbGetDetail(K2KBInquiryVAVO vo){
-        IndividualReqVO result=new IndividualReqVO();
+    public IndividualRes2VO k2kbGetDetail(K2KBInquiryVAVO vo){
+        IndividualRes2VO result=new IndividualRes2VO();
         ValidateMSISDNVO msisdnSource=rcService.validateMsisdn(vo.getMsisdn());
         if(msisdnSource.getIsMsisdn().equalsIgnoreCase("0")){
             Individual individual=iRepo.findByMsisdn(msisdnSource.getValue());
@@ -583,6 +584,17 @@ public class IndividualService {
                 result.setPhoto(individual.getPhoto());
                 result.setProvince(individual.getProvince());
                 result.setZip_code(individual.getZip_code());
+                result.setAccount_no(individual.getVa());
+                result.setStatus(true);
+                result.setVerification(true);
+
+                K2KBGetBalanceReqVO reqBalance = new K2KBGetBalanceReqVO();
+                reqBalance.setMsisdn(individual.getMsisdn());
+
+                OgpBalanceRespVO resBalance = tService.getBalance(reqBalance);
+
+                result.setAmount(Long.parseLong(resBalance.getGetBalanceResponse().getParameters().getAccountBalance()));
+
                 return result;
             }
         }else {

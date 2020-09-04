@@ -29,7 +29,7 @@
 								<br>
 								<br>User name : <b>${username}</b>
 								<br>Password : <b>${password}</b>
-								<br>URL : <a href=${link}}>${link}</a><br>
+								<br>URL : <a href=${link}>${link}</a><br>
 								<br>Mohon untuk tidak membalas email ini, apabila ada pertanyaan lebih lanjut, silahkan menghubungi tim kami melalui email <b>support@kaspro.id</b> <br> <br>
 								<b>Terimakasih</b><br><b>Tim KasproBank</b><br>
 								<br>

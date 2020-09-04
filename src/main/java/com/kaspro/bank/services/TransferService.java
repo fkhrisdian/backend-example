@@ -172,6 +172,8 @@ public class TransferService {
     InitDB x=InitDB.getInstance();
     String tier="";
     th.setInterBankFee("0");
+    th.setSender(source);
+    th.setDest(destination);
     if(source.startsWith("628")||source.startsWith("08")){
       if(source.startsWith("08")){
         source="62"+source.substring(1);
@@ -216,6 +218,8 @@ public class TransferService {
       }
     }
 
+    removeTimeout(Integer.toString(vaSource.getOwnerID()));
+
     TransactionHistoryStaging thSTG=thSTGRepo.findBySenderId(Integer.toString(vaSource.getOwnerID()));
     if(thSTG!=null){
       throw new NostraException("You have pending transcation with TID "+thSTG.getTid()+". Please finish the pending transaction.",StatusCode.ERROR);
@@ -256,7 +260,7 @@ public class TransferService {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         String currentTime = sdf.format(new Date());
         logger.info("Current Time is : "+currentTime);
-        if(!tService.isCutOff(currentTime,type)){
+        if(tService.isCutOff(currentTime,type)){
           throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
         }
         vo.setDestinationAccount(va.getVa());
@@ -300,7 +304,7 @@ public class TransferService {
               SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
               String currentTime = sdf.format(new Date());
               logger.info("Current Time is : "+currentTime);
-              if(!tService.isCutOff(currentTime,type)){
+              if(tService.isCutOff(currentTime,type)){
                 throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
               }
               String accountName=resPayu.getJSONObject("account").getString("account-name");
@@ -332,7 +336,7 @@ public class TransferService {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
             String currentTime = sdf.format(new Date());
             logger.info("Current Time is : "+currentTime);
-            if(!tService.isCutOff(currentTime,type)){
+            if(tService.isCutOff(currentTime,type)){
               throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
             }
             vo.setDestinationAccount(ihiResp.getGetInHouseInquiryResponse().getParameters().getAccountNumber());
@@ -368,7 +372,7 @@ public class TransferService {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
             String currentTime = sdf.format(new Date());
             logger.info("Current Time is : "+currentTime);
-            if(!tService.isCutOff(currentTime,type)){
+            if(tService.isCutOff(currentTime,type)){
               throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
             }
             th.setDestinationBankCode(bankCode);
@@ -379,7 +383,7 @@ public class TransferService {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
             String currentTime = sdf.format(new Date());
             logger.info("Current Time is : "+currentTime);
-            if(!tService.isCutOff(currentTime,type)){
+            if(tService.isCutOff(currentTime,type)){
               throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
             }
             th.setDestinationBankCode(bankCodeRTGS);
@@ -390,7 +394,7 @@ public class TransferService {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
             String currentTime = sdf.format(new Date());
             logger.info("Current Time is : "+currentTime);
-            if(!tService.isCutOff(currentTime,type)){
+            if(tService.isCutOff(currentTime,type)){
               throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
             }
             th.setDestinationBankCode(bankCodeRTGS);
@@ -490,11 +494,23 @@ public class TransferService {
 
   }
 
+  @Transactional
+  public void removeTimeout(String id){
+    InitDB initDB=InitDB.getInstance();
+    String timeout = initDB.get("Timeout.Transaction");
+    TransactionHistoryStaging thg = thSTGRepo.findTimeout(id, timeout);
+
+    if(thg!=null){
+      cancelTID("Timeout", thg.getTid());
+      log.info(thg.getTid()+" is cancelled due to timeout");
+    }
+  }
+
   public boolean isCutOff(String currentTime, String type){
     try {
       InitDB initDB=InitDB.getInstance();
       String cutoffStart = initDB.get("CutOff."+type+".Start");
-      String cutoffEnd = initDB.get("CutOff."+type+"End");
+      String cutoffEnd = initDB.get("CutOff."+type+".End");
       if(cutoffStart.equalsIgnoreCase("NA")||cutoffEnd.equalsIgnoreCase("NA")){
         return false;
       }else {
@@ -518,9 +534,9 @@ public class TransferService {
 
         Date x = calendar3.getTime();
         if (x.before(calendar1.getTime()) && x.after(calendar2.getTime())) {
-          return true;
-        }else{
           return false;
+        }else{
+          return true;
         }
       }
     } catch (ParseException e) {
@@ -647,7 +663,7 @@ public class TransferService {
   }
 
   public OgpInHousePaymentRespVO transferInHouse(TransferKasproBankReqVO vo){
-    TransactionHistoryStaging thSTG=thSTGRepo.findByTID(vo.getTid(),"BNI");
+    TransactionHistoryStaging thSTG=thSTGRepo.findOtherBank(vo.getTid());
     TransactionHistory th = new TransactionHistory();
     if(thSTG==null){
       throw new NostraException(vo.getTid()+" Transaction ID is not found",StatusCode.DATA_NOT_FOUND);
@@ -703,7 +719,7 @@ public class TransferService {
         th.setStatus("Error");
         th.setRemark("Exception during transfer to Destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
         thRepo.save(th);
-        throw new NostraException(vo.getTid()+" Exception during transfer to Destination account",StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Destination account.",StatusCode.ERROR);
       }
     }
 
@@ -980,7 +996,7 @@ public class TransferService {
     reqVo.setAccountNo(va.getVa());
     OgpBalanceRespVO result = ogpService.balance(reqVo);
     if(!result.getGetBalanceResponse().getParameters().getResponseCode().equalsIgnoreCase("0001")){
-      throw new NostraException(result.getGetBalanceResponse().getParameters().getResponseCode()+" : "+result.getGetBalanceResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      throw new NostraException("Error during get balance : "+result.getGetBalanceResponse().getParameters().getResponseCode()+" : "+result.getGetBalanceResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
     }else {
       return result;
     }
@@ -1104,7 +1120,7 @@ public class TransferService {
         }
       }
     }else {
-      OgpInHousePaymentRespVO resVO=this.transferKasproBank(reqVO);
+      OgpInHousePaymentRespVO resVO=this.transferInHouse(reqVO);
       result.setReffId(resVO.getDoPaymentResponse().getParameters().getCustomerReference());
       if(!resVO.getDoPaymentResponse().getParameters().getResponseCode().equalsIgnoreCase("0001")){
         throw new NostraException(resVO.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);

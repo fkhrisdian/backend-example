@@ -2,6 +2,7 @@ package com.kaspro.bank.controller;
 
 import com.kaspro.bank.persistance.domain.KasprobankConfig;
 import com.kaspro.bank.services.InitConfigService;
+import com.kaspro.bank.services.OGPEncryptionService;
 import com.kaspro.bank.util.InitDB;
 import com.kaspro.bank.util.InitDBHandler;
 import com.kaspro.bank.vo.ResultVO;
@@ -22,6 +23,9 @@ public class InitConfigController {
 
     @Autowired
     private InitConfigService initConfigService;
+
+    @Autowired
+    private OGPEncryptionService ogpService;
 
     @PostMapping(value = "/KasprobankConfig", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public KasprobankConfig add(@RequestBody KasprobankConfig input){
@@ -106,5 +110,13 @@ public class InitConfigController {
     @PostMapping(value = "/api/v1/KasprobankConfig/Update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public KasprobankConfig update(@RequestBody KasprobankConfig input){
         return initConfigService.update(input);
+    }
+
+    @PostMapping(value = "/api/v1/KasprobankConfig/CertificateUpload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = "application/json")
+    public ResponseEntity saveUsers(@RequestParam(value = "files") MultipartFile[] files) throws Exception {
+        for (MultipartFile file : files) {
+            ogpService.uploadCertificate(file);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

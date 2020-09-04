@@ -15,4 +15,7 @@ public interface KasproBankConfigRepository extends JpaRepository<KasprobankConf
 
   @Query(value = "select * FROM kasprobank.KASPROBANKAPP_CONFIG k WHERE k.param_name LIKE :prefix%", nativeQuery = true)
   List<KasprobankConfig> selectByPrefix(String prefix);
+
+  @Query(value = "select * FROM kasprobank.KASPROBANKAPP_CONFIG k WHERE k.param_name=?1", nativeQuery = true)
+  KasprobankConfig selectByParamName(String name);
 }

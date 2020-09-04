@@ -23,4 +23,8 @@ public interface TransactionHistoryStagingRepository extends BaseRepository<Tran
     @Query(value="SELECT * FROM kasprobank.TRANSACTION_HISTORY_STG where sender_id=?1 limit 1",
             nativeQuery = true)
     TransactionHistoryStaging findBySenderId(String id);
+
+    @Query(value = "SELECT * FROM kasprobank.TRANSACTION_HISTORY_STG where DATE_CREATED<=NOW() - INTERVAL :timeout minute AND SENDER_ID=:id limit 1;",
+            nativeQuery = true)
+    TransactionHistoryStaging findTimeout(String id, String timeout);
 }

@@ -44,6 +44,11 @@ public class InitConfigService {
         return saved;
     }
 
+    public KasprobankConfig getByName (String name){
+        KasprobankConfig kasprobankConfig=kasproBankConfigRepository.selectByParamName(name);
+        return kasprobankConfig;
+    }
+
     public KasprobankConfig detail(int id) {
         return kasproBankConfigRepository.findById(id).get();
     }

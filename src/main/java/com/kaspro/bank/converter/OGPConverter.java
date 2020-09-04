@@ -117,6 +117,8 @@ public class OGPConverter {
     th.setSenderId(thSTG.getSenderId());
     th.setMsisdn(thSTG.getMsisdn());
     th.setPartnerName(thSTG.getPartnerName());
+    th.setSender(thSTG.getSender());
+    th.setDest(thSTG.getDest());
 
     return th;
   }
