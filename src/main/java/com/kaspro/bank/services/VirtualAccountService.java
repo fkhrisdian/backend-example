@@ -495,6 +495,15 @@ public class VirtualAccountService {
         th.setStatus("Success");
         th.setSku("BNINOTIFICATION");
         th.setRemark(notif.getDatetime_payment_iso8601());
+        th.setPaymentNtb(notif.getPayment_ntb());
+        th.setDest(notif.getVirtual_account());
+
+        try {
+            java.util.Date createdDate = new SimpleDateFormat("yyyyy-MM-dd HH:mm:ss").parse(notif.getDatetime_payment());
+            th.setCreationDate(createdDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         try {
             tRepo.save(th);

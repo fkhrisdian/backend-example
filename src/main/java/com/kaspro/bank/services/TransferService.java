@@ -611,7 +611,10 @@ public class TransferService {
       th.setStatus("Error");
       th.setRemark("Exception during transfer to escrow account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
       thRepo.saveAndFlush(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account",StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+    }else {
+      th.setBankRef(resIHPEscrow.getDoPaymentResponse().getParameters().getBankReference());
+      th.setCustRef(th.getTid());
     }
 
     logger.info(vo.getTid()+" Starting transfer to destination account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
@@ -638,7 +641,10 @@ public class TransferService {
       ihpVORollback.setRemark("Rollback Transfer");
       OgpInHousePaymentRespVO resIHPRollback=inHousePayment(ihpVORollback);
       logger.info(vo.getTid()+" Finished Rollingback transfer with response: "+resIHPRollback);
-      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account",StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+    }else {
+      th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getBankReference());
+      th.setCustRef(th.getTid());
     }
 
     th.setStatus("Success");
@@ -704,7 +710,9 @@ public class TransferService {
         th.setStatus("Error");
         th.setRemark("Exception during transfer to destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
         thRepo.save(th);
-        throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" Exception during transfer to destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      }else {
+        th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getBankReference());
       }
     }else{
       logger.info(vo.getTid()+" Starting transfer to destiantion account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
@@ -722,7 +730,10 @@ public class TransferService {
         th.setStatus("Error");
         th.setRemark("Exception during transfer to Destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
         thRepo.save(th);
-        throw new NostraException(vo.getTid()+" Exception during transfer to Destination account.",StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Destination account."+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      }else {
+        th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getBankReference());
+        th.setCustRef(th.getTid());
       }
     }
 
@@ -749,12 +760,18 @@ public class TransferService {
     th.setRemark("Success");
     thRepo.save(th);
 
-    VirtualAccount vaSource=new VirtualAccount();
-    vaSource=vaRepo.findByVA(th.getDebitAcc());
-    UsageAccumulator ua = uaRepo.findByOwnerIDAndDest(vaSource.getOwnerID(),"BNI");
-    Long usage =Long.parseLong(ua.getUsage())+Long.parseLong(th.getAmount());
-    ua.setUsage(usage.toString());
-    uaRepo.save(ua);
+    VirtualAccount vaSource=vaRepo.findByVA(th.getDebitAcc());
+    if(th.getSku().equalsIgnoreCase("BNI")){
+      UsageAccumulator ua = uaRepo.findByOwnerIDAndDest(vaSource.getOwnerID(),"BNI");
+      Long usage =Long.parseLong(ua.getUsage())+Long.parseLong(th.getAmount());
+      ua.setUsage(usage.toString());
+      uaRepo.save(ua);
+    }else {
+      UsageAccumulator ua = uaRepo.findByOwnerIDAndDest(vaSource.getOwnerID(),"OtherBank");
+      Long usage =Long.parseLong(ua.getUsage())+Long.parseLong(th.getAmount());
+      ua.setUsage(usage.toString());
+      uaRepo.save(ua);
+    }
 
     TransferKasproBankResVO resVO=new TransferKasproBankResVO();
     resVO.setAdminFee(th.getAdminFee());
@@ -807,7 +824,10 @@ public class TransferService {
       th.setStatus("Error");
       th.setRemark("Exception during transfer to Destination account. "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage());
       thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to Destination account",StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to Destination account. "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+    }else {
+      th.setBankRef(ibpResVO.getGetInterbankPaymentResponse().getParameters().getRetrievalReffNum());
+      th.setCustRef(th.getTid());
     }
 
     if(!th.getAdminFee().equals("0")){
@@ -853,7 +873,6 @@ public class TransferService {
 
   }
 
-  @Transactional
   public OgpInHousePaymentRespVO transferKaspro(TransferKasproBankReqVO vo){
     TransactionHistoryStaging thSTG=thSTGRepo.findByTID(vo.getTid(),"Kaspro");
     TransactionHistory th = new TransactionHistory();
@@ -892,7 +911,10 @@ public class TransferService {
       th.setStatus("Error");
       th.setRemark("Exception during transfer to destination account. "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage());
       thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to destination account",StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to destination account. "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+    }else {
+      th.setBankRef(resIHPCustodian.getDoPaymentResponse().getParameters().getBankReference());
+      th.setCustRef(th.getTid());
     }
 
     logger.info(vo.getTid()+" Start doing Cash In");

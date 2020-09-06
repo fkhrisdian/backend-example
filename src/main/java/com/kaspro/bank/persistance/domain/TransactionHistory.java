@@ -87,4 +87,7 @@ public class TransactionHistory extends Base{
     @Column(name = "DESTINATION")
     private String dest;
 
+    @Column(name = "PAYMENT_NTB")
+    private String paymentNtb;
+
 }
