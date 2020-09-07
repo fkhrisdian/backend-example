@@ -111,6 +111,7 @@ public class VirtualAccountService {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         VirtualAccount savedVA = new VirtualAccount();
         InitDB x  = InitDB.getInstance();
+        String namePrefix = x.get("VA.Name.Prefix");
         String result = x.get("VA.Prefix");
         String endDate = x.get("VA.EndDate");
         String vaNumber ="";
@@ -142,7 +143,7 @@ public class VirtualAccountService {
         String cid = x.get("VA.ClientID");
         createVAVO.setClient_id(cid);
         createVAVO.setCustomer_email(pic.getEmail());
-        createVAVO.setCustomer_name(pm.getName());
+        createVAVO.setCustomer_name(namePrefix+" "+pm.getName());
         createVAVO.setCustomer_phone(pic.getMsisdn());
         createVAVO.setDatetime_expired(endDate+"T00:00:00+07:00");
         createVAVO.setTrx_amount("0");
@@ -199,6 +200,8 @@ public class VirtualAccountService {
     @Transactional
     public void updateVAInfo(UpdateVAVO vo){
         InitDB x = InitDB.getInstance();
+        String namePrefix = x.get("VA.Name.Prefix");
+        vo.setCustomer_name(namePrefix+" "+vo.getCustomer_name());
         String url = x.get("URL.Ecollection");
         ObjectMapper obj = new ObjectMapper();
         String inputString="";
@@ -333,6 +336,7 @@ public class VirtualAccountService {
 //            e.printStackTrace();
 //        }
         InitDB x = InitDB.getInstance();
+        String namePrefix = x.get("VA.Name.Prefix");
         String url = x.get("URL.Ecollection");
 
         List<String> listMsisdn=vaRepository.findMsisdn(individual.getMsisdn());
@@ -375,7 +379,7 @@ public class VirtualAccountService {
         String cid = x.get("VA.ClientID");
         createVAVO.setClient_id(cid);
         createVAVO.setCustomer_email(individual.getEmail());
-        createVAVO.setCustomer_name(individual.getName());
+        createVAVO.setCustomer_name(namePrefix+" "+individual.getName());
         createVAVO.setCustomer_phone(individual.getMsisdn());
         createVAVO.setDatetime_expired(endDate+"T00:00:00+07:00");
         createVAVO.setTrx_amount("0");

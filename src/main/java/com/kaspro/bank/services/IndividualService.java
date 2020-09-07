@@ -101,6 +101,7 @@ public class IndividualService {
     @Transactional
     public IndividualRegistrationVO update(IndividualRegistrationVO individualVO){
         InitDB initDB=InitDB.getInstance();
+        String namePrefix = initDB.get("VA.Name.Prefix");
         ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(individualVO.getIndividual().getMsisdn());
         String msisdn=msisdnSource.getValue();
         Individual vo=individualVO.getIndividual();
@@ -273,6 +274,7 @@ public class IndividualService {
     @Transactional
     public IndividualRegistrationVO update2(IndividualUpdateVO vo){
         InitDB initDB=InitDB.getInstance();
+        String namePrefix = initDB.get("VA.Name.Prefix");
         ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(vo.getMsisdn());
         String msisdn=msisdnSource.getValue();
         vo.setMsisdn(msisdn);

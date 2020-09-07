@@ -212,6 +212,7 @@ public class PartnerMemberService {
     public RegisterPartnerMemberVO update(RegisterPartnerMemberVO vo){
 
         InitDB initDB=InitDB.getInstance();
+        String namePrefix = initDB.get("VA.Name.Prefix");
         List<PartnerMember> pms=pmRepository.findListPartnerMember(vo.getPartnerMember().getId());
         if(pms.size()==0){
             throw new NostraException("Partner Member does not exist",StatusCode.DATA_NOT_FOUND);
