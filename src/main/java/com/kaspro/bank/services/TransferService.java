@@ -187,6 +187,7 @@ public class TransferService {
         }
         th.setDebitName(iVOSource.getIndividual().getName());
         th.setAccType("I");
+        vo.setSourceType("I");
         th.setSenderId(iVOSource.getIndividual().getId().toString());
         vo.setSourceName(iVOSource.getIndividual().getName());
         th.setMsisdn(iVOSource.getIndividual().getMsisdn());
@@ -208,6 +209,7 @@ public class TransferService {
         th.setPartnerName(pVOSource.getPartner().getName());
         th.setSenderId(pmVOSource.getPartnerMember().getId().toString());
         th.setAccType("CPM");
+        vo.setSourceType("CPM");
         vo.setSourceName(pmVOSource.getPartnerMember().getName());
         for(TransferInfoMember tim:pmVOSource.getListTransferInfoMember()){
           if(tim.getName().equals("TierLimit")){

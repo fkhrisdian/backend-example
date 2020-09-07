@@ -13,4 +13,5 @@ public class InquiryKasproBankResVO {
     private String adminFee;
     private String interBankFee;
     private String totalAmount;
+    private String sourceType;
 }

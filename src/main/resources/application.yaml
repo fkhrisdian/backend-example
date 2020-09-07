@@ -2,6 +2,11 @@ spring:
   datasource:
     #url: jdbc:mysql://192.168.73.23:3306/kasprobank?useSSL=false
     url: jdbc:mysql://localhost:3307/kasprobank?useSSL=false
+    #Prod
+    #url: jdbc:mysql://dabdb-pub.mysql.ap-southeast-5.rds.aliyuncs.com/kasprobankdb1?useSSL=false
+    #prod
+    #username: bankadm
+    #password: B@nk-PRO1
     username: devuser
     password: Kokas2020!#
     driver-class-name: com.mysql.jdbc.Driver
