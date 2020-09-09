@@ -8,6 +8,7 @@ public class OgpInterBankInquiryRespVO {
 
   @Data
   public static class InquiryResponse {
+    private String clientId;
     private Parameter parameters;
 
     @Data
@@ -18,6 +19,7 @@ public class OgpInterBankInquiryRespVO {
       private String destinationAccountNum;
       private String destinationBankName;
       private String retrievalReffNum;
+      private String responseTimestamp;
     }
   }
 

@@ -611,11 +611,11 @@ public class TransferService {
     logger.info(vo.getTid()+" Finished transfer to escrow account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
     if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
       th.setStatus("Error");
-      th.setRemark("Exception during transfer to escrow account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+      th.setRemark("Exception during transfer to escrow account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPEscrow.getDoPaymentResponse().getParameters().getErrorMessage());
       thRepo.saveAndFlush(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPEscrow.getDoPaymentResponse().getParameters().getErrorMessage(), StatusCode.ERROR);
     }else {
-      th.setBankRef(resIHPEscrow.getDoPaymentResponse().getParameters().getBankReference());
+      th.setBankRef(resIHPEscrow.getDoPaymentResponse().getParameters().getCustomerReference());
       th.setCustRef(th.getTid());
     }
 
@@ -631,7 +631,7 @@ public class TransferService {
     logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
     if(!resIHPDest.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
       th.setStatus("Error");
-      th.setRemark("Exception during transfer to credit account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
+      th.setRemark("Exception during transfer to credit account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPDest.getDoPaymentResponse().getParameters().getErrorMessage());
       thRepo.saveAndFlush(th);
       logger.info(vo.getTid()+" Rollingback transfer start");
       InHousePaymentVO ihpVORollback=new InHousePaymentVO();
@@ -643,9 +643,9 @@ public class TransferService {
       ihpVORollback.setRemark("Rollback Transfer");
       OgpInHousePaymentRespVO resIHPRollback=inHousePayment(ihpVORollback);
       logger.info(vo.getTid()+" Finished Rollingback transfer with response: "+resIHPRollback);
-      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to escrow account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPDest.getDoPaymentResponse().getParameters().getErrorMessage(),StatusCode.ERROR);
     }else {
-      th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getBankReference());
+      th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getCustomerReference());
       th.setCustRef(th.getTid());
     }
 
@@ -710,11 +710,11 @@ public class TransferService {
       logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
       if(!resIHPDest.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
         th.setStatus("Error");
-        th.setRemark("Exception during transfer to destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
+        th.setRemark("Exception during transfer to destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPDest.getDoPaymentResponse().getParameters().getErrorMessage());
         thRepo.save(th);
-        throw new NostraException(vo.getTid()+" Exception during transfer to destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" Exception during transfer to destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPDest.getDoPaymentResponse().getParameters().getErrorMessage(),StatusCode.ERROR);
       }else {
-        th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getBankReference());
+        th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getCustomerReference());
       }
     }else{
       logger.info(vo.getTid()+" Starting transfer to destiantion account: "+th.getCreditAcc()+" with amount: "+th.getAmount());
@@ -730,11 +730,11 @@ public class TransferService {
       logger.info(vo.getTid()+" Finished transfer to destination account with response: "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
       if(!resIHPDest.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
         th.setStatus("Error");
-        th.setRemark("Exception during transfer to Destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage());
+        th.setRemark("Exception during transfer to Destination account. "+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPDest.getDoPaymentResponse().getParameters().getErrorMessage());
         thRepo.save(th);
-        throw new NostraException(vo.getTid()+" Exception during transfer to Destination account."+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Destination account."+resIHPDest.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPDest.getDoPaymentResponse().getParameters().getErrorMessage(),StatusCode.ERROR);
       }else {
-        th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getBankReference());
+        th.setBankRef(resIHPDest.getDoPaymentResponse().getParameters().getCustomerReference());
         th.setCustRef(th.getTid());
       }
     }
@@ -752,9 +752,9 @@ public class TransferService {
       logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
       if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
         th.setStatus("Error");
-        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPEscrow.getDoPaymentResponse().getParameters().getErrorMessage());
         thRepo.save(th);
-        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getErrorMessage(),StatusCode.ERROR);
       }
     }
 
@@ -824,11 +824,11 @@ public class TransferService {
     logger.info(vo.getTid()+" Finished transfer to destination account with response: "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage());
     if(!ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseCode().equals("0001")){
       th.setStatus("Error");
-      th.setRemark("Exception during transfer to Destination account. "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage());
+      th.setRemark("Exception during transfer to Destination account. "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage()+". "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getErrorMessage());
       thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to Destination account. "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to Destination account. "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage()+". "+ibpResVO.getGetInterbankPaymentResponse().getParameters().getErrorMessage(),StatusCode.ERROR);
     }else {
-      th.setBankRef(ibpResVO.getGetInterbankPaymentResponse().getParameters().getRetrievalReffNum());
+      th.setBankRef(ibpResVO.getGetInterbankPaymentResponse().getParameters().getCustomerReffNum());
       th.setCustRef(th.getTid());
     }
 
@@ -845,9 +845,9 @@ public class TransferService {
       logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
       if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
         th.setStatus("Error");
-        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPEscrow.getDoPaymentResponse().getParameters().getErrorMessage());
         thRepo.save(th);
-        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getErrorMessage(),StatusCode.ERROR);
       }
     }
 
@@ -911,11 +911,11 @@ public class TransferService {
     logger.info(vo.getTid()+" Finished transfer to custodian account with response: "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage());
     if(!resIHPCustodian.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
       th.setStatus("Error");
-      th.setRemark("Exception during transfer to destination account. "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage());
+      th.setRemark("Exception during transfer to destination account. "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPCustodian.getDoPaymentResponse().getParameters().getErrorMessage());
       thRepo.save(th);
-      throw new NostraException(vo.getTid()+" Exception during transfer to destination account. "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      throw new NostraException(vo.getTid()+" Exception during transfer to destination account. "+resIHPCustodian.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPCustodian.getDoPaymentResponse().getParameters().getErrorMessage(),StatusCode.ERROR);
     }else {
-      th.setBankRef(resIHPCustodian.getDoPaymentResponse().getParameters().getBankReference());
+      th.setBankRef(resIHPCustodian.getDoPaymentResponse().getParameters().getCustomerReference());
       th.setCustRef(th.getTid());
     }
 
@@ -965,9 +965,9 @@ public class TransferService {
       logger.info(vo.getTid()+" Finished transfer to Fee account with response: "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
       if(!resIHPEscrow.getDoPaymentResponse().getParameters().getResponseCode().equals("0001")){
         th.setStatus("Error");
-        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage());
+        th.setRemark("Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getResponseMessage()+". "+resIHPEscrow.getDoPaymentResponse().getParameters().getErrorMessage());
         thRepo.save(th);
-        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account",StatusCode.ERROR);
+        throw new NostraException(vo.getTid()+" Exception during transfer to Fee account. "+resIHPEscrow.getDoPaymentResponse().getParameters().getErrorMessage(),StatusCode.ERROR);
       }
     }
 
@@ -1141,7 +1141,7 @@ public class TransferService {
         }
       }else {
         OgpInterBankPaymentRespVO resVO = this.transferInterBank(reqVO);
-        result.setReffId(resVO.getGetInterbankPaymentResponse().getParameters().getRetrievalReffNum());
+        result.setReffId(resVO.getGetInterbankPaymentResponse().getParameters().getCustomerReffNum());
         if(!resVO.getGetInterbankPaymentResponse().getParameters().getResponseCode().equalsIgnoreCase("0001")){
           throw new NostraException(resVO.getGetInterbankPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
         }

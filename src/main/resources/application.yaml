@@ -3,7 +3,7 @@ spring:
     #url: jdbc:mysql://192.168.73.23:3306/kasprobank?useSSL=false
     url: jdbc:mysql://localhost:3307/kasprobank?useSSL=false
     #Prod
-    #url: jdbc:mysql://dabdb-pub.mysql.ap-southeast-5.rds.aliyuncs.com/kasprobankdb1?useSSL=false
+    #url: jdbc:mysql://dabdb-pub.mysql.ap-southeast-5.rds.aliyuncs.com:6033/kasprobank?useSSL=false
     #prod
     #username: bankadm
     #password: B@nk-PRO1
@@ -14,9 +14,10 @@ spring:
     hikari:
       connectionTestQuery: SELECT 1
       connectionTimeout: 6000
-      idleTimeout: 600000
+      idleTimeout: 0
       maxLifetime: 1800000
-      maximumPoolSize: 20
+      maximumPoolSize: 10
+      minimumIdle : 5
   messages:
     basename: messages/messages
   jpa:

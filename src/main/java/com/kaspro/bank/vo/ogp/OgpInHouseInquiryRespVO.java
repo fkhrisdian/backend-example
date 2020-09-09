@@ -8,6 +8,7 @@ public class OgpInHouseInquiryRespVO {
 
   @Data
   public static class InquiryResponse {
+    private String clientId;
     private Parameter parameters;
 
     @Data
@@ -19,6 +20,7 @@ public class OgpInHouseInquiryRespVO {
       private String accountNumber;
       private String accountStatus;
       private String accountType;
+      private String responseTimestamp;
     }
   }
 }
