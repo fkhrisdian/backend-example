@@ -245,15 +245,21 @@ public class TransferService {
             throw new NostraException("Destination account is not active",StatusCode.ERROR);
           }
           th.setDebitName(iVo.getIndividual().getName());
+          vo.setDestinationName(iVo.getIndividual().getName());
+          th.setCreditName(iVo.getIndividual().getName());
         }
       }else{
         va=vaRepo.findCorporate(destination);
+        logger.info(va.toString());
         if(va!=null){
           pmVO = pmService.findDetail(va.getOwnerID());
+          logger.info(pmVO.toString());
           if(!pmVO.getPartnerMember().getStatus().equals("ACTIVE")){
             throw new NostraException("Destination account is not active",StatusCode.ERROR);
           }
           th.setDebitName(pmVOSource.getPartnerMember().getName());
+          vo.setDestinationName(pmVO.getPartnerMember().getName());
+          th.setCreditName(pmVO.getPartnerMember().getName());
         }
       }
       if(va==null) {
@@ -269,8 +275,8 @@ public class TransferService {
           throw new NostraException("Already Cut Off Time",StatusCode.ERROR);
         }
         vo.setDestinationAccount(va.getVa());
-        vo.setDestinationName(pmVO.getPartnerMember().getName());
-        th.setCreditName(pmVO.getPartnerMember().getName());
+
+
         th.setCreditAcc(va.getVa());
       }
     }
@@ -1040,6 +1046,7 @@ public class TransferService {
     }
   }
 
+  @Transactional
   public OgpInHousePaymentRespVO k2kbPaymentInhouse(K2KBPaymentInhouseReqVO vo){
     OgpInHousePaymentRespVO result = new OgpInHousePaymentRespVO();
     String sku="";
@@ -1049,8 +1056,16 @@ public class TransferService {
     if (vo.getBankCode()==null||vo.getBankCode().equals("009")){
       if(vo.getDestAcc().startsWith("8945")||vo.getDestAcc().startsWith("8513")){
         sku="KasproBank";
+        if(vo.getDestAcc().startsWith("8945")){
+          vo.setDestAcc(vo.getDestAcc().substring(4));
+          vo.setDestAcc("0"+rmLeadingZeros(vo.getDestAcc()));
+          log.info("Destination : "+vo.getDestAcc());
+        }
       }else if(vo.getDestAcc().startsWith("8693")){
         sku="Kaspro";
+        vo.setDestAcc(vo.getDestAcc().substring(4));
+        vo.setDestAcc("0"+rmLeadingZeros(vo.getDestAcc()));
+        log.info("Destination : "+vo.getDestAcc());
       }else{
         sku="BNI";
       }
@@ -1092,6 +1107,8 @@ public class TransferService {
   }
 
   public OgpInterBankPaymentRespVO k2kbPaymentInterBank(K2KBPaymentInterBankReqVO vo){
+    log.info("Starting Interbank Payment");
+    log.info(vo.toString());
     InitDB initDB=InitDB.getInstance();
     String sku = initDB.get("SKU.Code."+vo.getBankCode());
     if(sku.equals("")||sku==null){
@@ -1099,17 +1116,64 @@ public class TransferService {
     }
 
     OgpInterBankPaymentRespVO result = new OgpInterBankPaymentRespVO();
-    ValidateMSISDNVO msisdnSource=rcService.validateMsisdn(vo.getMsisdn());
-    ValidateMSISDNVO msisdnDest=rcService.validateMsisdn(vo.getDestAcc());
 
-    InquiryKasproBankResVO inquiryRes = this.kasproBankInquiry(msisdnSource.getValue(), msisdnDest.getValue(), sku, vo.getAmount(), "ONLINE", "OUR", false);
-    TransferKasproBankReqVO transferReq=new TransferKasproBankReqVO();
-    transferReq.setRemark(vo.getRemark());
-    transferReq.setTid(inquiryRes.getTid());
-    result=this.transferInterBank(transferReq);
+    if(vo.getBankCode().equalsIgnoreCase("022") && vo.getDestAcc().startsWith("3929")){
+      log.info("This is Kaspro Account");
+      vo.setDestAcc(vo.getDestAcc().substring(4));
+      vo.setDestAcc("0"+rmLeadingZeros(vo.getDestAcc()));
+      log.info("Destination : "+vo.getDestAcc());
 
-    if(!result.getGetInterbankPaymentResponse().getParameters().getResponseCode().equalsIgnoreCase("0001")){
-      throw new NostraException(result.getGetInterbankPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      ValidateMSISDNVO msisdnSource=rcService.validateMsisdn(vo.getMsisdn());
+
+      InquiryKasproBankResVO inquiryRes = kasproBankInquiry(msisdnSource.getValue(), vo.getDestAcc(), "Kaspro", vo.getAmount(), "online", "OUR", false);
+      log.info("Inquiry Kaspro Result : "+inquiryRes.toString());
+      if(inquiryRes.getTid()==null){
+        throw new NostraException("Inquiry Kaspro Failed", StatusCode.ERROR);
+      }
+
+      TransferKasproBankReqVO transferReq=new TransferKasproBankReqVO();
+      transferReq.setRemark(vo.getRemark());
+      transferReq.setTid(inquiryRes.getTid());
+
+      OgpInHousePaymentRespVO resp =transferKaspro(transferReq);
+      log.info("Transfer Kaspro Result : "+resp.toString());
+
+      OgpInterBankPaymentRespVO.PaymentResponse.Parameter parameter = new OgpInterBankPaymentRespVO.PaymentResponse.Parameter();
+      parameter.setAccountName(vo.getFormName());
+      parameter.setCustomerReffNum(resp.getDoPaymentResponse().getParameters().getCustomerReference());
+      parameter.setDestinationAccountName(vo.getName());
+      parameter.setDestinationAccountNum(resp.getDoPaymentResponse().getParameters().getCreditAccountNo());
+      parameter.setErrorMessage(resp.getDoPaymentResponse().getParameters().getErrorMessage());
+      parameter.setResponseCode(resp.getDoPaymentResponse().getParameters().getResponseCode());
+      parameter.setResponseMessage(resp.getDoPaymentResponse().getParameters().getResponseMessage());
+      parameter.setResponseTimestamp(resp.getDoPaymentResponse().getParameters().getResponseTimestamp());
+
+      OgpInterBankPaymentRespVO.PaymentResponse paymentResponse = new OgpInterBankPaymentRespVO.PaymentResponse();
+      paymentResponse.setParameters(parameter);
+      paymentResponse.setClientId(resp.getDoPaymentResponse().getClientId());
+
+      result.setGetInterbankPaymentResponse(paymentResponse);
+      if(!result.getGetInterbankPaymentResponse().getParameters().getResponseCode().equalsIgnoreCase("0001")){
+        throw new NostraException(result.getGetInterbankPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      }
+
+    }else {
+      log.info("Account is other bank");
+      ValidateMSISDNVO msisdnSource=rcService.validateMsisdn(vo.getMsisdn());
+      ValidateMSISDNVO msisdnDest=rcService.validateMsisdn(vo.getDestAcc());
+
+      InquiryKasproBankResVO inquiryRes = kasproBankInquiry(msisdnSource.getValue(), msisdnDest.getValue(), sku, vo.getAmount(), "ONLINE", "OUR", false);
+      log.info("Inquiry Other Bank Result : "+inquiryRes.toString());
+
+      TransferKasproBankReqVO transferReq=new TransferKasproBankReqVO();
+      transferReq.setRemark(vo.getRemark());
+      transferReq.setTid(inquiryRes.getTid());
+      result=this.transferInterBank(transferReq);
+      log.info("Transfer Other Bank Result : "+inquiryRes.toString());
+
+      if(!result.getGetInterbankPaymentResponse().getParameters().getResponseCode().equalsIgnoreCase("0001")){
+        throw new NostraException(result.getGetInterbankPaymentResponse().getParameters().getResponseMessage(),StatusCode.ERROR);
+      }
     }
 
     return result;
@@ -1221,4 +1285,7 @@ public class TransferService {
     uaRepo.resetUsage();
   }
 
+  public String rmLeadingZeros(String str){
+    return str.replaceFirst("^0+(?!$)", "");
+  }
 }

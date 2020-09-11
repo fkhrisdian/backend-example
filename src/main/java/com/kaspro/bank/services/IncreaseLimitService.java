@@ -44,6 +44,7 @@ public class IncreaseLimitService {
     public IncreaseLimit add(IncreaseLimitVO vo){
         InitDB x = InitDB.getInstance();
         String email=x.get("Email.Authorized");
+        String email2=x.get("Email.Authorized2");
         String link=x.get("URL.IncreaseLimit");
         IncreaseLimit increaseLimit=new IncreaseLimit();
 
@@ -89,6 +90,7 @@ public class IncreaseLimitService {
         model.put("partnerMember",partnerMember.getName());
         model.put("link",link+""+saved.getId());
         emailUtil.sendEmail2(email,partnerMember.getName()+" Increase Daily Limit Request", "IncreaseDailyLimit.ftl",model);
+        emailUtil.sendEmail2(email2,partnerMember.getName()+" Increase Daily Limit Request", "IncreaseDailyLimit.ftl",model);
 
         return saved;
     }

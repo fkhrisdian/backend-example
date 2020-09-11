@@ -14,10 +14,10 @@ spring:
     hikari:
       connectionTestQuery: SELECT 1
       connectionTimeout: 6000
-      idleTimeout: 0
-      maxLifetime: 1800000
-      maximumPoolSize: 10
-      minimumIdle : 5
+      idleTimeout: 20000
+      maxLifetime: 30000
+      maximumPoolSize: 5
+      minimumIdle : 3
   messages:
     basename: messages/messages
   jpa:

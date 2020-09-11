@@ -8,7 +8,11 @@ import java.util.concurrent.CompletableFuture;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import com.kaspro.bank.KasproBankApplication;
 import com.kaspro.bank.persistance.domain.BlacklistMsisdn;
+import com.kaspro.bank.util.InitDB;
+import freemarker.template.Version;
+import javafx.application.Application;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +33,16 @@ public class EmailUtil {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    @Autowired
-    private Configuration config;
-
     Logger logger = LoggerFactory.getLogger(BlacklistMsisdn.class);
 
     @Async
     public CompletableFuture<String> sendEmail2 (String to, String subject, String template, Map<String, Object> model) {
         MimeMessage message = javaMailSender.createMimeMessage();
+        InitDB initDB=InitDB.getInstance();
+        String sender=initDB.get("Default.Email.Sender");
         try {
+            Configuration config = new Configuration(new Version(2, 3, 23));
+            config.setClassForTemplateLoading(KasproBankApplication.class, "/templates");
             // set mediaType
             MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
                     StandardCharsets.UTF_8.name());
@@ -49,7 +54,8 @@ public class EmailUtil {
             helper.setTo(to);
             helper.setText(html, true);
             helper.setSubject(subject);
-            helper.setFrom("kasprobank@kaspro.id");
+            helper.setFrom(sender);
+//            helper.setFrom("kasprobank@kaspro.id");
             javaMailSender.send(message);
 
         } catch (IOException | TemplateException | MessagingException e) {
