@@ -58,6 +58,18 @@ public class OGPConverter {
     request.setRemark(vo.getRemark());
     request.setClientId(ogpClientId);
     request.setSignature(signature);
+    if(vo.getBeneficiaryAddress1()!=null){
+      request.setBeneficiaryAddress1(vo.getBeneficiaryAddress1());
+    }
+    if(vo.getBeneficiaryAddress2()!=null){
+      request.setBeneficiaryAddress2(vo.getBeneficiaryAddress2());
+    }
+    if(vo.getBeneficiaryName()!=null){
+      request.setBeneficiaryName(vo.getBeneficiaryName());
+    }
+    if(vo.getBeneficiaryEmailAddress()!=null){
+      request.setBeneficiaryEmailAddress(vo.getBeneficiaryEmailAddress());
+    }
     if(!vo.getPaymentMethod().equals("0")){
       request.setDestinationBankCode(vo.getDestinationBankCode());
     }
@@ -119,7 +131,9 @@ public class OGPConverter {
     th.setPartnerName(thSTG.getPartnerName());
     th.setSender(thSTG.getSender());
     th.setDest(thSTG.getDest());
-
+    th.setEmail(thSTG.getEmail());
+    th.setAddress1(thSTG.getAddress1());
+    th.setAddress2(thSTG.getAddress2());
     return th;
   }
 }

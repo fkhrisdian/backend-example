@@ -54,6 +54,8 @@ public class IndividualService {
 
     @Transactional
     public IndividualRegistrationVO registerIndividual(IndividualRegistrationVO vo){
+        InitDB initDB=InitDB.getInstance();
+        String namePrefix = initDB.get("VA.Name.Prefix");
         ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(vo.getIndividual().getMsisdn());
         String msisdn=msisdnSource.getValue();
         Individual existingIndividual=iRepo.findByMsisdn(msisdn);
@@ -63,6 +65,7 @@ public class IndividualService {
         Individual individual=vo.getIndividual();
         individual.setMsisdn(msisdn);
         individual.setStatus("ACTIVE");
+        individual.setName(namePrefix+" "+individual.getName());
         Individual savedIndividual=iRepo.save(individual);
         VirtualAccount va= new VirtualAccount();
 
@@ -435,7 +438,6 @@ public class IndividualService {
         return savedVO;
     }
 
-
     @Transactional
     public IndividualRegistrationVO updateTier(IndividualRegistrationVO individualVO) {
         Individual vo = individualVO.getIndividual();
@@ -482,6 +484,7 @@ public class IndividualService {
     @Transactional
     private IndividualRegistrationVO setIndividualRegistrationVO(IndividualReqVO vo){
         InitDB initDB=InitDB.getInstance();
+        String namePrefix = initDB.get("VA.Name.Prefix");
         IndividualRegistrationVO result = new IndividualRegistrationVO();
         Individual individual=new Individual();
         individual.setTier(initDB.get("Individual.Tier.Default"));
@@ -500,7 +503,7 @@ public class IndividualService {
         individual.setBirth_place(vo.getBirth_place());
         individual.setAddress(vo.getAddress());
         individual.setAdditional_info(vo.getAdditional_info());
-        individual.setName(vo.getName());
+        individual.setName(namePrefix+" "+vo.getName());
         result.setIndividual(individual);
         return result;
     }
@@ -532,6 +535,7 @@ public class IndividualService {
 
     @Transactional
     public IndividualResVO add2(IndividualReqVO vo){
+
 
         IndividualRegistrationVO iVO=this.setIndividualRegistrationVO(vo);
         IndividualRegistrationVO savedIVO=new IndividualRegistrationVO();

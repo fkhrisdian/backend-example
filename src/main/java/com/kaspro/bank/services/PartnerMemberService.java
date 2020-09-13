@@ -105,7 +105,8 @@ public class PartnerMemberService {
 
     @Transactional
     public RegisterPartnerMemberVO add(RegisterPartnerMemberVO vo){
-
+        InitDB initDB=InitDB.getInstance();
+        String namePrefix = initDB.get("VA.Name.Prefix");
 
         Partner partner=partnerRepository.findAlias(vo.getPartnerMember().getPartnerAlias());
         if(partner==null){
@@ -131,6 +132,7 @@ public class PartnerMemberService {
 
         logger.info("Starting insert Partner Member");
         PartnerMember partnerMember =vo.getPartnerMember();
+        partnerMember.setName(namePrefix+" "+partnerMember.getName());
         logger.info("Inserting partner: "+partnerMember.getName());
         partnerMember.setPartner(partner);
         partnerMember.setPartnerMemberCode(pmt.getPartnerMemberCode().toString());

@@ -90,4 +90,12 @@ public class TransactionHistory extends Base{
     @Column(name = "PAYMENT_NTB")
     private String paymentNtb;
 
+    @Column(name = "EMAIL")
+    private String email;
+
+    @Column(name = "ADDRESS1")
+    private String address1;
+
+    @Column(name = "ADDRESS2")
+    private String address2;
 }

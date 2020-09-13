@@ -137,11 +137,14 @@ public class TransferController {
                                                     @RequestParam(value="amount", required = true) String amount,
                                                     @RequestParam(value="paymentMethod", required = true) String paymentMethod,
                                                     @RequestParam(value="chargingModel", required = true) String chargingModel,
+                                                    @RequestParam(value="email", required = false) String email,
+                                                    @RequestParam(value="address1", required = false) String address1,
+                                                    @RequestParam(value="address2", required = false) String address2,
                                                     @RequestParam(value="isAdmin", required = false) Boolean isAdmin) {
     AbstractRequestHandler handler = new AbstractRequestHandler() {
       @Override
       public Object processRequest() {
-        return transferService.kasproBankInquiry(source, destination, sku,amount, paymentMethod, chargingModel,isAdmin);
+        return transferService.kasproBankInquiry(source, destination, sku,amount, paymentMethod, chargingModel,isAdmin, email, address1, address2);
       }
     };
     return handler.getResult();

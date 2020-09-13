@@ -6,4 +6,7 @@ import lombok.Data;
 public class TransferKasproBankReqVO {
     private String tid;
     private String remark;
+    private String beneficiaryEmailAddress;
+    private String beneficiaryAddress1;
+    private String beneficiaryAddress2;
 }
