@@ -134,6 +134,8 @@ public class OGPConverter {
     th.setEmail(thSTG.getEmail());
     th.setAddress1(thSTG.getAddress1());
     th.setAddress2(thSTG.getAddress2());
+    th.setDatetimeISO(thSTG.getDatetimeISO());
+    th.setPaymentAmount(thSTG.getPaymentAmount());
     return th;
   }
 }

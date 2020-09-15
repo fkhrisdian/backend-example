@@ -98,4 +98,10 @@ public class TransactionHistory extends Base{
 
     @Column(name = "ADDRESS2")
     private String address2;
+
+    @Column(name = "DATETIME_ISO")
+    private String datetimeISO;
+
+    @Column(name = "PAYMENT_AMOUNT")
+    private String paymentAmount;
 }

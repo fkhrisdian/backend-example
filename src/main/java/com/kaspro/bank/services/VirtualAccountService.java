@@ -495,7 +495,8 @@ public class VirtualAccountService {
         th.setTotalAmount(notif.getCumulative_payment_amount());
         th.setStatus("Success");
         th.setSku("BNINOTIFICATION");
-        th.setRemark(notif.getDatetime_payment_iso8601());
+        th.setDatetimeISO(notif.getDatetime_payment_iso8601());
+        th.setPaymentAmount(notif.getPayment_amount());
         th.setPaymentNtb(notif.getPayment_ntb());
         th.setDest(notif.getVirtual_account());
 

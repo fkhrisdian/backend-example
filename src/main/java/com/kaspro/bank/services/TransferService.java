@@ -356,9 +356,6 @@ public class TransferService {
           }
         }
       }else{
-        if(paymentMethod.equalsIgnoreCase("ONLINE")){
-          throw new NostraException("Transfer to Other Bank can only with RTGS/Kliring method", StatusCode.ERROR);
-        }
         th.setInterBankFee(x.get("InterBank.Fee"));
         InterBankInquiryVO ibiVO=new InterBankInquiryVO();
         tmpSKU="OtherBank";
@@ -367,26 +364,6 @@ public class TransferService {
         bankCodeRTGS=x.get("RTGS.Code."+sku);
 
         int maxChar = Integer.parseInt(x.get("MaxLength.Address"));
-
-        if(address1!=null && !address1.equalsIgnoreCase("")){
-          if(address1.length()>maxChar){
-            throw new NostraException("Address1 max length is "+maxChar, StatusCode.ERROR);
-          }else {
-            th.setAddress1(address1);
-          }
-        }else {
-          throw new NostraException("Address 1 is mandatory for transfer RTGS/Kliring.", StatusCode.ERROR);
-        }
-        if(address2!=null){
-          if(address2.length()>maxChar){
-            throw new NostraException("Address2 max length is "+maxChar, StatusCode.ERROR);
-          }else {
-            th.setAddress2(address2);
-          }
-        }
-        if(email!=null){
-          th.setEmail(email);
-        }
 
         ibiVO.setAccountNo(vaSource.getVa());
         ibiVO.setDestinationAccountNo(destination);
@@ -414,6 +391,25 @@ public class TransferService {
           }
         }else if(paymentMethod.equalsIgnoreCase("RTGS")){
           String type="RTGS";
+          if(address1!=null && !address1.equalsIgnoreCase("")){
+            if(address1.length()>maxChar){
+              throw new NostraException("Address1 max length is "+maxChar, StatusCode.ERROR);
+            }else {
+              th.setAddress1(address1);
+            }
+          }else {
+            throw new NostraException("Address 1 is mandatory for transfer RTGS/Kliring.", StatusCode.ERROR);
+          }
+          if(address2!=null){
+            if(address2.length()>maxChar){
+              throw new NostraException("Address2 max length is "+maxChar, StatusCode.ERROR);
+            }else {
+              th.setAddress2(address2);
+            }
+          }
+          if(email!=null){
+            th.setEmail(email);
+          }
           if(isNotLimit(type,amount)){
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
             String currentTime = sdf.format(new Date());
@@ -425,6 +421,25 @@ public class TransferService {
           }
         }else if(paymentMethod.equalsIgnoreCase("KLIRING")){
           String type="Kliring";
+          if(address1!=null && !address1.equalsIgnoreCase("")){
+            if(address1.length()>maxChar){
+              throw new NostraException("Address1 max length is "+maxChar, StatusCode.ERROR);
+            }else {
+              th.setAddress1(address1);
+            }
+          }else {
+            throw new NostraException("Address 1 is mandatory for transfer RTGS/Kliring.", StatusCode.ERROR);
+          }
+          if(address2!=null){
+            if(address2.length()>maxChar){
+              throw new NostraException("Address2 max length is "+maxChar, StatusCode.ERROR);
+            }else {
+              th.setAddress2(address2);
+            }
+          }
+          if(email!=null){
+            th.setEmail(email);
+          }
           if(isNotLimit(type,amount)){
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
             String currentTime = sdf.format(new Date());
@@ -484,7 +499,9 @@ public class TransferService {
     logger.info("Setting transfer fee end");
 
     TransferLimit tl = tlRepo.findByTierAndDest(tier,tmpSKU);
+    log.info("TL : "+tl.toString());
     UsageAccumulator ua = uaRepo.findByOwnerIDAndDest(vaSource.getOwnerID(),tmpSKU);
+    log.info("UA : "+ua.toString());
     Long usage=Long.parseLong(ua.getUsage())+Long.parseLong(amount);
     Long totalAmount=Long.parseLong(amount)+Long.parseLong(fee)+Long.parseLong(th.getInterBankFee());
 
