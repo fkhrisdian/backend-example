@@ -460,6 +460,7 @@ public class TransferService {
     boolean invoice=false;
 
     if(vaSource.getFlag().equals("I")){
+      th.setFeeMethod("transaction");
       if(sku.equals("KasproBank")){
         fee=x.get("Individual.Fee.KasproBank");
       }else if(sku.equals("Kaspro")){
@@ -473,7 +474,8 @@ public class TransferService {
     else {
       for(TransferInfoMember tif:pmVOSource.getListTransferInfoMember()){
         if(tif.getName().equals("PaymentFeeMethod")){
-          if(tif.getValue().equals("Invoice")){
+          th.setFeeMethod(tif.getValue());
+          if(tif.getValue().equals("invoice")){
             fee="0";
             invoice=true;
             break;
@@ -497,6 +499,8 @@ public class TransferService {
     }
     logger.info("Transfer Fee = "+fee);
     logger.info("Setting transfer fee end");
+
+
 
     TransferLimit tl = tlRepo.findByTierAndDest(tier,tmpSKU);
     log.info("TL : "+tl.toString());
@@ -536,6 +540,7 @@ public class TransferService {
     th.setSku(sku);
     th.setPaymentMethod(paymentMethod);
     th.setChargingModelId(chargingModel);
+    th.setInvoice(invoice);
     TransactionHistoryStaging savedTH=thSTGRepo.save(th);
 
     vo.setAmount(amount);

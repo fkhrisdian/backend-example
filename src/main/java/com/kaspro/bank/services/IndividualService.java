@@ -101,6 +101,18 @@ public class IndividualService {
         return list;
     }
 
+    public List<Individual> findAllSorted(){
+        List<Individual> list=iRepo.findAllSort();
+
+        return list;
+    }
+
+    public List<Individual> findAllSrotLimited(int limit){
+        List<Individual> list=iRepo.findAllSortLimited(limit);
+
+        return list;
+    }
+
     @Transactional
     public IndividualRegistrationVO update(IndividualRegistrationVO individualVO){
         InitDB initDB=InitDB.getInstance();

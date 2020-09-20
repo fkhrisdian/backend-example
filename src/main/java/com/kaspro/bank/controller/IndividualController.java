@@ -40,6 +40,20 @@ public class IndividualController {
 
     @RequestMapping(method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/GetSorted")
+    @ResponseBody
+    public ResponseEntity<ResultVO> findAllSorted() {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return iService.findAllSorted();
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             value="/GetDetail")
     @ResponseBody
     public ResponseEntity<ResultVO> findPartnerDetail(@RequestParam(value="id", required = true) int id) {
@@ -47,6 +61,20 @@ public class IndividualController {
             @Override
             public Object processRequest() {
                 return iService.getIndividualDetail(id);
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/GetLimited")
+    @ResponseBody
+    public ResponseEntity<ResultVO> findLimited(@RequestParam(value="limit", required = true) int limit) {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return iService.findAllSrotLimited(limit);
             }
         };
         return handler.getResult();

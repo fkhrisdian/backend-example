@@ -104,4 +104,10 @@ public class TransactionHistory extends Base{
 
     @Column(name = "PAYMENT_AMOUNT")
     private String paymentAmount;
+
+    @Column(name = "IS_INVOICE")
+    private boolean isInvoice;
+
+    @Column(name = "FEE_METHOD")
+    private String feeMethod;
 }

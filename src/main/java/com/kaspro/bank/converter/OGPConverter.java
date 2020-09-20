@@ -136,6 +136,8 @@ public class OGPConverter {
     th.setAddress2(thSTG.getAddress2());
     th.setDatetimeISO(thSTG.getDatetimeISO());
     th.setPaymentAmount(thSTG.getPaymentAmount());
+    th.setInvoice(thSTG.isInvoice());
+    th.setFeeMethod(thSTG.getFeeMethod());
     return th;
   }
 }
