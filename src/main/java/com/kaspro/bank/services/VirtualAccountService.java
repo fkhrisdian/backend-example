@@ -487,8 +487,10 @@ public class VirtualAccountService {
                 throw new NostraException("Virtual Account Not Found", StatusCode.DATA_NOT_FOUND);
             }
         }
+        java.util.Date currentTime = new java.util.Date();
+        String referenceNumber = ogpService.getCustomerReferenceNumber(currentTime,notif.getVirtual_account());
 
-        th.setTid(notif.getTrx_id());
+        th.setTid(referenceNumber);
         th.setCreditAcc(notif.getVirtual_account());
         th.setCreditName(notif.getCustomer_name());
         th.setAmount(notif.getTrx_amount());
@@ -499,6 +501,8 @@ public class VirtualAccountService {
         th.setPaymentAmount(notif.getPayment_amount());
         th.setPaymentNtb(notif.getPayment_ntb());
         th.setDest(notif.getVirtual_account());
+        th.setInvoice(false);
+        th.setTrxId(notif.getTrx_id());
 
         try {
             java.util.Date createdDate = new SimpleDateFormat("yyyyy-MM-dd HH:mm:ss").parse(notif.getDatetime_payment());

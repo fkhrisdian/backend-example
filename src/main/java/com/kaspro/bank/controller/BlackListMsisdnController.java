@@ -68,6 +68,21 @@ public class BlackListMsisdnController {
         return handler.getResult();
     }
 
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/GetDetail2")
+    @ResponseBody
+    public ResponseEntity<ResultVO> findDetail2(@RequestParam(value="id", required = true) String id) {
+        log.info(id);
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return service.findById2(id);
+            }
+        };
+        return handler.getResult();
+    }
+
     @RequestMapping(method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Delete")

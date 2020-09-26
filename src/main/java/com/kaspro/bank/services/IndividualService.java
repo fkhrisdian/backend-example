@@ -515,7 +515,7 @@ public class IndividualService {
         individual.setBirth_place(vo.getBirth_place());
         individual.setAddress(vo.getAddress());
         individual.setAdditional_info(vo.getAdditional_info());
-        individual.setName(namePrefix+" "+vo.getName());
+        individual.setName(vo.getName());
         result.setIndividual(individual);
         return result;
     }

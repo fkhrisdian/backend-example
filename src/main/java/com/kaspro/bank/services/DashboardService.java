@@ -1,5 +1,6 @@
 package com.kaspro.bank.services;
 
+import com.kaspro.bank.persistance.repository.IndividualRepository;
 import com.kaspro.bank.persistance.repository.PartnerMemberRepository;
 import com.kaspro.bank.persistance.repository.RequestCardRepository;
 import com.kaspro.bank.persistance.repository.TransactionHistoryRepository;
@@ -23,6 +24,9 @@ public class DashboardService {
 
     @Autowired
     GlobalHashmapService ghService;
+
+    @Autowired
+    IndividualRepository iRepo;
 
     public DashboardResVO getDashboard(){
         DashboardResVO result = new DashboardResVO();
@@ -48,14 +52,23 @@ public class DashboardService {
                 return result;
             }else {
                 log.info("Dashboard Hashmap Already Expired, Updating Dashboard Hashmap");
-                result.setTotalCashout("0");
-                result.setTotalCashout7("0");
-                result.setTotalCustomer(pmRepo.findByLastDays("1"));
-                result.setTotalCustomer7(pmRepo.findByLastDays("7"));
-                result.setTotalRequestDebitCard(rcRepo.findByLastDays("1"));
-                result.setTotalRequestDebitCard7(rcRepo.findByLastDays("7"));
-                result.setTotalTransaction(thRepo.findByLastDays("1"));
-                result.setTotalTransaction7(thRepo.findByLastDays("7"));
+                int totalCPM1 = Integer.parseInt(pmRepo.findByLastDays("0"));
+                int totalCPM7 = Integer.parseInt(pmRepo.findByLastDays("6"));
+
+                int totalI1 = Integer.parseInt(iRepo.findByLastDays("0"));
+                int totalI7 = Integer.parseInt(iRepo.findByLastDays("6"));
+
+                int totalCust1 = (totalCPM1+totalI1);
+                int totalCust7 = (totalCPM7+totalI7);
+
+                result.setTotalCashout(thRepo.findCashOutByLastDays("0"));
+                result.setTotalCashout7(thRepo.findCashOutByLastDays("6"));
+                result.setTotalCustomer(String.valueOf(totalCust1));
+                result.setTotalCustomer7(String.valueOf(totalCust7));
+                result.setTotalRequestDebitCard(rcRepo.findByLastDays("0"));
+                result.setTotalRequestDebitCard7(rcRepo.findByLastDays("6"));
+                result.setTotalTransaction(thRepo.findTransactionByLastDays("0"));
+                result.setTotalTransaction7(thRepo.findTransactionByLastDays("6"));
                 log.info(result.toString());
                 ghService.updateDashboardHashmap("getDashboard",result);
                 return getDashboard();
@@ -69,15 +82,23 @@ public class DashboardService {
 
     public void putDashboard(){
         DashboardResVO result = new DashboardResVO();
+        int totalCPM1 = Integer.parseInt(pmRepo.findByLastDays("0"));
+        int totalCPM7 = Integer.parseInt(pmRepo.findByLastDays("6"));
 
-        result.setTotalCashout("0");
-        result.setTotalCashout7("0");
-        result.setTotalCustomer(pmRepo.findByLastDays("1"));
-        result.setTotalCustomer7(pmRepo.findByLastDays("7"));
-        result.setTotalRequestDebitCard(rcRepo.findByLastDays("1"));
-        result.setTotalRequestDebitCard7(rcRepo.findByLastDays("7"));
-        result.setTotalTransaction(thRepo.findByLastDays("1"));
-        result.setTotalTransaction7(thRepo.findByLastDays("7"));
+        int totalI1 = Integer.parseInt(iRepo.findByLastDays("0"));
+        int totalI7 = Integer.parseInt(iRepo.findByLastDays("6"));
+
+        int totalCust1 = (totalCPM1+totalI1);
+        int totalCust7 = (totalCPM7+totalI7);
+
+        result.setTotalCashout(thRepo.findCashOutByLastDays("0"));
+        result.setTotalCashout7(thRepo.findCashOutByLastDays("6"));
+        result.setTotalCustomer(String.valueOf(totalCust1));
+        result.setTotalCustomer7(String.valueOf(totalCust7));
+        result.setTotalRequestDebitCard(rcRepo.findByLastDays("0"));
+        result.setTotalRequestDebitCard7(rcRepo.findByLastDays("6"));
+        result.setTotalTransaction(thRepo.findTransactionByLastDays("0"));
+        result.setTotalTransaction7(thRepo.findTransactionByLastDays("6"));
         log.info(result.toString());
 
         ghService.setDashboardHashmap("getDashboard",result);

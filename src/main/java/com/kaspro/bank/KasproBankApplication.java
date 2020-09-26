@@ -6,6 +6,7 @@ import com.jcraft.jsch.Session;
 import com.kaspro.bank.services.AuditTrailService;
 import com.kaspro.bank.services.BniEncryption;
 import com.kaspro.bank.services.GlobalHashmapService;
+import com.kaspro.bank.services.HttpProcessingService;
 import com.kaspro.bank.util.InitDB;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -18,6 +19,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.sql.Date;
+import java.util.TimeZone;
 
 @Slf4j
 @SpringBootApplication
@@ -30,7 +32,8 @@ public class KasproBankApplication {
 //		BniEncryption.TestBniEncryption(); // test encrypt decrypt
 		//InitDB config = InitDB.getInstance();
 		//log.info(a.toString());
-
+//		HttpProcessingService httpProcessingService=new HttpProcessingService();
+//		httpProcessingService.kasproValidate("089988776655");
 
 	}
 
@@ -59,7 +62,7 @@ class SshTunnelStarter {
 
 	@PostConstruct
 	public void init() {
-
+//		TimeZone.setDefault(TimeZone.getTimeZone("IST"));
 		JSch jsch = new JSch();
 		log.info("JSch started");
 		// Get SSH session

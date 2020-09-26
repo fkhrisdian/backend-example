@@ -243,32 +243,32 @@ public class PartnerService {
 
         TransferInfoMember tim2=new TransferInfoMember();
         tim2.setFlag("CPM");
-        tim2.setValue("true");
-        tim2.setName("AcessKasproBank");
+        tim2.setValue("on");
+        tim2.setName("AccessKasproBank");
         transferInfoMemberList.add(tim2);
 
         TransferInfoMember tim3=new TransferInfoMember();
         tim3.setFlag("CPM");
-        tim3.setValue("true");
-        tim3.setName("AcessKaspro");
+        tim3.setValue("on");
+        tim3.setName("AccessKaspro");
         transferInfoMemberList.add(tim3);
 
         TransferInfoMember tim4=new TransferInfoMember();
         tim4.setFlag("CPM");
-        tim4.setValue("true");
+        tim4.setValue("on");
         tim4.setName("AccessBNI");
         transferInfoMemberList.add(tim4);
 
         TransferInfoMember tim5=new TransferInfoMember();
         tim5.setFlag("CPM");
-        tim5.setValue("true");
+        tim5.setValue("on");
         tim5.setName("AccessOtherBank");;
         transferInfoMemberList.add(tim5);
 
         TransferInfoMember tim6=new TransferInfoMember();
         tim6.setFlag("CPM");
-        tim6.setValue("true");
-        tim6.setName("AccessEmoney");
+        tim6.setValue("on");
+        tim6.setName("AccessEMoney");
         transferInfoMemberList.add(tim6);
 
         TransferInfoMember tim7=new TransferInfoMember();

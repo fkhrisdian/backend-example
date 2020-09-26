@@ -9,6 +9,7 @@ import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.persistance.repository.BlacklistMsisdnRepository;
 import com.kaspro.bank.persistance.repository.IndividualRepository;
 import com.kaspro.bank.vo.BlacklistMsisdn.BlacklistMsisdnVO;
+import com.kaspro.bank.vo.BlacklistResponseVO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -131,5 +134,14 @@ public class BlacklistMsisdnService {
     public BlacklistMsisdn findById(String id){
         BlacklistMsisdn bm = bmRepo.findByBMId(id);
         return bm;
+    }
+
+    public BlacklistResponseVO findById2(String id){
+        BlacklistMsisdn bm = bmRepo.findByBMId(id);
+        BlacklistResponseVO bmResp = new BlacklistResponseVO();
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC+7:00"));
+        logger.info(String.valueOf(new Date()));
+        bmResp.setCreationDate(bm.getCreationDate());
+        return bmResp;
     }
 }

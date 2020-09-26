@@ -16,7 +16,7 @@ public class PartnerToken{
     @Id
     Long id;
 
-    @Column(name = "PARNTER_CODE")
+    @Column(name = "PARTNER_CODE")
     String partnerCode;
 
 }

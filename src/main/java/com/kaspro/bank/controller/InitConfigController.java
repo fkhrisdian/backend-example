@@ -114,9 +114,10 @@ public class InitConfigController {
     }
 
     @PostMapping(value = "/api/v1/KasprobankConfig/CertificateUpload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = "application/json")
-    public ResponseEntity saveUsers(@RequestParam(value = "files") MultipartFile[] files) throws Exception {
+    public ResponseEntity uploadCertificate(@RequestParam(value = "files") MultipartFile[] files,
+                                            @RequestParam(value = "name") String name) throws Exception {
         for (MultipartFile file : files) {
-            ogpService.uploadCertificate(file);
+            ogpService.uploadCertificate(file, name);
         }
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

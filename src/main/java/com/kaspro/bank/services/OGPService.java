@@ -53,7 +53,14 @@ public class OGPService {
         vo, ogpClientId, encryptionService.encrypt(ogpClientId + vo.getAccountNo()));
 
     String responseBody = ogpHttpService.callHttpPost(ogpBalanceUrl, request);
-    return gson.fromJson(responseBody, OgpBalanceRespVO.class);
+    OgpBalanceRespVO result = gson.fromJson(responseBody, OgpBalanceRespVO.class);
+    OgpBalanceRespVO.BalanceResponse balanceResponse=result.getGetBalanceResponse();
+    OgpBalanceRespVO.BalanceResponse.Parameter parameter=balanceResponse.getParameters();
+    parameter.setAccountBalance(valueBeforeDot(parameter.getAccountBalance()));
+    balanceResponse.setParameters(parameter);
+    result.setGetBalanceResponse(balanceResponse);
+
+    return result;
   }
 
   public OgpInHouseInquiryRespVO inHouseInquiry(InHouseInquiryVO vo) {
@@ -94,7 +101,14 @@ public class OGPService {
 
 
     String responseBody = ogpHttpService.callHttpPost(ogpInHousePaymentUrl, request);
-    return gson.fromJson(responseBody, OgpInHousePaymentRespVO.class);
+    OgpInHousePaymentRespVO result=gson.fromJson(responseBody, OgpInHousePaymentRespVO.class);
+    OgpInHousePaymentRespVO.PaymentResponse paymentResponse = result.getDoPaymentResponse();
+    OgpInHousePaymentRespVO.PaymentResponse.Parameter parameter= paymentResponse.getParameters();
+    parameter.setValueAmount(valueBeforeDot(parameter.getValueAmount()));
+    paymentResponse.setParameters(parameter);
+    result.setDoPaymentResponse(paymentResponse);
+
+    return result;
   }
 
   public OgpInterBankPaymentRespVO interBankPayment(InterBankPaymentVO vo) {
@@ -121,7 +135,16 @@ public class OGPService {
         vo, ogpClientId, encryptionService.encrypt(ogpClientId + vo.getCustomerReferenceNumber()));
 
     String responseBody = ogpHttpService.callHttpPost(ogpPaymentStatusUrl, request);
-    return gson.fromJson(responseBody, OgpPaymentStatusRespVO.class);
+    OgpPaymentStatusRespVO result=gson.fromJson(responseBody, OgpPaymentStatusRespVO.class);
+    OgpPaymentStatusRespVO.PaymentStatusResponse paymentStatusResponse=result.getGetPaymentStatusResponse();
+    OgpPaymentStatusRespVO.PaymentStatusResponse.Parameter parameter=paymentStatusResponse.getParameters();
+    OgpPaymentStatusRespVO.PaymentStatusResponse.Parameter.PreviousResponse previousResponse=parameter.getPreviousResponse();
+    previousResponse.setValueAmount(valueBeforeDot(previousResponse.getValueAmount()));
+    parameter.setPreviousResponse(previousResponse);
+    paymentStatusResponse.setParameters(parameter);
+    result.setGetPaymentStatusResponse(paymentStatusResponse);
+
+    return result;
   }
 
   public String getValueDate(Date date) {
@@ -132,5 +155,14 @@ public class OGPService {
   public String getCustomerReferenceNumber(Date date, String account) {
     Random random = new Random();
     return getValueDate(date).concat(account);
+  }
+
+  public String valueBeforeDot(String value){
+
+    if(value.contains(".")){
+      return value.substring(0, value.indexOf("."));
+    }else {
+      return value;
+    }
   }
 }

@@ -11,7 +11,7 @@ public interface PartnerTokenRepository extends JpaRepository<PartnerToken, Long
             nativeQuery = true)
     PartnerToken findPT(Long id);
 
-    @Query(value="SELECT * FROM kasprobank.PARTNER_TOKEN where PARNTER_CODE=?1",
+    @Query(value="SELECT * FROM kasprobank.PARTNER_TOKEN where PARTNER_CODE=?1",
             nativeQuery = true)
     PartnerToken findPC(String pc);
 }

@@ -111,4 +111,7 @@ public class TransactionHistoryStaging extends Base{
     @Column(name = "FEE_METHOD")
     private String feeMethod;
 
+    @Column(name = "TRX_ID")
+    private String trxId;
+
 }

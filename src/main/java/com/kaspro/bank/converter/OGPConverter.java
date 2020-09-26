@@ -138,6 +138,7 @@ public class OGPConverter {
     th.setPaymentAmount(thSTG.getPaymentAmount());
     th.setInvoice(thSTG.isInvoice());
     th.setFeeMethod(thSTG.getFeeMethod());
+    th.setTrxId(thSTG.getTrxId());
     return th;
   }
 }

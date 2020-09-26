@@ -66,14 +66,14 @@ public class OGPEncryptionService {
     }
   }
 
-  public String uploadCertificate(final MultipartFile file) throws Exception{
+  public String uploadCertificate(final MultipartFile file, String name) throws Exception{
     InitFileDB initFileDB=InitFileDB.getInstance();
-    Blob certificate=initFileDB.get("OGP.Certificate");
+    Blob certificate=initFileDB.get(name);
 
     if(certificate!=null){
       log.info("Update Certificate");
       Blob certi = new SerialBlob(convertFileContentToBlob(file));
-      FileConfig fileConfig=fileConfigService.getByName("OGP.Certificate");
+      FileConfig fileConfig=fileConfigService.getByName(name);
       fileConfig.setParam_value(certi);
       fileConfigService.update(fileConfig);
       fileConfigController.reLoad();
@@ -82,7 +82,7 @@ public class OGPEncryptionService {
       Blob certi = new SerialBlob(convertFileContentToBlob(file));
       FileConfig fileConfig = new FileConfig();
       fileConfig.setParam_value(certi);
-      fileConfig.setParam_name("OGP.Certificate");
+      fileConfig.setParam_name(name);
       fileConfigService.add(fileConfig);
       fileConfigController.reLoad();
     }

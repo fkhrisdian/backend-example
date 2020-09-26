@@ -6,7 +6,7 @@ spring:
     #url: jdbc:mysql://dabdb-pub.mysql.ap-southeast-5.rds.aliyuncs.com:6033/kasprobank?useSSL=false
     #prod
     #username: bankadm
-    #assword: B@nk-PRO1
+    #password: B@nk-PRO1
     username: devuser
     password: Kokas2020!#
     driver-class-name: com.mysql.jdbc.Driver

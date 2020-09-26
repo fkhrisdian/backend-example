@@ -377,6 +377,22 @@ public class TransferController {
     return handler.getResult();
   }
 
+  @RequestMapping(method = RequestMethod.POST,
+          consumes = MediaType.APPLICATION_JSON_VALUE,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          value="/ValueBeforeDot")
+  @ResponseBody
+  public ResponseEntity<K2KBResultVO> wrapperTransfer(@RequestBody final PaymentStatusVO vo) {
+    log.info(vo.toString());
+    K2KBAbstractRequestHandler handler = new K2KBAbstractRequestHandler() {
+      @Override
+      public Object processRequest() {
+        return transferService.valueBeforeDot(vo.getCustomerReferenceNumber());
+      }
+    };
+    return handler.getResult();
+  }
+
   @RequestMapping(method = RequestMethod.DELETE,
           produces = MediaType.APPLICATION_JSON_VALUE,
           value="/Transfer/Cancel")

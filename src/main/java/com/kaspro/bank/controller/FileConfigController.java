@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -65,6 +66,7 @@ public class FileConfigController {
     }
 
 
+    @Scheduled(cron = "0 0/15 * * * *")
     @GetMapping(value = "/api/v1/FileConfigReload", produces = MediaType.APPLICATION_JSON_VALUE)
     public String reLoad(){
         List<FileConfig> listX = service.findAll();
@@ -106,9 +108,10 @@ public class FileConfigController {
     }
 
     @PostMapping(value = "/api/v1/FileConfig/CertificateUpload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = "application/json")
-    public ResponseEntity saveUsers(@RequestParam(value = "files") MultipartFile[] files) throws Exception {
+    public ResponseEntity uploadCertificate(@RequestParam(value = "files") MultipartFile[] files,
+                                            @RequestParam(value = "name") String name) throws Exception {
         for (MultipartFile file : files) {
-            ogpService.uploadCertificate(file);
+            ogpService.uploadCertificate(file, name);
         }
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
