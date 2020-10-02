@@ -40,6 +40,20 @@ public class IndividualController {
 
     @RequestMapping(method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE,
+            value="/Get2")
+    @ResponseBody
+    public ResponseEntity<ResultVO> findAll2() {
+        AbstractRequestHandler handler = new AbstractRequestHandler() {
+            @Override
+            public Object processRequest() {
+                return iService.getIndividual();
+            }
+        };
+        return handler.getResult();
+    }
+
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             value="/GetSorted")
     @ResponseBody
     public ResponseEntity<ResultVO> findAllSorted() {

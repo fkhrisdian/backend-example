@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -618,5 +619,25 @@ public class IndividualService {
         }else {
             throw new NostraException("Invalid MSISDN Format", StatusCode.ERROR);
         }
+    }
+
+    public GetIndividualResVO convertGetIndividualResVO(Individual i){
+        GetIndividualResVO vo = new GetIndividualResVO();
+        vo.setEmail(i.getEmail());
+        vo.setId(i.getId());
+        vo.setIdType(i.getId_type());
+        vo.setMsisdn(i.getMsisdn());
+        vo.setName(i.getName());
+        return vo;
+    }
+
+    public List<GetIndividualResVO> getIndividual(){
+        List<Individual> individuals=iRepo.findAllSort();
+        List<GetIndividualResVO> vos=new ArrayList<>();
+        for (Individual i:individuals){
+            GetIndividualResVO vo = convertGetIndividualResVO(i);
+            vos.add(vo);
+        }
+        return vos;
     }
 }
