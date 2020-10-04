@@ -211,7 +211,7 @@ public class PartnerMemberService {
     }
 
     @Transactional
-    public RegisterPartnerMemberVO update(RegisterPartnerMemberVO vo){
+    public RegisterPartnerMemberVO update(RegisterPartnerMemberVO vo, String user){
 
         InitDB initDB=InitDB.getInstance();
         String namePrefix = initDB.get("VA.Name.Prefix");
@@ -227,7 +227,7 @@ public class PartnerMemberService {
 
         TrailAudit ta=new TrailAudit();
         ta.setStartDtm(currDate);
-        ta.setUser("System");
+        ta.setUser(user);
         ta.setOwnerID(savedPartnerMember.getId().toString());
 
         logger.info("Starting insert Data PIC");
@@ -359,8 +359,13 @@ public class PartnerMemberService {
     @Transactional
     public String updateStatus(UpdateStatusVO vo){
         List<PartnerMember> partnerMembers = pmRepository.findListPartnerMember(vo.getId());
+        VirtualAccount va = vaRepository.findByPartnerID2(partnerMembers.get(0).getId());
         if(partnerMembers.size()>0){
             pmRepository.udpateStatus(vo.getStatus(), vo.getId());
+            if (va!=null){
+                va.setStatus(vo.getStatus());
+                vaRepository.save(va);
+            }
         }else{
             throw new NostraException("Partner Member Does not Exist",StatusCode.DATA_NOT_FOUND);
         }

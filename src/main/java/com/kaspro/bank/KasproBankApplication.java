@@ -27,7 +27,7 @@ import java.util.TimeZone;
 @EnableSwagger2
 public class KasproBankApplication {
 	public static void main(String[] args) throws Exception {
-		new SshTunnelStarter().init();
+//		new SshTunnelStarter().init();
 		SpringApplication.run(KasproBankApplication.class, args);
 //		BniEncryption.TestBniEncryption(); // test encrypt decrypt
 		//InitDB config = InitDB.getInstance();

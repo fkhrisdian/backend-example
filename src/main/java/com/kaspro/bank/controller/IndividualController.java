@@ -1,7 +1,11 @@
 package com.kaspro.bank.controller;
 
+import com.kaspro.bank.enums.StatusCode;
+import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.Individual;
+import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.services.IndividualService;
+import com.kaspro.bank.services.UserService;
 import com.kaspro.bank.vo.Individual.IndividualRegistrationVO;
 import com.kaspro.bank.vo.Individual.IndividualReqVO;
 import com.kaspro.bank.vo.Individual.IndividualResVO;
@@ -23,6 +27,9 @@ public class IndividualController {
 
     @Autowired
     IndividualService iService;
+
+    @Autowired
+    UserService userService;
 
     @RequestMapping(method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE,
@@ -163,12 +170,17 @@ public class IndividualController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Update")
     @ResponseBody
-    public ResponseEntity<ResultVO> update(@RequestBody final IndividualRegistrationVO vo) {
+    public ResponseEntity<ResultVO> update(@RequestHeader(value = "Authorization") String authorization,
+                                           @RequestBody final IndividualRegistrationVO vo) {
         log.info(vo.toString());
+        User user = userService.validateToken(authorization);
+        if(user==null){
+            throw new NostraException("Unauthorized", StatusCode.UNAUTHORIZED);
+        }
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
-                return iService.update(vo);
+                return iService.update(vo, user.getUsername());
             }
         };
         return handler.getResult();
@@ -179,12 +191,17 @@ public class IndividualController {
         produces = MediaType.APPLICATION_JSON_VALUE,
         value="/UpdateTier")
     @ResponseBody
-    public ResponseEntity<ResultVO> updateTier(@RequestBody final IndividualRegistrationVO vo) {
+    public ResponseEntity<ResultVO> updateTier(@RequestHeader(value = "Authorization") String authorization,
+                                               @RequestBody final IndividualRegistrationVO vo) {
         log.info(vo.toString());
+        User user = userService.validateToken(authorization);
+        if(user==null){
+            throw new NostraException("Unauthorized", StatusCode.UNAUTHORIZED);
+        }
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
-                return iService.updateTier(vo);
+                return iService.updateTier(vo, user.getUsername());
             }
         };
         return handler.getResult();

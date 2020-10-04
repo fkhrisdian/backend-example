@@ -245,7 +245,7 @@ public class TransferService {
           if(!iVo.getIndividual().getStatus().equals("ACTIVE")){
             throw new NostraException("Destination account is not active",StatusCode.ERROR);
           }
-          th.setDebitName(iVo.getIndividual().getName());
+//          th.setDebitName(iVo.getIndividual().getName());
           vo.setDestinationName(iVo.getIndividual().getName());
           th.setCreditName(iVo.getIndividual().getName());
         }
@@ -257,7 +257,7 @@ public class TransferService {
           if(!pmVO.getPartnerMember().getStatus().equals("ACTIVE")){
             throw new NostraException("Destination account is not active",StatusCode.ERROR);
           }
-          th.setDebitName(pmVOSource.getPartnerMember().getName());
+//          th.setDebitName(pmVOSource.getPartnerMember().getName());
           vo.setDestinationName(pmVO.getPartnerMember().getName());
           th.setCreditName(pmVO.getPartnerMember().getName());
         }

@@ -6,8 +6,10 @@ import com.kaspro.bank.exception.NostraException;
 import com.kaspro.bank.persistance.domain.BlacklistMsisdn;
 import com.kaspro.bank.persistance.domain.Individual;
 import com.kaspro.bank.persistance.domain.User;
+import com.kaspro.bank.persistance.domain.VirtualAccount;
 import com.kaspro.bank.persistance.repository.BlacklistMsisdnRepository;
 import com.kaspro.bank.persistance.repository.IndividualRepository;
+import com.kaspro.bank.persistance.repository.VirtualAccountRepository;
 import com.kaspro.bank.vo.BlacklistMsisdn.BlacklistMsisdnVO;
 import com.kaspro.bank.vo.BlacklistResponseVO;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +42,9 @@ public class BlacklistMsisdnService {
     @Autowired
     IndividualRepository iRepo;
 
+    @Autowired
+    VirtualAccountRepository vaRepo;
+
     Logger logger = LoggerFactory.getLogger(BlacklistMsisdn.class);
 
     private List<BlacklistMsisdnVO> parseCSVFile(final MultipartFile file) throws Exception {
@@ -66,10 +71,10 @@ public class BlacklistMsisdnService {
     }
 
     @Async
-    public CompletableFuture<List<BlacklistMsisdnVO>> saveBms(MultipartFile file) throws Exception {
+    public CompletableFuture<List<BlacklistMsisdnVO>> saveBms(MultipartFile file, String user) throws Exception {
         List<BlacklistMsisdnVO> bms = parseCSVFile(file);
         for(BlacklistMsisdnVO bm:bms){
-            this.add(bm);
+            this.add(bm, user);
         }
         return CompletableFuture.completedFuture(bms);
     }
@@ -92,12 +97,13 @@ public class BlacklistMsisdnService {
         }
     }
 
-    public BlacklistMsisdn add(BlacklistMsisdnVO vo){
+    public BlacklistMsisdn add(BlacklistMsisdnVO vo, String user){
         BlacklistMsisdn bm=bmRepo.findByMSISDN(vo.getMsisdn());
         Individual individual=iRepo.findByMsisdn2(vo.getMsisdn());
+        VirtualAccount va = vaRepo.findIndividual(vo.getMsisdn());
         if(individual==null){
             if(bm==null){
-                BlacklistMsisdn savedBm=bmRepo.save(converter.voToDomain(vo,"1"));
+                BlacklistMsisdn savedBm=bmRepo.save(converter.voToDomain(vo,"1", user));
                 return savedBm;
             }else {
                 return bm;
@@ -107,9 +113,13 @@ public class BlacklistMsisdnService {
                 vo.setEmail(individual.getEmail());
                 vo.setName(individual.getName());
                 vo.setVa(individual.getVa());
-                BlacklistMsisdn savedBm=bmRepo.save(converter.voToDomain(vo,"0"));
+                BlacklistMsisdn savedBm=bmRepo.save(converter.voToDomain(vo,"0", user));
                 individual.setStatus("BLACKLISTED");
                 iRepo.save(individual);
+                if(va!=null){
+                    va.setStatus("BLACKLISTED");
+                    vaRepo.save(va);
+                }
                 return savedBm;
             }else{
                 bm.setEmail(individual.getEmail());
@@ -119,6 +129,10 @@ public class BlacklistMsisdnService {
                 BlacklistMsisdn savedBm=bmRepo.save(bm);
                 individual.setStatus("BLACKLISTED");
                 iRepo.save(individual);
+                if(va!=null){
+                    va.setStatus("BLACKLISTED");
+                    vaRepo.save(va);
+                }
                 return savedBm;
             }
         }

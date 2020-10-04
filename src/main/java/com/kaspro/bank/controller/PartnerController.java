@@ -1,6 +1,10 @@
 package com.kaspro.bank.controller;
 
+import com.kaspro.bank.enums.StatusCode;
+import com.kaspro.bank.exception.NostraException;
+import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.services.PartnerService;
+import com.kaspro.bank.services.UserService;
 import com.kaspro.bank.services.VirtualAccountService;
 import com.kaspro.bank.vo.*;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +24,9 @@ public class PartnerController {
 
     @Autowired
     VirtualAccountService virtualAccountService;
+
+    @Autowired
+    UserService userService;
 
     @RequestMapping(method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE,
@@ -70,12 +77,17 @@ public class PartnerController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Update")
     @ResponseBody
-    public ResponseEntity<ResultVO> update(@RequestBody final RegisterPartnerVO vo) {
+    public ResponseEntity<ResultVO> update(@RequestHeader(value = "Authorization") String authorization,
+                                           @RequestBody final RegisterPartnerVO vo) {
         log.info(vo.toString());
+        User user = userService.validateToken(authorization);
+        if(user==null){
+            throw new NostraException("Unauthorized", StatusCode.UNAUTHORIZED);
+        }
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
-                return partnerService.update(vo);
+                return partnerService.update(vo, user.getUsername());
             }
         };
         return handler.getResult();

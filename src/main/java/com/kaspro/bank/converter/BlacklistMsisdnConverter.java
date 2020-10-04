@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BlacklistMsisdnConverter {
 
-    public BlacklistMsisdn voToDomain(BlacklistMsisdnVO vo, String status){
+    public BlacklistMsisdn voToDomain(BlacklistMsisdnVO vo, String status, String user){
         BlacklistMsisdn result=new BlacklistMsisdn();
         result.setVa(vo.getVa());
         result.setEmail(vo.getEmail());
@@ -15,6 +15,7 @@ public class BlacklistMsisdnConverter {
         result.setReason(vo.getReason());
         result.setMsisdn(vo.getMsisdn());
         result.setStatus(status);
+        result.setCreatedBy(user);
         return result;
     }
 }

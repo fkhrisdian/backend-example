@@ -58,7 +58,7 @@ public class TransferLimitService {
     }
 
     @Transactional
-    public TransferLimitVO update(TransferLimitVO transferLimitVO){
+    public TransferLimitVO update(TransferLimitVO transferLimitVO, String user){
 
         Date currDate = new Date(System.currentTimeMillis());
         String tier=transferLimitVO.getType();
@@ -81,7 +81,7 @@ public class TransferLimitService {
                     ta.setValueBefore(updatedTransferLimit.getTransactionLimit());
                     ta.setValueAfter(attribute.getValue());
                     ta.setStartDtm(currDate);
-                    ta.setUser("System");
+                    ta.setUser(user);
                     ta.setOwnerID(tier);
                     updatedTransferLimit.setTransactionLimit(attribute.getValue());
                     logger.info("Updated Transaction Limit : " + updatedTransferLimit.getId());

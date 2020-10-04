@@ -1,6 +1,10 @@
 package com.kaspro.bank.controller;
 
+import com.kaspro.bank.enums.StatusCode;
+import com.kaspro.bank.exception.NostraException;
+import com.kaspro.bank.persistance.domain.User;
 import com.kaspro.bank.services.TransferLimitService;
+import com.kaspro.bank.services.UserService;
 import com.kaspro.bank.vo.ResultVO;
 import com.kaspro.bank.vo.TransferLimitVO;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +21,9 @@ public class TransferLimitController {
 
     @Autowired
     TransferLimitService transferLimitService;
+
+    @Autowired
+    UserService userService;
 
     @RequestMapping(method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -39,12 +46,17 @@ public class TransferLimitController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Update")
     @ResponseBody
-    public ResponseEntity<ResultVO> update(@RequestBody final TransferLimitVO vo) {
+    public ResponseEntity<ResultVO> update(@RequestHeader(value = "Authorization") String authorization,
+                                           @RequestBody final TransferLimitVO vo) {
         log.info(vo.toString());
+        User user = userService.validateToken(authorization);
+        if(user==null){
+            throw new NostraException("Unauthorized", StatusCode.UNAUTHORIZED);
+        }
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
-                return transferLimitService.update(vo);
+                return transferLimitService.update(vo, user.getUsername());
             }
         };
         return handler.getResult();

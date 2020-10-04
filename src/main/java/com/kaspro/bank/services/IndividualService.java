@@ -115,7 +115,7 @@ public class IndividualService {
     }
 
     @Transactional
-    public IndividualRegistrationVO update(IndividualRegistrationVO individualVO){
+    public IndividualRegistrationVO update(IndividualRegistrationVO individualVO, String user){
         InitDB initDB=InitDB.getInstance();
         String namePrefix = initDB.get("VA.Name.Prefix");
         ValidateMSISDNVO msisdnSource = rcService.validateMsisdn(individualVO.getIndividual().getMsisdn());
@@ -130,7 +130,7 @@ public class IndividualService {
 
         TrailAudit ta=new TrailAudit();
         ta.setOwnerID(savedIndividual.getId().toString());
-        ta.setUser("System");
+        ta.setUser(user);
         if(!vo.getAdditional_info().equals(savedIndividual.getAdditional_info())){
             ta.setField("Additional Info");
             ta.setValueBefore(savedIndividual.getAdditional_info());
@@ -452,7 +452,7 @@ public class IndividualService {
     }
 
     @Transactional
-    public IndividualRegistrationVO updateTier(IndividualRegistrationVO individualVO) {
+    public IndividualRegistrationVO updateTier(IndividualRegistrationVO individualVO, String user) {
         Individual vo = individualVO.getIndividual();
         Individual savedIndividual = iRepo.findIndividual(vo.getId());
         if (savedIndividual == null) {
@@ -461,7 +461,7 @@ public class IndividualService {
 
         TrailAudit ta = new TrailAudit();
         ta.setOwnerID(savedIndividual.getId().toString());
-        ta.setUser("System");
+        ta.setUser(user);
         if(!vo.getTier().equals(savedIndividual.getTier())){
             ta.setField("Tier");
             ta.setValueBefore(savedIndividual.getTier());

@@ -32,9 +32,14 @@ public class BlackListMsisdnController {
     private UserService userService;
 
     @PostMapping(value = "/FileUpload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = "application/json")
-    public ResponseEntity saveUsers(@RequestParam(value = "files") MultipartFile[] files) throws Exception {
+    public ResponseEntity saveUsers(@RequestHeader(value = "Authorization") String authorization,
+                                    @RequestParam(value = "files") MultipartFile[] files) throws Exception {
+        User user = userService.validateToken(authorization);
+        if(user==null){
+            throw new NostraException("Unauthorized", StatusCode.UNAUTHORIZED);
+        }
         for (MultipartFile file : files) {
-            service.saveBms(file);
+            service.saveBms(file, user.getUsername());
         }
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -103,12 +108,17 @@ public class BlackListMsisdnController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             value="/Add")
     @ResponseBody
-    public ResponseEntity<ResultVO> add(@RequestBody final BlacklistMsisdnVO vo) {
+    public ResponseEntity<ResultVO> add(@RequestHeader(value = "Authorization") String authorization,
+                                        @RequestBody final BlacklistMsisdnVO vo) {
         log.info(vo.toString());
+        User user = userService.validateToken(authorization);
+        if(user==null){
+            throw new NostraException("Unauthorized", StatusCode.UNAUTHORIZED);
+        }
         AbstractRequestHandler handler = new AbstractRequestHandler() {
             @Override
             public Object processRequest() {
-                return service.add(vo);
+                return service.add(vo, user.getUsername());
             }
         };
         return handler.getResult();

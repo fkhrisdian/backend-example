@@ -289,7 +289,7 @@ public class PartnerService {
     }
 
     @Transactional
-    public RegisterPartnerVO update(RegisterPartnerVO vo){
+    public RegisterPartnerVO update(RegisterPartnerVO vo, String user){
 
         List<Partner> listPartner = partnerRepository.findListPartner(vo.getPartner().getId());
         if(listPartner.size()==0){
@@ -327,7 +327,7 @@ public class PartnerService {
 
         TrailAudit ta=new TrailAudit();
         ta.setStartDtm(currDate);
-        ta.setUser("System");
+        ta.setUser(user);
         ta.setOwnerID(partner.getId().toString());
 
         logger.info("Starting update Tiers");
