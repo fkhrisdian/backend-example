@@ -11,7 +11,7 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>${LOG_PATH}/kaspro_bank.log</File>
+        <File>${LOG_PATH}/ms-subscriber.log</File>
         <encoder>
             <Pattern>${FILE_LOG_PATTERN}</Pattern>
         </encoder>

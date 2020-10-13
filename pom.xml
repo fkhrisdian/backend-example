@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.kaspro</groupId>
-	<artifactId>kaspro</artifactId>
+	<groupId>com.BESample</groupId>
+	<artifactId>BESample</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>kaspro_bank</name>
-	<description>Kaspro Bank</description>
+	<name>BESample</name>
+	<description>BESample</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>

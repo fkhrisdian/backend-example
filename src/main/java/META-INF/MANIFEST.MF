@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: com.kaspro.bank.KasproBankApplication
+Main-Class: com.kaspro.bank.BESampleApplication
 
