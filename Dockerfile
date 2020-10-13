@@ -1,5 +1,5 @@
 FROM openjdk:8-alpine
 
-COPY target/kaspro-*.jar /kaspro.jar
+COPY target/sample-*.jar /sample.jar
 
-CMD ["java", "-jar", "/kaspro.jar"]
+CMD ["java", "-jar", "/sample.jar"]

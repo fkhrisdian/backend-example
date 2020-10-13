@@ -1,6 +1,6 @@
-## KasPro - Bank
+## sample - Bank
 
-Provide API for KasPro Bank
+Provide API for sample Bank
 
 ### Requirement :
 
